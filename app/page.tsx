@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <main className="mx-auto flex min-h-full max-w-[900px] flex-col justify-center px-6 py-24">
@@ -25,6 +27,15 @@ export default function Home() {
 
       <p className="mt-16 max-w-[60ch] text-ink-2">
         Opening soon. Built by Pavel in Amsterdam.
+      </p>
+
+      <p className="mt-4 flex gap-6 text-ink-2">
+        <Link href="/privacy" className="underline underline-offset-4">
+          Privacy
+        </Link>
+        <Link href="/terms" className="underline underline-offset-4">
+          Terms
+        </Link>
       </p>
     </main>
   );
