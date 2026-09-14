@@ -49,7 +49,11 @@ export default async function BoardPage() {
             emptyLine={EMPTY_LINE[state]}
           >
             {view.cards[state].map((card) => (
-              <Card key={card.id} card={card} />
+              <Card
+                key={card.id}
+                body={card.draftText ?? card.idea}
+                scheduledAt={card.scheduledAt}
+              />
             ))}
           </Column>
         ))}
