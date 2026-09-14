@@ -15,7 +15,7 @@ The order changed once from the original plan. A bare deploy moved ahead of the 
 - [x] **Bare app deployed to Vercel.** https://goodsocials.co serves the holding page over a valid certificate, and `/api/linkedin/callback` returns 400 `{"error":"missing_code"}` rather than a 404. `www.goodsocials.co` has no DNS record yet, which is a Day 4 item, not a blocker.
 - [x] **All four scopes granted on a test authorization.** One consent returned `email, openid, profile, w_member_social` and a 60 day access token with no refresh token.
 - [x] **A hardcoded text post published to Pavel's real feed through `/rest/posts`.** 201, post URN returned in `x-restli-id`, live on the profile.
-- [ ] **`offline_access` answer recorded.** An isolated authorization request adding `offline_access` either returns a refresh token or fails with `unauthorized_scope_error`, and the result is written into the LinkedIn constraints section of CLAUDE.md.
+- [x] **`offline_access` answer recorded.** The isolated probe was refused by LinkedIn before reaching our callback. No refresh token is available on a standard app. Written into the LinkedIn constraints section of CLAUDE.md, along with the fact that the refusal is unloggable on our side.
 - [ ] **Repo scaffold, database, auth, board schema.** `npm run db:push` creates every table in the data model, signing in through the app creates an `account`, a `profile`, and an encrypted `linkedin_connection`, and the board page renders five empty columns.
 
 ## Day 2: intake and ideas

@@ -48,8 +48,8 @@ One real authorization and one real post to a real feed. Not documentation.
 ### Additions found during Day 1
 
 - Redirect URLs must be HTTPS. `http://localhost` is rejected by the developer portal, so local development uses the deployed callback or an HTTPS tunnel.
-- Requesting a scope the app has not been granted fails the whole authorization request with `unauthorized_scope_error`. It does not degrade quietly. Test unknown scopes in an isolated authorization attempt.
-- `offline_access` result: PENDING. The standard flow already returns no refresh token, so this only answers whether the scope is grantable at all. Record the answer here after the isolated probe.
+- **`offline_access` is not grantable.** Tested with a real isolated authorization. There is no refresh token to be had on a standard app, by any route. Re-authorization every 60 days is the design, not a fallback.
+- Requesting a scope the app has not been granted kills the whole authorization request, and it fails worse than documented. LinkedIn does **not** redirect back to `redirect_uri` with `error=unauthorized_scope_error`. It serves its own "Bummer, something went wrong" page and bounces the member to the bare app domain. Our callback never runs, so there is nothing to catch and nothing to log. A typo in the scope string is therefore invisible on our side and looks to the user like the product is broken. Build the scope list from `LINKEDIN_SCOPES` only, never from a string literal at a call site, and never add a scope without checking the Products tab first.
 - Commentary escaping: PENDING. The Day 1 post carried unescaped parentheses and an apostrophe. Check the live post before wiring `escapeCommentary()` into the draft path.
 - A pinned `LinkedIn-Version` stays valid about 12 months and then starts returning errors. Same silent failure class as a dead token. It is tracked by the same expiry monitor.
 - Images need three calls: `POST /rest/images?action=initializeUpload`, `PUT` the binary to the returned upload URL, then reference the image URN in the post body. Each step fails independently.
