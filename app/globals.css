@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+/* House design tokens. See DESIGN.md for what is specific to GoodSocials. */
+:root {
+  --paper: #f4f4f4;
+  --surface: #ffffff;
+  --ink: #000000;
+  --ink-2: #6e6e73;
+  --ink-3: #b4b4b8;
+  --hairline: #e6e6e6;
+  --accent: #e8590c;
+  --accent-ink: #ffffff;
+
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.08);
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Board dimensions, DESIGN.md section 3 */
+  --col-width: 320px;
+  --col-gutter: 16px;
+  --card-gap: 8px;
+  --card-min-h: 88px;
+  --col-head-h: 44px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0a0a0a;
+    --surface: #1c1c1e;
+    --ink: #ffffff;
+    --ink-2: #98989d;
+    --ink-3: #545458;
+    --hairline: #2c2c2e;
+  }
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-hairline: var(--hairline);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
