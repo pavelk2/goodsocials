@@ -27,20 +27,42 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
   // Our own page. The Auth.js default is an unbranded button naming a major
   // platform, which is what Safe Browsing flagged as social engineering.
-  pages: { signIn: "/signin" },
+  pages: { signIn: "/signin", error: "/auth-error" },
   callbacks: {
     async signIn({ account, profile }) {
-      if (!account?.access_token || !profile?.sub) return false;
-      await onboardMember({
-        memberId: profile.sub,
-        name: profile.name,
-        email: profile.email,
-        avatarUrl: typeof profile.picture === "string" ? profile.picture : null,
-        accessToken: account.access_token,
-        expiresAt:
-          account.expires_at ?? Math.floor(Date.now() / 1000) + 60 * 24 * 3600,
-        scopes: account.scope ?? LINKEDIN_SCOPES.join(","),
-      });
+      if (!account?.access_token || !profile?.sub) {
+        console.error(
+          "[signIn] LinkedIn returned no access token or no sub, refusing",
+        );
+        return false;
+      }
+      try {
+        await onboardMember({
+          memberId: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          avatarUrl:
+            typeof profile.picture === "string" ? profile.picture : null,
+          accessToken: account.access_token,
+          expiresAt:
+            account.expires_at ?? Math.floor(Date.now() / 1000) + 60 * 24 * 3600,
+          scopes: account.scope ?? LINKEDIN_SCOPES.join(","),
+        });
+      } catch (cause) {
+        // Auth.js turns any throw here into a bare AccessDenied, which is the
+        // same code a member declining consent produces. Name the real cause
+        // once, loudly, so the log says what to do rather than what happened.
+        const message = cause instanceof Error ? cause.message : String(cause);
+        if (/relation .* does not exist|42P01/.test(message)) {
+          console.error(
+            "[signIn] the database has no tables. Run /api/admin/migrate before signing in.",
+            message,
+          );
+        } else {
+          console.error("[signIn] could not create the account:", message);
+        }
+        return false;
+      }
       return true;
     },
     async jwt({ token, profile }) {
