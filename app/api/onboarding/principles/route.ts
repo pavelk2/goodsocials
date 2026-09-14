@@ -72,9 +72,11 @@ export async function POST(request: Request) {
     ),
   );
 
+  // The URL is kept because the traffic goal has to have somewhere to link to,
+  // and because re-reading the page later beats asking for it twice.
   await db
     .update(boardTable)
-    .set({ goal })
+    .set({ goal, siteUrl: site.url })
     .where(eq(boardTable.profileId, prof.id));
 
   return Response.json({ principles, siteUrl: site.url });

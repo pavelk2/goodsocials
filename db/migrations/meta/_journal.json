@@ -8,6 +8,13 @@
       "when": 1789377748784,
       "tag": "0000_large_human_torch",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789396032068,
+      "tag": "0001_tranquil_terror",
+      "breakpoints": true
     }
   ]
 }

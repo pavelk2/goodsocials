@@ -5,8 +5,62 @@ import { eq, and } from "drizzle-orm";
 import { auth } from "@/auth";
 import { getDb } from "@/db";
 import { profile as profileTable, brandPrinciple } from "@/db/schema";
+import {
+  approveCard,
+  rejectCard,
+  reviseCard,
+  topUpDrafts,
+  type CardResult,
+} from "@/lib/cards";
 
 const KINDS = new Set(["voice", "visual", "format"]);
+
+/**
+ * The three actions, and nothing else a card can do. Each one is a thin wrapper
+ * around lib/cards.ts: the session is checked here, the work happens there, and
+ * the board is revalidated once at the end so a card and the principle it just
+ * rewrote refresh together.
+ */
+
+export async function approve(cardId: string): Promise<CardResult> {
+  const session = await auth();
+  if (!session?.memberId) return { ok: false, error: "Sign in first." };
+
+  const result = await approveCard(session.memberId, cardId);
+  if (result.ok) revalidatePath("/board");
+  return result;
+}
+
+export async function revise(
+  cardId: string,
+  comment: string,
+): Promise<CardResult> {
+  const session = await auth();
+  if (!session?.memberId) return { ok: false, error: "Sign in first." };
+
+  const result = await reviseCard(session.memberId, cardId, comment);
+  if (result.ok) revalidatePath("/board");
+  return result;
+}
+
+export async function reject(cardId: string): Promise<CardResult> {
+  const session = await auth();
+  if (!session?.memberId) return { ok: false, error: "Sign in first." };
+
+  const result = await rejectCard(session.memberId, cardId);
+  if (result.ok) revalidatePath("/board");
+  return result;
+}
+
+/** Called once by the board when the Draft column is thin. See lib/cards.ts. */
+export async function topUp(): Promise<{ written: number }> {
+  const session = await auth();
+  if (!session?.memberId) return { written: 0 };
+
+  const written = await topUpDrafts(session.memberId);
+  if (written > 0) revalidatePath("/board");
+  return { written };
+}
 
 /**
  * Editing is the exception path, the same way editing a card's text is. The

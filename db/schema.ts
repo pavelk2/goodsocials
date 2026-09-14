@@ -115,6 +115,8 @@ export const board = pgTable("board", {
     .references(() => profile.id, { onDelete: "cascade" })
     .unique(),
   goal: boardGoal("goal").notNull().default("interesting"),
+  /** The URL brand intake read. The traffic goal links here and tags it. */
+  siteUrl: text("site_url"),
   /** Posts per week. Close to daily is 5. Drives the runway calculation. */
   targetCadence: integer("target_cadence").notNull().default(5),
   createdAt: timestamp("created_at", { withTimezone: true })

@@ -1,38 +1,140 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { approve, reject, revise } from "@/app/board/actions";
+import { CardShell } from "./card-shell";
+import type { Column } from "@/lib/board";
+
 /**
- * The one place card markup lives, and the one exception to rows not cards.
- * A kanban card is literally picked up and moved, it has an interior, and two
- * cards in the same column are at different points in their own lifecycle.
- * See DESIGN.md section 4.
+ * Three actions and no fourth. The approve button is labelled with what happens
+ * next rather than with the word Approve, because the writing rules say a
+ * button names its outcome, and because approving an idea and approving a
+ * finished post do very different things to somebody's month. The row written
+ * to card_action still says "approve".
  */
+const APPROVE_LABEL: Partial<Record<Column, string>> = {
+  idea: "Write the draft",
+  draft: "Make the image",
+  image: "Schedule it",
+};
+
+type ActionResult = { ok: boolean; message?: string; error?: string };
+
 export function Card({
+  id,
+  state,
   body,
+  imageUrl,
   scheduledAt,
-  comment,
 }: {
+  id: string;
+  state: Column;
   body: string;
+  imageUrl?: string | null;
   scheduledAt?: Date | null;
-  /** An open revise comment. The exception state, not the resting one. */
-  comment?: string;
 }) {
-  const when = scheduledAt
-    ? new Intl.DateTimeFormat("en-GB", {
-        day: "numeric",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-      }).format(scheduledAt)
-    : null;
+  const [commenting, setCommenting] = useState(false);
+  const [comment, setComment] = useState("");
+  const [confirmingReject, setConfirmingReject] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  const approveLabel = APPROVE_LABEL[state];
+
+  function run(work: () => Promise<ActionResult>) {
+    setError(null);
+    setNote(null);
+    startTransition(async () => {
+      const result = await work();
+      if (result.ok) {
+        setNote(result.message ?? null);
+        setCommenting(false);
+        setComment("");
+      } else {
+        setError(result.error ?? "That did not work.");
+      }
+      setConfirmingReject(false);
+    });
+  }
 
   return (
-    <article className="min-h-[88px] rounded-[14px] border border-hairline bg-surface px-4 py-[14px]">
-      <p className="line-clamp-3 text-[15px] leading-[1.4] text-ink">{body}</p>
-      {when ? <p className="num mt-2 text-[13px] text-ink-2">{when}</p> : null}
-      {comment ? (
+    <CardShell body={body} imageUrl={imageUrl} scheduledAt={scheduledAt}>
+      {commenting ? (
         <div className="mt-3 border-t border-hairline pt-3">
-          <p className="text-[13px] font-medium text-ink-2">Revise</p>
-          <p className="mt-1 text-[13px] leading-[1.4] text-ink">{comment}</p>
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            rows={3}
+            autoFocus
+            placeholder="What should change? It sticks for every post after this one."
+            className="w-full rounded-[8px] border border-hairline bg-surface px-3 py-2 text-[13px] leading-[1.4] text-ink outline-none placeholder:text-ink-3"
+          />
+          <div className="mt-2 flex gap-4 text-[13px]">
+            <button
+              type="button"
+              disabled={pending || comment.trim().length < 3}
+              onClick={() => run(() => revise(id, comment))}
+              className="font-medium text-ink underline disabled:text-ink-3 disabled:no-underline"
+            >
+              {pending ? "Rewriting" : "Send it"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setCommenting(false);
+                setComment("");
+                setError(null);
+              }}
+              className="text-ink-2 underline"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
+      ) : (
+        <div className="mt-3 flex items-center gap-4 border-t border-hairline pt-3 text-[13px]">
+          {approveLabel ? (
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() => run(() => approve(id))}
+              className="font-medium text-ink underline disabled:text-ink-3 disabled:no-underline"
+            >
+              {pending ? "Working" : approveLabel}
+            </button>
+          ) : null}
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => setCommenting(true)}
+            className="text-ink-2 underline disabled:text-ink-3 disabled:no-underline"
+          >
+            Revise
+          </button>
+          {/* Two clicks, because a rejected card leaves the board and the undo
+              for a mis-click is regenerating it. No modal for that. */}
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() =>
+              confirmingReject ? run(() => reject(id)) : setConfirmingReject(true)
+            }
+            className="ml-auto text-ink-2 underline disabled:text-ink-3 disabled:no-underline"
+          >
+            {confirmingReject ? "Sure?" : "Reject"}
+          </button>
+        </div>
+      )}
+
+      {note ? (
+        <p className="mt-3 text-[13px] leading-[1.4] text-ink-2">{note}</p>
       ) : null}
-    </article>
+      {error ? (
+        <p className="mt-3 text-[13px] leading-[1.4] text-ink" role="alert">
+          {error}
+        </p>
+      ) : null}
+    </CardShell>
   );
 }
