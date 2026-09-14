@@ -12,7 +12,7 @@ The order changed once from the original plan. A bare deploy moved ahead of the 
 
 - [ ] **LinkedIn app exists and is verified.** Pavel can open the app in the developer portal, it is associated with a LinkedIn Page, and the Verification tab shows verified. (Pavel only, cannot be done from the container.)
 - [ ] **Both products added.** The Products tab lists Sign In with LinkedIn using OpenID Connect and Share on LinkedIn, both with status Added. (Pavel only.)
-- [x] **Bare app deployed to Vercel.** https://goodsocials.vercel.app returns the holding page, and `/api/linkedin/callback` returns 400 `{"error":"missing_code"}` rather than a 404.
+- [x] **Bare app deployed to Vercel.** goodsocials.co is attached and deploying on push, and on https://goodsocials.vercel.app the holding page renders and `/api/linkedin/callback` returns 400 `{"error":"missing_code"}` rather than a 404. The apex certificate was still provisioning when this was ticked, so re-check https://goodsocials.co serves before Day 4.
 - [ ] **All four scopes granted on a test authorization.** A single authorization request for `openid profile email w_member_social` returns a code, the exchange returns an access token, and the token response lists all four scopes.
 - [ ] **A hardcoded text post published to Pavel's real feed through `/rest/posts`.** The response carries an `x-restli-id` post URN and the post is visible on the profile in a browser.
 - [ ] **`offline_access` answer recorded.** An isolated authorization request adding `offline_access` either returns a refresh token or fails with `unauthorized_scope_error`, and the result is written into the LinkedIn constraints section of CLAUDE.md.
@@ -39,7 +39,7 @@ The order changed once from the original plan. A bare deploy moved ahead of the 
 - [ ] **Token expiry monitor.** A connection 50 days old sends the re-authorization email through Loops, at 55 days the board shows a banner, and at 60 days the connection is marked dead and scheduling pauses rather than failing post by post.
 - [ ] **Queue runway warning.** A board with fewer than 3 days of approved cards shows the runway in days and generates new ideas automatically.
 - [ ] **Stripe checkout at both prices.** Both prices complete a real checkout in test mode, the webhook sets the plan and seat limit, and an agency account can create a second profile while a solo account cannot.
-- [ ] **Landing page and pricing page.** Both live at goodsocials.co, the offer copy is verbatim, both prices are on the page with no gap between them, and the board screenshot is the hero.
+- [ ] **Landing page and pricing page.** Both live at https://goodsocials.co over a valid certificate, the offer copy is verbatim, both prices are on the page with no gap between them, and the board screenshot is the hero.
 
 ## Pre-launch
 

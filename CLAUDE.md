@@ -102,7 +102,7 @@ No values in this file, ever.
 | `DATABASE_URL` | Neon Postgres connection string, pooled |
 | `DATABASE_URL_UNPOOLED` | Direct connection for migrations |
 | `AUTH_SECRET` | Auth.js session encryption |
-| `AUTH_URL` | Canonical origin for OAuth callbacks |
+| `AUTH_URL` | Canonical origin for OAuth callbacks, `https://goodsocials.co` in production |
 | `LINKEDIN_CLIENT_ID` | LinkedIn app client id |
 | `LINKEDIN_CLIENT_SECRET` | LinkedIn app client secret |
 | `LINKEDIN_API_VERSION` | Pinned `YYYYMM` sent as `LinkedIn-Version` on every call |
@@ -131,7 +131,15 @@ npm run typecheck              # tsc --noEmit, run before every push
 npm run lint
 ```
 
-Deploy: push the branch. Vercel builds a preview per branch. `main` is production at goodsocials.co.
+Deploy: push the branch. Vercel builds a preview per branch.
+
+Domains. `goodsocials.co` is the canonical production domain and the only one
+that appears in copy, emails, OAuth redirect URIs, UTM links, or anything a
+user sees. `goodsocials.vercel.app` is the Vercel alias and stays as a fallback
+while DNS or a certificate settles. Per-deployment URLs such as
+`goodsocials-timetuna.vercel.app` sit behind Vercel Authentication, so nothing
+external can redirect to them. No file hardcodes a host: OAuth redirect URIs
+are derived from the incoming request, so a preview authorizes against itself.
 
 To publish a real LinkedIn post from the command line during development:
 ```

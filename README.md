@@ -17,4 +17,4 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Built by Pavel in Amsterdam.
+Production is https://goodsocials.co. Built by Pavel in Amsterdam.

@@ -9,31 +9,31 @@ written and waiting.
 2. Associate it with a LinkedIn Page you admin. Verify it from the Settings tab.
 3. Products tab: add **Sign In with LinkedIn using OpenID Connect** and
    **Share on LinkedIn**. Both are self-serve, no approval queue.
-4. Auth tab: add the redirect URL. It must be HTTPS. `http://localhost` is
-   rejected, which is why the deploy comes first.
+4. Auth tab: add the redirect URLs. They must be HTTPS. `http://localhost` is
+   rejected, which is why the deploy comes first. Add both. The app derives the
+   redirect URI from the host you opened, so either works, and the second one
+   keeps you moving if the goodsocials.co certificate is still provisioning.
    ```
+   https://goodsocials.co/api/linkedin/callback
    https://goodsocials.vercel.app/api/linkedin/callback
    ```
 5. Copy the Client ID and Client Secret.
 
 ## 2. Vercel project
 
-Done. https://goodsocials.vercel.app on the Kucherbaev Services (Pro) team,
-linked to `pavelk2/goodsocials`, deploying on push.
+Done. `goodsocials.co` on the Kucherbaev Services (Pro) team, linked to
+`pavelk2/goodsocials`, deploying on push. `goodsocials.vercel.app` is the
+Vercel alias and works as a fallback.
 
 One thing left: the Vercel MCP integration cannot see this project, so Claude
 cannot read build logs or runtime errors for it. Add `goodsocials` to the
 integration's project access list next to `timetuna` and `goodlads`.
 
-Use the **production alias** for anything LinkedIn redirects to:
-
-```
-https://goodsocials.vercel.app/api/linkedin/callback
-```
-
-The per-deployment URL (`goodsocials-timetuna.vercel.app`) sits behind Vercel
-Authentication and will bounce LinkedIn's redirect to a login page. The
-production alias is public. Do not turn protection off, use the alias.
+Use a **public production host** for anything LinkedIn redirects to, meaning
+`goodsocials.co` or `goodsocials.vercel.app`. The per-deployment URL
+(`goodsocials-timetuna.vercel.app`) sits behind Vercel Authentication and will
+bounce LinkedIn's redirect to a login page. Do not turn protection off, use a
+production host.
 
 ## 3. Neon database
 
@@ -49,6 +49,7 @@ LINKEDIN_CLIENT_ID
 LINKEDIN_CLIENT_SECRET
 LINKEDIN_API_VERSION        202606
 LINKEDIN_DEBUG_SECRET       any random string, used as ?k= on the debug routes
+AUTH_URL                    https://goodsocials.co
 DATABASE_URL
 DATABASE_URL_UNPOOLED
 ```
@@ -59,10 +60,12 @@ put the expiry date somewhere you will see it.
 
 ## 5. The two clicks that finish Day 1
 
-Open these in order, with your own `LINKEDIN_DEBUG_SECRET` as `k`.
+Open these in order, with your own `LINKEDIN_DEBUG_SECRET` as `k`. If
+goodsocials.co is not serving yet, swap the host for goodsocials.vercel.app.
+The redirect URI follows whichever host you open, so it stays consistent.
 
 ```
-https://goodsocials.vercel.app/api/linkedin/start?k=SECRET
+https://goodsocials.co/api/linkedin/start?k=SECRET
 ```
 Consents to all four scopes once, exchanges the code, reads your member id, and
 publishes one hardcoded post to your feed. The page reports the scopes granted,
@@ -70,7 +73,7 @@ the token lifetime, whether a refresh token came back, and the post URN, then
 links to the live post. Your access token is never rendered or logged.
 
 ```
-https://goodsocials.vercel.app/api/linkedin/start?k=SECRET&probe=1
+https://goodsocials.co/api/linkedin/start?k=SECRET&probe=1
 ```
 The isolated `offline_access` test. It is isolated because an ungranted scope
 fails the whole authorization request rather than degrading, which would take
