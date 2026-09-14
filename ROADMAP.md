@@ -10,11 +10,11 @@ Every item has a done condition in observable terms. "Auth works" is not a done 
 
 The order changed once from the original plan. A bare deploy moved ahead of the token exchange, because LinkedIn rejects non-HTTPS redirect URLs, so doing the authorization before a deployed callback URL exists means registering a redirect URI twice and authorizing twice.
 
-- [ ] **LinkedIn app exists and is verified.** Pavel can open the app in the developer portal, it is associated with a LinkedIn Page, and the Verification tab shows verified. (Pavel only, cannot be done from the container.)
-- [ ] **Both products added.** The Products tab lists Sign In with LinkedIn using OpenID Connect and Share on LinkedIn, both with status Added. (Pavel only.)
+- [x] **LinkedIn app exists and is verified.** Pavel can open the app in the developer portal, it is associated with a LinkedIn Page, and the Verification tab shows verified. (Pavel only, cannot be done from the container.)
+- [x] **Both products added.** The Products tab lists Sign In with LinkedIn using OpenID Connect and Share on LinkedIn, both with status Added. (Pavel only.)
 - [x] **Bare app deployed to Vercel.** https://goodsocials.co serves the holding page over a valid certificate, and `/api/linkedin/callback` returns 400 `{"error":"missing_code"}` rather than a 404. `www.goodsocials.co` has no DNS record yet, which is a Day 4 item, not a blocker.
-- [ ] **All four scopes granted on a test authorization.** A single authorization request for `openid profile email w_member_social` returns a code, the exchange returns an access token, and the token response lists all four scopes.
-- [ ] **A hardcoded text post published to Pavel's real feed through `/rest/posts`.** The response carries an `x-restli-id` post URN and the post is visible on the profile in a browser.
+- [x] **All four scopes granted on a test authorization.** One consent returned `email, openid, profile, w_member_social` and a 60 day access token with no refresh token.
+- [x] **A hardcoded text post published to Pavel's real feed through `/rest/posts`.** 201, post URN returned in `x-restli-id`, live on the profile.
 - [ ] **`offline_access` answer recorded.** An isolated authorization request adding `offline_access` either returns a refresh token or fails with `unauthorized_scope_error`, and the result is written into the LinkedIn constraints section of CLAUDE.md.
 - [ ] **Repo scaffold, database, auth, board schema.** `npm run db:push` creates every table in the data model, signing in through the app creates an `account`, a `profile`, and an encrypted `linkedin_connection`, and the board page renders five empty columns.
 

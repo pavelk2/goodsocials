@@ -34,11 +34,23 @@ Request all four scopes in one authorization request so the member consents once
 
 The constraint that shapes the architecture: access tokens last 60 days and standard apps do not receive a refresh token. Plan for re-authorization every 60 days. Build the expiry monitor in the first pass. The failure mode is silent: a dead token means weeks of scheduled posts never publish and the user hears about it from their client. At 12 accounts that is the difference between keeping and losing a 1000 USD subscription.
 
+### Verified against the live API on Day 1
+
+One real authorization and one real post to a real feed. Not documentation.
+
+- All four scopes come back from a single consent, in this order: `email, openid, profile, w_member_social`.
+- Access token lifetime is exactly 60 days.
+- **No refresh token is returned.** The constraint that shapes the architecture is confirmed, not assumed. Re-authorization every 60 days is real work the product has to do for the user.
+- `/rest/posts` returns **201** with the post URN in the `x-restli-id` response header and an empty body. Read the header, not the body.
+- The pinned `LinkedIn-Version: 202606` is accepted. Re-check before it ages past 12 months.
+- Author URN is `urn:li:person:{sub}` where `sub` comes from the OIDC `/v2/userinfo` response. The userinfo endpoint is unversioned and rejects the `LinkedIn-Version` header.
+
 ### Additions found during Day 1
 
-- Redirect URLs must be HTTPS. `http://localhost` is rejected by the developer portal, so local development uses the deployed Vercel callback or an HTTPS tunnel.
+- Redirect URLs must be HTTPS. `http://localhost` is rejected by the developer portal, so local development uses the deployed callback or an HTTPS tunnel.
 - Requesting a scope the app has not been granted fails the whole authorization request with `unauthorized_scope_error`. It does not degrade quietly. Test unknown scopes in an isolated authorization attempt.
-- `offline_access` result: PENDING. Record the answer here after the isolated test.
+- `offline_access` result: PENDING. The standard flow already returns no refresh token, so this only answers whether the scope is grantable at all. Record the answer here after the isolated probe.
+- Commentary escaping: PENDING. The Day 1 post carried unescaped parentheses and an apostrophe. Check the live post before wiring `escapeCommentary()` into the draft path.
 - A pinned `LinkedIn-Version` stays valid about 12 months and then starts returning errors. Same silent failure class as a dead token. It is tracked by the same expiry monitor.
 - Images need three calls: `POST /rest/images?action=initializeUpload`, `PUT` the binary to the returned upload URL, then reference the image URN in the post body. Each step fails independently.
 
