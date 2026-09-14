@@ -12,22 +12,28 @@ written and waiting.
 4. Auth tab: add the redirect URL. It must be HTTPS. `http://localhost` is
    rejected, which is why the deploy comes first.
    ```
-   https://<the vercel url>/api/linkedin/callback
+   https://goodsocials.vercel.app/api/linkedin/callback
    ```
 5. Copy the Client ID and Client Secret.
 
 ## 2. Vercel project
 
-The MCP integration created a project id it cannot read back, then returned 403
-on deploy, so this needs the dashboard.
+Done. https://goodsocials.vercel.app on the Kucherbaev Services (Pro) team,
+linked to `pavelk2/goodsocials`, deploying on push.
 
-1. Check https://vercel.com/timetuna for an existing `goodsocials` project
-   before creating one. A half-created project may already be there.
-2. Connect it to `pavelk2/goodsocials`, or import the repo fresh.
-3. Put it on the **Kucherbaev Services** (Pro) team, not Hobby. Hobby cron
-   cannot run more than once a day, and the publisher needs minute granularity.
-4. Settings, Deployment Protection: turn **Vercel Authentication off for
-   preview deployments**. LinkedIn's redirect cannot get through a login wall.
+One thing left: the Vercel MCP integration cannot see this project, so Claude
+cannot read build logs or runtime errors for it. Add `goodsocials` to the
+integration's project access list next to `timetuna` and `goodlads`.
+
+Use the **production alias** for anything LinkedIn redirects to:
+
+```
+https://goodsocials.vercel.app/api/linkedin/callback
+```
+
+The per-deployment URL (`goodsocials-timetuna.vercel.app`) sits behind Vercel
+Authentication and will bounce LinkedIn's redirect to a login page. The
+production alias is public. Do not turn protection off, use the alias.
 
 ## 3. Neon database
 
@@ -53,11 +59,10 @@ put the expiry date somewhere you will see it.
 
 ## 5. The two clicks that finish Day 1
 
-Open these in order, on the deployed URL, with your own `LINKEDIN_DEBUG_SECRET`
-as `k`.
+Open these in order, with your own `LINKEDIN_DEBUG_SECRET` as `k`.
 
 ```
-https://<vercel url>/api/linkedin/start?k=SECRET
+https://goodsocials.vercel.app/api/linkedin/start?k=SECRET
 ```
 Consents to all four scopes once, exchanges the code, reads your member id, and
 publishes one hardcoded post to your feed. The page reports the scopes granted,
@@ -65,7 +70,7 @@ the token lifetime, whether a refresh token came back, and the post URN, then
 links to the live post. Your access token is never rendered or logged.
 
 ```
-https://<vercel url>/api/linkedin/start?k=SECRET&probe=1
+https://goodsocials.vercel.app/api/linkedin/start?k=SECRET&probe=1
 ```
 The isolated `offline_access` test. It is isolated because an ungranted scope
 fails the whole authorization request rather than degrading, which would take
