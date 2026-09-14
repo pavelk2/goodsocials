@@ -10,10 +10,11 @@ export const OPERATOR = "GoodSocials, operated from Amsterdam, Netherlands";
 export const CONTACT = "privacy@goodsocials.co";
 export const LAST_UPDATED = "14 September 2026";
 
-/** The two prices from the offer. Stated on the terms page, in the plan rows. */
+/** The prices from the offer. Stated on the landing page and the terms page. */
 export const PRICE_SOLO = "100 USD a month";
 export const PRICE_AGENCY = "1000 USD a month";
-export const AGENCY_SEATS = 12;
+export const PRICE_CONSULTANCY = "2000 USD a month";
+export const AGENCY_SEATS = 10;
 
 /** Hard cap from CLAUDE.md, counted in the database, stated in the terms. */
 export const IMAGE_CAP_PER_MONTH = 200;

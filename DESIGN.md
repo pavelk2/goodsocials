@@ -37,7 +37,7 @@ Pavel's position was the board as a real screenshot with real cards, one card mi
 
 **Addition: the single motion moment demonstrates the loop.** The house style allows one orchestrated moment per page, and only when it shows something a still cannot. This is exactly that case. Below the hero, a short silent loop, four seconds, no scroll trigger: comment typed on a card, the matching principle rewrites itself, the next card down changes to match. No narration, no captions, no cursor animation. It is the only moving thing on the page. It honours `prefers-reduced-motion` by holding on the last frame, which is still legible.
 
-Everything else on the page stays quiet: the offer sentence set at hero scale, the two prices as hairline rows, a feature list as typographic rows with no icons, and a footer naming who built it and where.
+Everything else on the page stays quiet: the offer sentence set at hero scale, the three prices as three plain cards, a feature list as typographic rows with no icons, and a footer naming who built it and where.
 
 ---
 
@@ -80,7 +80,7 @@ The rule still holds for the rest of the product, and this is where the discipli
 
 - The three brand principles are rows, not cards. Three boxes with icons is the exact pattern the house style bans.
 - The dashboard is rows: posts this month, current streak, days of runway, image quota. Label left, number right, tabular, hairline between.
-- Pricing is two hairline rows, not two pricing cards with a badge on the recommended one.
+- Pricing is three cards side by side, plan name, price, one line of what you get. No badge on a recommended one, no checkmark lists, no shadow.
 - Settings is rows.
 - The landing page feature list is typographic rows with no icon, no border, no shadow.
 
