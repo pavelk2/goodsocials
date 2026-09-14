@@ -58,6 +58,15 @@ Two values depart from the house type scale, both recorded here so nobody
   off-white ground is 1.8:1 and the dark pairing is 2.4:1, so both fail AA at
   any size. `--ink-2` is 4.2:1 and still reads as a second level.
 
+A third departure, from the color rule rather than the type scale: **the light
+page is pure white.** Pavel's call. The house rule is that the ground is never
+`#FFFFFF`, and the board depends on it, because a white card reads by sitting
+on off-white. So `--paper` is now `#FFFFFF` and a new `--sunken` carries the
+off-white into the board: columns and the comment box use `--sunken`, cards
+stay `--surface`, and the hero frame separates from the page with its hairline
+and shadow. Anything that needs a card to read against a ground uses
+`--sunken`, never `--paper`.
+
 ## 3. Board dimensions
 
 The board is the dense surface. The marketing page around it is the airy one. That contrast is the effect, so do not soften the board.
@@ -97,7 +106,7 @@ The rule still holds for the rest of the product, and this is where the discipli
 
 - The three brand principles are rows, not cards. Three boxes with icons is the exact pattern the house style bans.
 - The dashboard is rows: posts this month, current streak, days of runway, image quota. Label left, number right, tabular, hairline between.
-- Pricing is two hairline rows, not two pricing cards with a badge on the recommended one.
+- Pricing is three typographic columns under a hairline each, never pricing cards. No box around a tier, no border, no shadow, no badge on a recommended one, and nothing that makes one tier a different shape from the others. They stack into rows on a phone, which is what they already are.
 - Settings is rows.
 - The landing page feature list is typographic rows with no icon, no border, no shadow.
 

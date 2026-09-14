@@ -2,7 +2,13 @@
 
 /* House design tokens. See DESIGN.md for what is specific to GoodSocials. */
 :root {
-  --paper: #f4f4f4;
+  /*
+   * Pavel's call: the light page is pure white, which departs from the house
+   * rule that the ground is never #FFFFFF. --sunken carries what --paper used
+   * to do inside the board, so a white card still sits on something.
+   */
+  --paper: #ffffff;
+  --sunken: #f4f4f4;
   --surface: #ffffff;
   --ink: #000000;
   --ink-2: #6e6e73;
@@ -30,6 +36,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --paper: #0a0a0a;
+    --sunken: #0a0a0a;
     --surface: #1c1c1e;
     --ink: #ffffff;
     --ink-2: #98989d;
@@ -40,6 +47,7 @@
 
 @theme inline {
   --color-paper: var(--paper);
+  --color-sunken: var(--sunken);
   --color-surface: var(--surface);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);

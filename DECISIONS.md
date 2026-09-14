@@ -30,9 +30,9 @@ The product is the queue, and an editor invites the user to do the work they are
 Rejected: followers, impressions, engagement rate.
 It is the outcome we sell, and it is the only one we can promise.
 
-**100 USD per profile, 1000 USD for up to 12 profiles.**
+**Three plans: Pro at 100 USD, Agency at 1000 USD, Consultant at 2000 USD.**
 Rejected: a middle tier, a free tier, a contact-us enterprise tier.
-Two numbers with no gap is the whole pricing conversation, and a middle tier invents a buyer who does not exist.
+Pavel's call, 14 September 2026, replacing the earlier two-price entry. Consultant is Agency plus one call a month with him, so it is a top tier with a stated number and a concrete deliverable, not the contact-us tier that stays rejected. Nothing lands between 100 and 1000, because a middle tier still invents a buyer who does not exist.
 
 ---
 

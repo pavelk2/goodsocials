@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { HeroBoard } from "@/components/marketing/hero-board";
-import { AGENCY_SEATS, PRICE_AGENCY, PRICE_SOLO } from "@/lib/legal";
+import { AGENCY_SEATS, PLANS, PRICE_SOLO } from "@/lib/legal";
 
 /**
  * The landing page. The offer copy in CLAUDE.md is the source and is set here
@@ -58,22 +58,31 @@ export default function Home() {
 
         <section className="mx-auto w-full max-w-[1100px] px-6 pb-24">
           <h2 className="type-head max-w-[18ch]">
-            <span>Two prices.</span>{" "}
+            <span>Three prices.</span>{" "}
             <span className="cont">
-              One for your own profile, one for the {AGENCY_SEATS} you run for
-              other people.
+              Pro for your own profile, Agency for {AGENCY_SEATS} of them,
+              Consultant when you want Pavel on a call once a month.
             </span>
           </h2>
 
-          <ul className="mt-12 max-w-[620px]">
-            <li className="flex items-baseline justify-between border-b border-hairline py-[14px]">
-              <span>One LinkedIn profile</span>
-              <span className="num text-ink-2">{PRICE_SOLO}</span>
-            </li>
-            <li className="flex items-baseline justify-between border-b border-hairline py-[14px]">
-              <span>Up to {AGENCY_SEATS} profiles, for agencies</span>
-              <span className="num text-ink-2">{PRICE_AGENCY}</span>
-            </li>
+          {/*
+            Three columns, no card chrome: no box, no border around the tier,
+            no shadow, and no badge on a recommended one. A top hairline per
+            column reads as a table and stacks into rows on a phone.
+          */}
+          <ul className="mt-12 grid gap-x-12 gap-y-10 sm:grid-cols-3">
+            {PLANS.map((plan) => (
+              <li key={plan.name} className="border-t border-hairline pt-4">
+                <h3 className="font-semibold">{plan.name}</h3>
+                <p className="mt-1 text-[28px] font-semibold leading-[1.1] tracking-[-0.02em]">
+                  <span className="num">{plan.amount}</span>{" "}
+                  <span className="text-[17px] font-normal text-ink-2">
+                    {plan.period}
+                  </span>
+                </p>
+                <p className="mt-2 text-ink-2">{plan.summary}</p>
+              </li>
+            ))}
           </ul>
 
           <Link href="/start" className="btn btn-ink mt-12">

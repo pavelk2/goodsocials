@@ -4,9 +4,7 @@ import {
   OPERATOR,
   CONTACT,
   LAST_UPDATED,
-  PRICE_SOLO,
-  PRICE_AGENCY,
-  AGENCY_SEATS,
+  PLANS,
   IMAGE_CAP_PER_MONTH,
 } from "@/lib/legal";
 
@@ -51,11 +49,13 @@ export default function Terms() {
 
       <Section title="Plans and price">
         <ul className="mt-2">
-          <Row label="One LinkedIn profile" value={PRICE_SOLO} />
-          <Row
-            label={`Up to ${AGENCY_SEATS} profiles, for agencies`}
-            value={PRICE_AGENCY}
-          />
+          {PLANS.map((plan) => (
+            <Row
+              key={plan.name}
+              label={`${plan.name}, ${plan.terms}`}
+              value={plan.price}
+            />
+          ))}
           <Row
             label="Generated images"
             value={`${IMAGE_CAP_PER_MONTH} per profile per calendar month, regenerations included`}

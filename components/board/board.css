@@ -30,7 +30,7 @@
 
 .board-col {
   flex: 0 0 var(--col-width);
-  background: var(--paper);
+  background: var(--sunken);
   border-radius: var(--r-lg);
   padding: 0 8px 8px;
   align-self: flex-start;
@@ -59,8 +59,9 @@
 
 /*
  * Nothing hovers, nothing lifts, nothing has a drop shadow. A card separates
- * from the column ground by being white on off-white with a hairline. The
- * shadow is for drag only, when the card is genuinely in the air.
+ * from the column ground by being --surface on --sunken with a hairline, which
+ * is why the columns keep the off-white even though the page went pure white.
+ * The shadow is for drag only, when the card is genuinely in the air.
  */
 .board-card {
   display: flex;
@@ -100,7 +101,7 @@
 .board-card-comment {
   margin-top: 2px;
   padding: 8px 10px;
-  background: var(--paper);
+  background: var(--sunken);
   border-radius: var(--r-sm);
   font-size: 14px;
   line-height: 1.35;

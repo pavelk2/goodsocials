@@ -4,9 +4,13 @@
 
 > "AI social media manager for LinkedIn. Writes high quality content, you approve it in a kanban board, it schedules so you post regularly, close to daily. From 100 USD a month. Manage your clients' accounts from 1000 USD a month, up to 12 accounts."
 
-Two prices on the page, no gap between them:
-- 100 USD per month per LinkedIn profile
-- 1000 USD per month for up to 12 profiles
+Three prices on the page, no gap between them:
+- Pro, 100 USD per month per LinkedIn profile
+- Agency, 1000 USD per month for up to 12 profiles
+- Consultant, 2000 USD per month, Agency plus one call a month with Pavel
+
+The offer sentence above is still the hero copy and still says "from", so it
+holds. Consultant was added on 14 September 2026, see DECISIONS.md.
 
 This copy is the source. Do not improve it. Derive from it.
 
@@ -80,7 +84,7 @@ Log token and image spend per account so cost per customer is visible in PostHog
 
 ## Data model
 
-- `account` The paying entity. Holds the Stripe customer, plan (`solo` or `agency`), and profile seat limit (1 or 12).
+- `account` The paying entity. Holds the Stripe customer, plan (`solo`, `agency`, or `consultant`), and profile seat limit (1 for solo, 12 for the other two). Consultant differs from agency only in price and in the monthly call, which is not a product feature and is not modelled.
 - `profile` One LinkedIn person we post as. Belongs to an account. An agency account has up to 12. Owns its own board, principles, quota, and connection.
 - `linkedin_connection` Per profile. Encrypted access token, LinkedIn member URN, granted scopes, `connected_at`, `expires_at`, `status` (`active`, `expiring`, `dead`).
 - `token_expiry` Not a table. Derived from `linkedin_connection.expires_at`. Day 50 sends email, day 55 shows a banner, day 60 marks the connection `dead` and pauses scheduling instead of failing post by post.
@@ -114,6 +118,7 @@ No values in this file, ever.
 | `STRIPE_WEBHOOK_SECRET` | Verifies Stripe webhook signatures |
 | `STRIPE_PRICE_SOLO` | Price id for 100 USD per profile per month |
 | `STRIPE_PRICE_AGENCY` | Price id for 1000 USD for up to 12 profiles |
+| `STRIPE_PRICE_CONSULTANT` | Price id for 2000 USD, agency seats plus the monthly call |
 | `LOOPS_API_KEY` | Transactional email |
 | `NEXT_PUBLIC_POSTHOG_KEY` | Client analytics |
 | `NEXT_PUBLIC_POSTHOG_HOST` | PostHog ingest host |
