@@ -39,7 +39,7 @@ The order changed once from the original plan. A bare deploy moved ahead of the 
 - [ ] **Token expiry monitor.** A connection 50 days old sends the re-authorization email through Loops, at 55 days the board shows a banner, and at 60 days the connection is marked dead and scheduling pauses rather than failing post by post.
 - [ ] **Queue runway warning.** A board with fewer than 3 days of approved cards shows the runway in days and generates new ideas automatically.
 - [ ] **Stripe checkout at both prices.** Both prices complete a real checkout in test mode, the webhook sets the plan and seat limit, and an agency account can create a second profile while a solo account cannot.
-- [ ] **Landing page and pricing page.** Both live at https://goodsocials.co over a valid certificate, the offer copy is verbatim, both prices are on the page with no gap between them, and the board screenshot is the hero.
+- [ ] **Landing page and pricing page.** Partly done early, pulled forward because thin content was half of what got the domain flagged. The board screenshot still replaces the type-led hero once there is a real board to photograph. Both live at https://goodsocials.co over a valid certificate, the offer copy is verbatim, both prices are on the page with no gap between them, and the board screenshot is the hero.
 
 ## Pre-launch
 
@@ -88,6 +88,11 @@ Fallback: the client already counts calls per member per day and refuses above 1
 **Image cost overruns the margin.**
 Trigger: an account approaching 200 images in a month, visible in `image_quota`.
 Fallback: the cap is enforced in the database before the Replicate call. The cap is the fallback.
+
+**Google Safe Browsing flags the domain as phishing.**
+Hit on Day 1. A new domain with no content, serving an unbranded "Sign in with LinkedIn" page, is the exact shape of a credential harvester and Chrome blocked it with a red interstitial. A stranger cannot get past that screen, so the launch gate is impossible while it stands.
+Trigger: a red interstitial on any goodsocials.co URL, or Security Issues appearing in Google Search Console.
+Fallback: request a review in Search Console, which is the only thing that lifts it, and remove the signature so the review passes. Our own sign-in page that names what we ask for and what we never do, real content on the homepage, legal pages linked from every screen. Re-check before launch day, because a re-flag on Product Hunt morning ends the launch.
 
 **Stripe checkout works and nobody buys.**
 Trigger: signups reaching 7 cards but not reaching checkout.

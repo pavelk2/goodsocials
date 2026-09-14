@@ -25,6 +25,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   session: { strategy: "jwt" },
+  // Our own page. The Auth.js default is an unbranded button naming a major
+  // platform, which is what Safe Browsing flagged as social engineering.
+  pages: { signIn: "/signin" },
   callbacks: {
     async signIn({ account, profile }) {
       if (!account?.access_token || !profile?.sub) return false;
