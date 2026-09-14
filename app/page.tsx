@@ -14,8 +14,8 @@ export default function Home() {
   return (
     <>
       <main>
-        <section className="mx-auto max-w-[1200px] px-6 pt-24">
-          <h1 className="max-w-[26ch] text-[clamp(36px,5.2vw,68px)] font-semibold leading-[1.0] tracking-[-0.035em]">
+        <section className="mx-auto max-w-[1200px] px-6 pt-24 text-center">
+          <h1 className="mx-auto max-w-[26ch] text-[clamp(36px,5.2vw,68px)] font-semibold leading-[1.0] tracking-[-0.035em]">
             <span>AI social media manager for LinkedIn.</span>{" "}
             <span className="text-ink-3">
               It writes, you approve in a kanban board, it schedules so you post
@@ -32,12 +32,12 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="mt-20">
+          <div className="mt-24 text-left">
             <BoardPreview />
           </div>
         </section>
 
-        <section className="mx-auto max-w-[1200px] px-6 pt-28">
+        <section className="mx-auto max-w-[1200px] px-6 pt-36 md:pt-48">
           <h2 className="max-w-[24ch] text-[clamp(28px,4vw,48px)] font-semibold leading-[1.05] tracking-[-0.03em]">
             <span>Tell it once.</span>{" "}
             <span className="text-ink-3">
@@ -108,7 +108,7 @@ export default function Home() {
           </ul>
         </section>
 
-        <section className="mx-auto max-w-[1200px] px-6 pt-28">
+        <section className="mx-auto max-w-[1200px] px-6 pt-36 md:pt-48">
           <h2 className="max-w-[26ch] text-[clamp(28px,4vw,48px)] font-semibold leading-[1.05] tracking-[-0.03em]">
             <span>A ghostwriter costs 1500 to 3000 a month.</span>{" "}
             <span className="text-ink-3">
@@ -135,7 +135,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-[1200px] px-6 py-28">
+        <section className="mx-auto max-w-[1200px] px-6 pt-36 pb-28 md:pt-48">
           <h2 className="max-w-[24ch] text-[clamp(28px,4vw,48px)] font-semibold leading-[1.05] tracking-[-0.03em]">
             <span>What we ask LinkedIn for.</span>{" "}
             <span className="text-ink-3">
