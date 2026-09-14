@@ -13,10 +13,14 @@ import { Card } from "./card";
  * it genuinely floats, paper inside because that is the board's own ground.
  * It replaces a photograph once there is a real board worth photographing.
  *
- * The LinkedIn mark sits on the bottom corner of the frame. It is the one place
- * the board says where these posts end up, and it says it without a caption.
- * It does not move, does not animate, and is not a link. Top corner is taken by
- * the runway figure, which owns the accent.
+ * The LinkedIn mark sits on the top corner of the frame, tilted 15 degrees like
+ * a sticker somebody put there. It is the one place the board says where these
+ * posts end up, and it says it without a caption. The tilt is static: no
+ * animation, no straightening on hover, and it is not a link.
+ *
+ * The offsets are the tightest that clear two things. Rotation grows the box to
+ * about 69px across, so at 16px out the mark still ends inside the section's
+ * 24px gutter on a phone, and it clears the runway line inside the frame.
  */
 
 const VOICE =
@@ -95,13 +99,16 @@ export function BoardPreview() {
       <div
         role="img"
         aria-label="Posts to LinkedIn"
-        className="absolute -bottom-4 -right-4 z-10 flex h-14 w-14 items-center justify-center rounded-[18px] border border-hairline bg-surface text-[#0a66c2] sm:-bottom-5 sm:-right-5"
+        className="absolute -right-4 -top-4 z-10 flex h-14 w-14 rotate-[15deg] items-center justify-center rounded-[18px] border border-hairline bg-surface text-[#0a66c2] sm:-right-5 sm:-top-5"
         style={{ boxShadow: "var(--shadow)" }}
       >
         <LinkedInMark />
       </div>
 
-      <div className="flex items-baseline justify-between">
+      {/* Right padding reserves the corner the mark now occupies. Without it
+          the mark sits on top of the runway figure, worst on a phone where the
+          frame is narrow and the figure ends near the edge. */}
+      <div className="flex items-baseline justify-between pr-8 sm:pr-4">
         <p className="text-[13px] font-medium text-ink-2">Brand principles</p>
         <p className="text-[13px] text-ink-2">
           Runway <span className="num font-medium text-accent">9 days</span>
