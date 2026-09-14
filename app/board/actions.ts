@@ -7,11 +7,13 @@ import { getDb } from "@/db";
 import { profile as profileTable, brandPrinciple } from "@/db/schema";
 import {
   approveCard,
+  moveCard,
   rejectCard,
   reviseCard,
   topUpDrafts,
   type CardResult,
 } from "@/lib/cards";
+import { COLUMNS, type Column } from "@/lib/board";
 
 const KINDS = new Set(["voice", "visual", "format"]);
 
@@ -48,6 +50,21 @@ export async function reject(cardId: string): Promise<CardResult> {
   if (!session?.memberId) return { ok: false, error: "Sign in first." };
 
   const result = await rejectCard(session.memberId, cardId);
+  if (result.ok) revalidatePath("/board");
+  return result;
+}
+
+export async function move(
+  cardId: string,
+  target: string,
+): Promise<CardResult> {
+  const session = await auth();
+  if (!session?.memberId) return { ok: false, error: "Sign in first." };
+  if (!COLUMNS.includes(target as Column)) {
+    return { ok: false, error: "That column does not take cards." };
+  }
+
+  const result = await moveCard(session.memberId, cardId, target as Column);
   if (result.ok) revalidatePath("/board");
   return result;
 }

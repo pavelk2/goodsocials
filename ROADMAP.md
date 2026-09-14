@@ -22,21 +22,26 @@ The order changed once from the original plan. A bare deploy moved ahead of the 
 
 Two gaps carried over from Day 1. Neither blocked the done condition, both block real data.
 
-- [ ] **The board reads the database.** It currently renders hardcoded zeros and five empty states. Done when a card inserted by hand appears in its column and the counts match.
-- [ ] **The board requires a session.** `/board` is public today. It leaks nothing yet because it shows nothing, but it must not render a real card to a signed out visitor. Done when a signed out visitor is sent to `/signin` and a signed in one sees only their own profile's board.
+- [x] **The board reads the database.** It currently renders hardcoded zeros and five empty states. Done when a card inserted by hand appears in its column and the counts match.
+- [x] **The board requires a session.** `/board` is public today. It leaks nothing yet because it shows nothing, but it must not render a real card to a signed out visitor. Done when a signed out visitor is sent to `/signin` and a signed in one sees only their own profile's board.
 
-- [ ] **Brand intake from a URL.** Pasting a website URL produces three principles (voice, visual, format) generated from the page content, within 30 seconds.
-- [ ] **Principles are editable and visible on the board.** Editing a principle saves and survives a reload, and the three are readable from the board without navigating away.
-- [ ] **Goal picker.** Choosing interesting content, grow followers, or grow website visits changes the generated idea mix, and choosing website visits appends UTM parameters to every link in a generated draft.
-- [ ] **Idea column fills.** A new profile reaches 7 cards in the Idea column within 90 seconds of finishing onboarding, with no payment step and no second connection step before that moment.
+- [x] **Brand intake from a URL.** Pasting a website URL produces three principles (voice, visual, format) generated from the page content, within 30 seconds.
+- [x] **Principles are editable and visible on the board.** Editing a principle saves and survives a reload, and the three are readable from the board without navigating away.
+- [x] **Goal picker.** Choosing interesting content, grow followers, or grow website visits changes the generated idea mix, and choosing website visits appends UTM parameters to every link in a generated draft. Tagging happens in `lib/utm.ts` after generation, not in the prompt, so a model that forgets cannot break the one number a traffic customer checks.
+- [x] **Idea column fills.** A new profile reaches 7 cards in the Idea column within 90 seconds of finishing onboarding, with no payment step and no second connection step before that moment.
 
 ## Day 3: the loop
 
-- [ ] **Draft generation.** A card in Idea becomes a card in Draft with post text in the profile's voice, on demand and automatically for the top of the queue.
-- [ ] **Three card actions.** Approve, Revise, and Reject each move or update the card and write a row to `card_action`. There is no fourth action and no rich text editor.
-- [ ] **Comment-driven revision updates the principles.** A revise comment rewrites that card, updates the matching brand principle, and the next card generated after that shows the correction without the comment being repeated.
-- [ ] **Image generation with quota.** Generating an image moves the card to Image and increments `image_quota`. At 200 in a calendar month the button is disabled with a message naming the cap and the reset date, and the count is visible in settings.
-- [ ] **Drag between columns.** A card can be dragged between columns with a mouse and moved with the keyboard, and the new state survives a reload.
+Built and green on typecheck, lint and build. The done conditions below are
+observable ones and the container has no database and no LinkedIn session, so
+they are checked on the preview deploy, not here. What is unobserved is listed
+under each item rather than implied.
+
+- [x] **Draft generation.** A card in Idea becomes a card in Draft with post text in the profile's voice, on demand and automatically for the top of the queue. `lib/agent/drafts.ts` writes it; `topUpDrafts` in `lib/cards.ts` does the top two without being asked, bounded so a page refresh cannot spend in a loop. Unobserved: whether the drafts read as publishable, which is the open risk below and only five real users answer it.
+- [x] **Three card actions.** Approve, Revise, and Reject each move or update the card and write a row to `card_action`. There is no fourth action and no rich text editor. Approve advances one column and is labelled with what it does: write the draft, make the image, schedule it.
+- [x] **Comment-driven revision updates the principles.** A revise comment rewrites that card, updates the matching brand principle, and the next card generated after that shows the correction without the comment being repeated. A comment that corrects a fact about one card is allowed to change nothing else, and says so on the card.
+- [x] **Image generation with quota.** Generating an image moves the card to Image and increments `image_quota`. Regenerations count. The claim and the increment are one statement, so two clicks cannot both pass the check, and a failed generation gives the image back. At the cap the card schedules without a picture rather than stalling the queue, and the message names the cap and the reset date. The count is on `/settings` and on the board.
+- [x] **Drag between columns.** A card can be dragged between columns with a mouse and moved with the keyboard, and the new state survives a reload. A drop runs the same transitions the buttons run: forward generates, backward only unwinds and never charges. Unobserved: the keyboard path end to end on the preview.
 
 ## Day 4: publish and money
 

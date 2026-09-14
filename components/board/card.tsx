@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useDraggable } from "@dnd-kit/core";
 import { approve, reject, revise } from "@/app/board/actions";
 import { CardShell } from "./card-shell";
 import type { Column } from "@/lib/board";
@@ -40,6 +41,14 @@ export function Card({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  // Listeners go on the body, not on the article, so the action row stays
+  // clickable. dnd-kit's attributes make the body focusable and announce the
+  // keyboard instructions, which is how a card moves without a mouse.
+  const { setNodeRef, attributes, listeners, isDragging } = useDraggable({
+    id,
+    data: { state },
+  });
+
   const approveLabel = APPROVE_LABEL[state];
 
   function run(work: () => Promise<ActionResult>) {
@@ -59,7 +68,14 @@ export function Card({
   }
 
   return (
-    <CardShell body={body} imageUrl={imageUrl} scheduledAt={scheduledAt}>
+    <CardShell
+      body={body}
+      imageUrl={imageUrl}
+      scheduledAt={scheduledAt}
+      innerRef={setNodeRef}
+      style={isDragging ? { opacity: 0.4 } : undefined}
+      handleProps={{ ...attributes, ...listeners }}
+    >
       {commenting ? (
         <div className="mt-3 border-t border-hairline pt-3">
           <textarea

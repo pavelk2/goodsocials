@@ -123,6 +123,17 @@ export async function approveCard(
     const text = card.draftText;
     if (!text) return { ok: false, error: "That card has no text to illustrate." };
 
+    // A card dragged back from Image still has the picture it was given, and
+    // nobody should pay for it twice to move it forward again.
+    if (card.imageUrl) {
+      await db
+        .update(cardTable)
+        .set({ state: "image", updatedAt: new Date() })
+        .where(eq(cardTable.id, card.id));
+      await log(card.id, "approve", memberId);
+      return { ok: true };
+    }
+
     const result = await generateImage({
       profileId: profile.id,
       cardId: card.id,
@@ -287,6 +298,65 @@ export async function reviseCard(
     message: revision.principle
       ? revision.principle.note
       : "Fixed on this card. It was specific to this one, so nothing else changed.",
+  };
+}
+
+/**
+ * Dragging a card is the same decision as pressing its button, so it runs the
+ * same transitions. Forward a column at a time, which means a drag from Idea to
+ * Scheduled writes the draft and then the image, in order, and costs what
+ * pressing the button twice would cost. Backward only unwinds: nothing is
+ * generated, nothing is charged, and the card keeps the text and picture it
+ * already has.
+ *
+ * Posted is written by the cron when LinkedIn accepts the post. It is not a
+ * column a human can drag into, because the card there carries a real post URN.
+ */
+const ORDER = ["idea", "draft", "image", "scheduled", "posted"] as const;
+type Ordered = (typeof ORDER)[number];
+
+export async function moveCard(
+  memberId: string,
+  cardId: string,
+  target: Ordered,
+): Promise<CardResult> {
+  const loaded = await load(memberId, cardId);
+  if (!loaded) return { ok: false, error: "That card is not on your board." };
+
+  const from = ORDER.indexOf(loaded.card.state as Ordered);
+  const to = ORDER.indexOf(target);
+  if (from === -1 || to === -1) {
+    return { ok: false, error: "That column does not take cards." };
+  }
+  if (from === to) return { ok: true };
+
+  if (target === "posted" || loaded.card.state === "posted") {
+    return {
+      ok: false,
+      error: "Posted is written when LinkedIn accepts the post, not by hand.",
+    };
+  }
+
+  if (to > from) {
+    let last: CardResult = { ok: true };
+    for (let step = from; step < to; step += 1) {
+      last = await approveCard(memberId, cardId);
+      if (!last.ok) return last;
+    }
+    return last;
+  }
+
+  const db = getDb();
+  await db.delete(scheduledPost).where(eq(scheduledPost.cardId, cardId));
+  await db
+    .update(cardTable)
+    .set({ state: target, scheduledAt: null, updatedAt: new Date() })
+    .where(eq(cardTable.id, cardId));
+
+  return {
+    ok: true,
+    message:
+      loaded.card.state === "scheduled" ? "Taken out of the queue." : undefined,
   };
 }
 
