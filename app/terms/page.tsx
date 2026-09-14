@@ -6,6 +6,7 @@ import {
   LAST_UPDATED,
   PRICE_SOLO,
   PRICE_AGENCY,
+  PRICE_CONSULTANCY,
   AGENCY_SEATS,
   IMAGE_CAP_PER_MONTH,
 } from "@/lib/legal";
@@ -55,6 +56,10 @@ export default function Terms() {
           <Row
             label={`Up to ${AGENCY_SEATS} profiles, for agencies`}
             value={PRICE_AGENCY}
+          />
+          <Row
+            label={`Up to ${AGENCY_SEATS} profiles, and a call with the founder every week`}
+            value={PRICE_CONSULTANCY}
           />
           <Row
             label="Generated images"

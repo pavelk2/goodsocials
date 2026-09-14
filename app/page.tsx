@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Footer } from "@/components/footer";
 import { BoardPreview } from "@/components/board/board-preview";
+import { AGENCY_SEATS } from "@/lib/legal";
 
 /**
  * The offer copy is verbatim from CLAUDE.md. Do not improve it, derive from it.
@@ -15,6 +16,25 @@ import { BoardPreview } from "@/components/board/board-preview";
  */
 const section =
   "mx-auto flex min-h-svh w-full max-w-[1200px] flex-col justify-center px-6 py-24";
+
+/**
+ * Three plans, three cards, no badge on a recommended one. The price is the
+ * only thing set large, the seat count comes from lib/legal.ts so the landing
+ * page and the terms page cannot state different numbers.
+ */
+const PLANS = [
+  { name: "Pro", price: "100 USD", line: "One LinkedIn profile." },
+  {
+    name: "Agency",
+    price: "1000 USD",
+    line: `Up to ${AGENCY_SEATS} profiles, one board per client.`,
+  },
+  {
+    name: "Consultancy",
+    price: "2000 USD",
+    line: `Up to ${AGENCY_SEATS} profiles, and a call with the founder every week.`,
+  },
+];
 
 export default function Home() {
   return (
@@ -107,7 +127,7 @@ export default function Home() {
                 One board per client
               </h3>
               <p className="mt-2 text-ink-2">
-                For agencies. Up to twelve. Each client authorises their own
+                For agencies. Up to ten. Each client authorises their own
                 LinkedIn profile.
               </p>
             </li>
@@ -118,18 +138,27 @@ export default function Home() {
           <h2 className="max-w-[26ch] text-[clamp(28px,4vw,48px)] font-semibold leading-[1.05] tracking-[-0.03em]">
             <span>A ghostwriter costs 1500 to 3000 a month.</span>{" "}
             <span className="text-ink-3">
-              Two prices, both of them on this page.
+              Three prices, all of them on this page.
             </span>
           </h2>
-          <ul className="mt-10 max-w-[620px]">
-            <li className="flex items-baseline justify-between border-b border-hairline py-[14px]">
-              <span>One LinkedIn profile</span>
-              <span className="num text-ink-2">100 USD a month</span>
-            </li>
-            <li className="flex items-baseline justify-between border-b border-hairline py-[14px]">
-              <span>Up to 12 profiles, for agencies</span>
-              <span className="num text-ink-2">1000 USD a month</span>
-            </li>
+          <ul className="mt-12 grid gap-4 md:grid-cols-3">
+            {PLANS.map((plan) => (
+              <li
+                key={plan.name}
+                className="rounded-[20px] border border-hairline bg-surface p-6"
+              >
+                <h3 className="text-[15px] font-semibold tracking-[-0.01em]">
+                  {plan.name}
+                </h3>
+                <p className="num mt-6 text-[34px] font-semibold leading-none tracking-[-0.03em]">
+                  {plan.price}
+                </p>
+                <p className="mt-2 text-[15px] text-ink-3">a month</p>
+                <p className="mt-6 border-t border-hairline pt-6 text-[15px] text-ink-2">
+                  {plan.line}
+                </p>
+              </li>
+            ))}
           </ul>
           <div className="mt-10">
             <Link
