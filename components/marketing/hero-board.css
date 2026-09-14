@@ -1,0 +1,151 @@
+/*
+ * The one motion moment on the page, DESIGN.md section 2.
+ *
+ * Four seconds of action and then it holds: a comment is typed on a card, the
+ * matching brand principle rewrites itself, and the next card down changes to
+ * match. That sequence is what we sell, and a still image cannot carry it.
+ *
+ * Nothing else on the page moves. No scroll trigger, no narration, no cursor.
+ * The loop ends on the corrected state, so the last frame is the legible one
+ * and holding there is a complete picture.
+ */
+
+.hb-frame {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.hb {
+  --hb-loop: 8s;
+}
+
+/* Cross-fade between the text before a revision and the text after it. */
+.hb-swap {
+  display: grid;
+}
+
+.hb-swap > * {
+  grid-area: 1 / 1;
+  animation-duration: var(--hb-loop);
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+
+.hb-fix-before {
+  animation-name: hb-fix-out;
+}
+.hb-fix-after {
+  animation-name: hb-fix-in;
+}
+.hb-carry-before {
+  animation-name: hb-carry-out;
+}
+.hb-carry-after {
+  animation-name: hb-carry-in;
+}
+
+@keyframes hb-fix-out {
+  0%,
+  42% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes hb-fix-in {
+  0%,
+  42% {
+    opacity: 0;
+  }
+  50%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes hb-carry-out {
+  0%,
+  52% {
+    opacity: 1;
+  }
+  60%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes hb-carry-in {
+  0%,
+  52% {
+    opacity: 0;
+  }
+  60%,
+  100% {
+    opacity: 1;
+  }
+}
+
+/* The comment being typed. Two lines, revealed a character at a time. */
+.hb-type {
+  display: block;
+  width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  animation-duration: var(--hb-loop);
+  animation-iteration-count: infinite;
+}
+
+.hb-type-1 {
+  animation-name: hb-type-1;
+  animation-timing-function: steps(27);
+}
+.hb-type-2 {
+  animation-name: hb-type-2;
+  animation-timing-function: steps(25);
+}
+
+@keyframes hb-type-1 {
+  0%,
+  4% {
+    width: 0;
+  }
+  19%,
+  100% {
+    width: 28ch;
+  }
+}
+@keyframes hb-type-2 {
+  0%,
+  19% {
+    width: 0;
+  }
+  33%,
+  100% {
+    width: 26ch;
+  }
+}
+
+/*
+ * Reduced motion holds the last frame rather than running fast. The global
+ * rule shortens every duration, which for a loop would sample a random phase
+ * every repaint, so this names the end state directly and stops the animation.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .hb .hb-type {
+    animation: none;
+    width: auto;
+  }
+  .hb .hb-fix-before,
+  .hb .hb-carry-before {
+    animation: none;
+    opacity: 0;
+  }
+  .hb .hb-fix-after,
+  .hb .hb-carry-after {
+    animation: none;
+    opacity: 1;
+  }
+}

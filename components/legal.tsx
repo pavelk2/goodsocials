@@ -27,7 +27,7 @@ export function LegalPage({
         className="mt-10 text-[clamp(36px,5vw,56px)] font-semibold leading-[1.02]"
         style={{ letterSpacing: "-0.03em" }}
       >
-        <span>{title}</span> <span className="text-ink-3">{summary}</span>
+        <span>{title}</span> <span className="cont">{summary}</span>
       </h1>
 
       <p className="num mt-8 text-ink-2">Last updated {lastUpdated}</p>

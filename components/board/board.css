@@ -1,0 +1,173 @@
+/*
+ * Board surface. DESIGN.md section 3 fixes every dimension here, and section 4
+ * explains why the card is the one place the house style allows a card.
+ *
+ * The board is the dense surface and the marketing page around it is the airy
+ * one. That contrast is the effect, so nothing here gets loosened to make the
+ * landing page breathe.
+ */
+
+/*
+ * The principles rail sits beside the scroller rather than inside it, so a
+ * correction stays in view while the columns it applies to move past. Keeping
+ * it out of the scroll container also keeps snap points honest.
+ */
+.board-shell {
+  display: flex;
+  align-items: stretch;
+  gap: var(--col-gutter);
+  padding: 20px;
+}
+
+.board {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: var(--col-gutter);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.board-col {
+  flex: 0 0 var(--col-width);
+  background: var(--paper);
+  border-radius: var(--r-lg);
+  padding: 0 8px 8px;
+  align-self: flex-start;
+}
+
+.board-col-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--col-head-h);
+  padding: 0 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.board-col-head .count {
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.board-col-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--card-gap);
+}
+
+/*
+ * Nothing hovers, nothing lifts, nothing has a drop shadow. A card separates
+ * from the column ground by being white on off-white with a hairline. The
+ * shadow is for drag only, when the card is genuinely in the air.
+ */
+.board-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: var(--card-min-h);
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+}
+
+/* The card under revision. Weight, not color: the accent is spent elsewhere. */
+.board-card[data-active="true"] {
+  border-color: var(--ink);
+}
+
+.board-card-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.board-card-meta {
+  display: flex;
+  align-items: center;
+  min-height: 20px;
+  font-size: 13px;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* An open comment box on a card, which is where a revision starts. */
+.board-card-comment {
+  margin-top: 2px;
+  padding: 8px 10px;
+  background: var(--paper);
+  border-radius: var(--r-sm);
+  font-size: 14px;
+  line-height: 1.35;
+  min-height: 52px;
+}
+
+/*
+ * The principles. Three rows, never three boxes with icons, and never a card:
+ * they are label-left facts, not objects anyone picks up and moves.
+ */
+.board-principles {
+  flex: 0 0 244px;
+  padding-right: var(--col-gutter);
+  border-right: 1px solid var(--hairline);
+}
+
+.board-principles-head {
+  display: flex;
+  align-items: center;
+  height: var(--col-head-h);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.board-principle {
+  padding: 12px 0;
+  border-top: 1px solid var(--hairline);
+}
+
+.board-principle-name {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.board-principle-text {
+  margin-top: 2px;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+/*
+ * One column at a time on a phone, per DESIGN.md. Not a squeeze of desktop:
+ * the principles stack above the board and the columns snap under them.
+ */
+@media (max-width: 640px) {
+  .board-shell {
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .board {
+    scroll-snap-type: x mandatory;
+  }
+
+  /* A narrow phone is under 320px of usable width once the page gutter and
+     the frame padding are taken out, so the column gives way rather than
+     spilling past the frame edge. */
+  .board-col {
+    flex-basis: min(var(--col-width), 100%);
+    scroll-snap-align: start;
+  }
+
+  .board-principles {
+    flex: none;
+    padding-right: 0;
+    padding-bottom: 4px;
+    border-right: none;
+    border-bottom: 1px solid var(--hairline);
+  }
+}

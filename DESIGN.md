@@ -41,6 +41,23 @@ Everything else on the page stays quiet: the offer sentence set at hero scale, t
 
 ---
 
+### Built, and two departures from the house scale
+
+The hero is the real `components/board/` components with fixed seed content,
+not an image. The single motion moment is CSS on that live DOM, in
+`components/marketing/hero-board.css`, so it survives a card restyle.
+
+Two values depart from the house type scale, both recorded here so nobody
+"fixes" them back:
+
+- **Hero size is `clamp(34px, 4.6vw, 68px)`, not `clamp(40px, 7vw, 104px)`.**
+  The offer sentence runs 160 characters. At 104px the grey continuation is six
+  lines against two black ones, so the qualification shouts louder than the
+  claim, which is the opposite of what the pattern is for.
+- **The grey continuation is `--ink-2`, not `--ink-3`.** `#B4B4B8` on the
+  off-white ground is 1.8:1 and the dark pairing is 2.4:1, so both fail AA at
+  any size. `--ink-2` is 4.2:1 and still reads as a second level.
+
 ## 3. Board dimensions
 
 The board is the dense surface. The marketing page around it is the airy one. That contrast is the effect, so do not soften the board.

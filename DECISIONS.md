@@ -61,3 +61,7 @@ No such endpoint exists, and the cron is a day of work.
 **Accent color `#E8590C`.**
 Rejected: LinkedIn blue, deep violet, pine green.
 Blue invites a trademark conversation and reads as a clone, violet is what four competitors already wear, and green on a cadence widget reads as a status rather than a brand.
+
+**The landing hero is the live board components, not a screenshot.**
+Rejected: a captured PNG of the board, and a recorded video of the revision loop.
+A screenshot needs restaging on every card change and a video needs re-exporting, so both drift from the product within a week, and rendering the real components means the hero is wrong only when the board is wrong.
