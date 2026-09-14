@@ -7,10 +7,12 @@ import type { ReactNode } from "react";
 export function Column({
   name,
   count,
+  emptyLine,
   children,
 }: {
   name: string;
   count: number;
+  emptyLine: string;
   children?: ReactNode;
 }) {
   return (
@@ -20,22 +22,12 @@ export function Column({
         <span className="num text-[13px] font-medium text-ink-3">{count}</span>
       </header>
       <div className="flex min-h-[160px] flex-col gap-2 rounded-[20px] border border-hairline p-2">
-        {children ?? <EmptyColumn name={name} />}
+        {count === 0 ? (
+          <p className="px-2 py-3 text-[13px] text-ink-3">{emptyLine}</p>
+        ) : (
+          children
+        )}
       </div>
     </section>
-  );
-}
-
-/** One sentence saying what goes here. No illustration. */
-function EmptyColumn({ name }: { name: string }) {
-  const lines: Record<string, string> = {
-    Idea: "Ideas land here first.",
-    Draft: "Approved ideas become drafts.",
-    Image: "Drafts that need a picture wait here.",
-    Scheduled: "Approved posts wait for their time.",
-    Posted: "Published posts stay here.",
-  };
-  return (
-    <p className="px-2 py-3 text-[13px] text-ink-3">{lines[name] ?? "Empty."}</p>
   );
 }

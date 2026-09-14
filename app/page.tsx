@@ -1,109 +1,119 @@
 import Link from "next/link";
 import { Footer } from "@/components/footer";
+import { BoardPreview } from "@/components/board/board-preview";
 
 /**
  * The offer copy is verbatim from CLAUDE.md. Do not improve it, derive from it.
  *
- * This is fuller than a launch holding page needs to be, on purpose. A domain
- * whose only working feature is an OAuth login and whose homepage says nothing
- * reads as phishing to Safe Browsing, which is what happened. Real content
- * about what the product does, who runs it, and what we ask for is the fix.
- *
- * The board screenshot replaces the type-led hero on Day 4, once there is a
- * real board with real cards to photograph.
+ * The board carries this page, per DESIGN.md section 2. Everything else stays
+ * quiet: one sentence at hero scale, features as typographic rows, two prices
+ * as hairline rows, and exactly one element in the accent, which is the runway
+ * figure inside the board.
  */
 export default function Home() {
   return (
     <>
-      <main className="mx-auto max-w-[900px] px-6 py-24">
-        <h1 className="max-w-[18ch] text-[clamp(40px,7vw,88px)] font-semibold leading-[0.98] tracking-[-0.035em]">
-          <span>AI social media manager for LinkedIn.</span>{" "}
-          <span className="text-ink-3">
-            Writes high quality content, you approve it in a kanban board, it
-            schedules so you post regularly, close to daily.
-          </span>
-        </h1>
-
-        <div className="mt-12">
-          <Link
-            href="/signin"
-            className="inline-block rounded-[14px] bg-ink px-6 py-[14px] text-[17px] font-semibold text-paper"
-          >
-            Start for 100 USD a month
-          </Link>
-        </div>
-
-        <section className="mt-24">
-          <h2 className="max-w-[22ch] text-[clamp(28px,4vw,48px)] font-semibold leading-[1.05] tracking-[-0.03em]">
-            <span>You already know you should post.</span>{" "}
+      <main>
+        <section className="mx-auto max-w-[1200px] px-6 pt-24">
+          <h1 className="max-w-[26ch] text-[clamp(36px,5.2vw,68px)] font-semibold leading-[1.0] tracking-[-0.035em]">
+            <span>AI social media manager for LinkedIn.</span>{" "}
             <span className="text-ink-3">
-              A ghostwriter costs 1500 to 3000 USD a month to fix that. This
-              costs 100.
+              It writes, you approve in a kanban board, it schedules so you post
+              close to daily.
+            </span>
+          </h1>
+
+          <div className="mt-12">
+            <Link
+              href="/signin"
+              className="inline-block rounded-[14px] bg-ink px-6 py-[14px] text-[17px] font-semibold text-paper"
+            >
+              Start for 100 USD a month
+            </Link>
+          </div>
+
+          <div className="mt-20">
+            <BoardPreview />
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-[1200px] px-6 pt-28">
+          <h2 className="max-w-[24ch] text-[clamp(28px,4vw,48px)] font-semibold leading-[1.05] tracking-[-0.03em]">
+            <span>Tell it once.</span>{" "}
+            <span className="text-ink-3">
+              A comment on a card rewrites that card and changes the principle
+              above it, so the next seven posts already know.
             </span>
           </h2>
+          <p className="mt-6 max-w-[60ch] text-ink-2">
+            Every tool writes posts. The part that matters is what happens after
+            you say no. Give a note once and you never give it again.
+          </p>
 
-          <ul className="mt-12 grid gap-10 sm:grid-cols-2">
+          <ul className="mt-20 grid gap-10 sm:grid-cols-2">
             <li>
               <h3 className="text-[20px] font-semibold tracking-[-0.01em]">
-                It writes, you approve
+                Three actions
               </h3>
               <p className="mt-2 text-ink-2">
-                Posts arrive on a board as cards. Three actions on each one:
-                approve, revise, reject. Nothing publishes without you.
+                Approve, revise, reject. There is no fourth one and no editor to
+                get lost in.
               </p>
             </li>
             <li>
               <h3 className="text-[20px] font-semibold tracking-[-0.01em]">
-                Corrections stick
+                Three principles
               </h3>
               <p className="mt-2 text-ink-2">
-                Comment on a card and it rewrites that card and updates your
-                brand principles, so you never give the same note twice.
+                Voice, visual, format. Three, not thirty. Edit them by hand any
+                time.
               </p>
             </li>
             <li>
               <h3 className="text-[20px] font-semibold tracking-[-0.01em]">
-                Three brand principles
+                Days of runway
               </h3>
               <p className="mt-2 text-ink-2">
-                Voice, visual, format. Three, not thirty. The cap is what keeps
-                the writing consistent.
+                The board says how long your approved queue lasts, and writes
+                more ideas before it runs dry.
               </p>
             </li>
             <li>
               <h3 className="text-[20px] font-semibold tracking-[-0.01em]">
-                Cadence is the number
+                Posts published, and your streak
               </h3>
               <p className="mt-2 text-ink-2">
-                Posts published this month, and your current streak. Not
-                followers, not impressions. We sell showing up.
+                The two numbers on the dashboard. Not followers, not
+                impressions.
               </p>
             </li>
             <li>
               <h3 className="text-[20px] font-semibold tracking-[-0.01em]">
-                The queue warns you
+                Seven posts in 90 seconds
               </h3>
               <p className="mt-2 text-ink-2">
-                If the board runs low on approved posts, it tells you how many
-                days of runway are left and writes more ideas.
+                Sign in, paste your website, and the board is full before you
+                have paid anything.
               </p>
             </li>
             <li>
               <h3 className="text-[20px] font-semibold tracking-[-0.01em]">
-                Agencies get one dashboard
+                One board per client
               </h3>
               <p className="mt-2 text-ink-2">
-                A board per client, up to twelve. Each client authorizes their
-                own LinkedIn profile. Approve for them or send an approval link.
+                For agencies. Up to twelve. Each client authorises their own
+                LinkedIn profile.
               </p>
             </li>
           </ul>
         </section>
 
-        <section className="mt-24">
-          <h2 className="max-w-[20ch] text-[clamp(28px,4vw,48px)] font-semibold leading-[1.05] tracking-[-0.03em]">
-            <span>Two prices.</span>{" "}
-            <span className="text-ink-3">Both of them on this page.</span>
+        <section className="mx-auto max-w-[1200px] px-6 pt-28">
+          <h2 className="max-w-[26ch] text-[clamp(28px,4vw,48px)] font-semibold leading-[1.05] tracking-[-0.03em]">
+            <span>A ghostwriter costs 1500 to 3000 a month.</span>{" "}
+            <span className="text-ink-3">
+              Two prices, both of them on this page.
+            </span>
           </h2>
           <ul className="mt-10 max-w-[620px]">
             <li className="flex items-baseline justify-between border-b border-hairline py-[14px]">
@@ -115,14 +125,21 @@ export default function Home() {
               <span className="num text-ink-2">1000 USD a month</span>
             </li>
           </ul>
+          <div className="mt-10">
+            <Link
+              href="/signin"
+              className="inline-block rounded-[14px] bg-ink px-6 py-[14px] text-[17px] font-semibold text-paper"
+            >
+              Start for 100 USD a month
+            </Link>
+          </div>
         </section>
 
-        <section className="mt-24">
+        <section className="mx-auto max-w-[1200px] px-6 py-28">
           <h2 className="max-w-[24ch] text-[clamp(28px,4vw,48px)] font-semibold leading-[1.05] tracking-[-0.03em]">
             <span>What we ask LinkedIn for.</span>{" "}
             <span className="text-ink-3">
-              Your name and email, and permission to post as you. That is the
-              whole list.
+              Your name and email, and permission to post as you.
             </span>
           </h2>
           <ul className="mt-10 max-w-[620px]">
@@ -140,14 +157,6 @@ export default function Home() {
               </li>
             ))}
           </ul>
-          <div className="mt-10">
-            <Link
-              href="/signin"
-              className="inline-block rounded-[14px] bg-ink px-6 py-[14px] text-[17px] font-semibold text-paper"
-            >
-              Start for 100 USD a month
-            </Link>
-          </div>
         </section>
       </main>
       <Footer />

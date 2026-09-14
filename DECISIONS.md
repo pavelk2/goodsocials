@@ -38,6 +38,14 @@ Two numbers with no gap is the whole pricing conversation, and a middle tier inv
 
 ## Decided during setup, same weight as the above
 
+**The voice is a researcher, not a seller.**
+Rejected: persuasion, engagement bait, rhetorical-question hooks, manufactured urgency.
+The post reports something the author found and can point to, so credibility comes from being checkable rather than from sounding confident.
+
+**The agent never invents a citation.**
+Rejected: "studies show", unnamed percentages, plausible-sounding report titles.
+This publishes under a real person's name, so a fabricated source costs them more than a weak post does, and prefers their own numbers, which are both checkable and better content.
+
 **Neon Postgres.**
 Rejected: Supabase.
 The only Supabase feature we would use is Storage, which Vercel Blob covers in five lines, so the rest is configuration cost for a platform we use 15 percent of.
