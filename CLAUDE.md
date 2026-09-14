@@ -52,7 +52,7 @@ Log token and image spend per account so cost per customer is visible in PostHog
 
 ## Stack
 
-- Next.js 15 App Router on Vercel. One deploy target for app, API routes, and cron.
+- Next.js 16 App Router on Vercel. One deploy target for app, API routes, and cron. Next 16 has breaking changes against Next 15, so read `node_modules/next/dist/docs/` before writing route or rendering code.
 - TypeScript strict. Schema errors at build time instead of at 09:00 when the cron fires.
 - Neon Postgres. Serverless Postgres with per-preview-branch databases, which matters while schema changes daily.
 - Drizzle ORM. Typed schema in the repo, migrations as files, no hidden codegen step.
@@ -163,3 +163,13 @@ Applies to landing copy, buttons, empty states, error messages, emails, and gene
 - No filler words. No "actually", "really", "simply", "just", "basically".
 - Never the "this is not X, this is Y" construction.
 - Sentence case. Plain words. Say the price in the button.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
