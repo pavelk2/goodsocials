@@ -12,6 +12,11 @@ import { Card } from "./card";
  * The frame is a window: surface white on the paper ground, one shadow because
  * it genuinely floats, paper inside because that is the board's own ground.
  * It replaces a photograph once there is a real board worth photographing.
+ *
+ * The LinkedIn mark sits on the bottom corner of the frame. It is the one place
+ * the board says where these posts end up, and it says it without a caption.
+ * It does not move, does not animate, and is not a link. Top corner is taken by
+ * the runway figure, which owns the accent.
  */
 
 const VOICE =
@@ -66,12 +71,36 @@ const COLUMNS: {
   },
 ];
 
+/** The LinkedIn glyph, Font Awesome's linkedin-in outline. No enclosing tile,
+ *  because the badge around it is already the tile. */
+function LinkedInMark() {
+  return (
+    <svg
+      viewBox="0 0 448 512"
+      fill="currentColor"
+      aria-hidden="true"
+      className="h-[22px] w-[22px]"
+    >
+      <path d="M100.28 448H7.4V148.9h92.88zM53.79 108.1C24.09 108.1 0 83.5 0 53.8a53.79 53.79 0 0 1 107.58 0c0 29.7-24.1 54.3-53.79 54.3zM447.9 448h-92.68V302.4c0-34.7-.7-79.2-48.29-79.2-48.29 0-55.69 37.7-55.69 76.7V448h-92.78V148.9h89.08v40.8h1.3c12.4-23.5 42.69-48.3 87.88-48.3 94 0 111.28 61.9 111.28 142.3V448z" />
+    </svg>
+  );
+}
+
 export function BoardPreview() {
   return (
     <div
-      className="rounded-[28px] border border-hairline bg-surface p-5 sm:p-7"
+      className="relative rounded-[28px] border border-hairline bg-surface p-5 sm:p-7"
       style={{ boxShadow: "var(--shadow)" }}
     >
+      <div
+        role="img"
+        aria-label="Posts to LinkedIn"
+        className="absolute -bottom-4 -right-4 z-10 flex h-14 w-14 items-center justify-center rounded-[18px] border border-hairline bg-surface text-[#0a66c2] sm:-bottom-5 sm:-right-5"
+        style={{ boxShadow: "var(--shadow)" }}
+      >
+        <LinkedInMark />
+      </div>
+
       <div className="flex items-baseline justify-between">
         <p className="text-[13px] font-medium text-ink-2">Brand principles</p>
         <p className="text-[13px] text-ink-2">
