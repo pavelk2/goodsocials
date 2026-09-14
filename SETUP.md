@@ -86,3 +86,64 @@ LINKEDIN_ACCESS_TOKEN=... npx tsx scripts/linkedin-post.ts --delete urn:li:share
 ```
 
 Both debug routes get deleted once Auth.js owns the flow.
+
+
+---
+
+# Finishing Day 1: database and sign in
+
+Everything below is on Vercel, no code changes needed.
+
+## 1. One more redirect URL in the LinkedIn app
+
+Auth.js uses its own callback path, separate from the Day 1 debug route. Add it
+alongside the two already there, or sign in fails with a redirect_uri mismatch.
+
+```
+https://goodsocials.co/api/auth/callback/linkedin
+```
+
+## 2. Three more environment variables on Vercel
+
+```
+AUTH_URL                https://goodsocials.co
+AUTH_SECRET             openssl rand -base64 32
+TOKEN_ENCRYPTION_KEY    openssl rand -base64 32
+```
+
+`TOKEN_ENCRYPTION_KEY` must decode to exactly 32 bytes. `openssl rand -base64 32`
+gives that. The app refuses to start the crypto module with anything else rather
+than silently encrypting with a weak key.
+
+Losing this key makes every stored LinkedIn token unreadable, which means every
+connected member has to re-authorize. Put it somewhere you will still have it in
+six months.
+
+Redeploy after saving. Environment variables do not reach deployments that
+already exist.
+
+## 3. Create the tables
+
+```
+https://goodsocials.co/api/admin/migrate?k=YOURSECRET
+```
+
+Applies `db/migrations/*.sql` using the deployment's own `DATABASE_URL`, so the
+connection string never leaves Vercel. Re-running it is safe. It lists every
+table it finds when it is done. Expect 9.
+
+## 4. Sign in
+
+```
+https://goodsocials.co/api/auth/signin
+```
+
+One consent for all four scopes. On success the app writes an `account`, a
+`profile`, an encrypted `linkedin_connection`, a `board`, and three placeholder
+brand principles, then `https://goodsocials.co/board` renders five columns.
+
+Sign in again and nothing duplicates. The same path handles day 60
+re-authorization: same rows, fresh token, status back to active.
+
+The `/api/admin/migrate` and `/api/linkedin/*` routes are Day 1 scaffolding and
+get deleted once this is signed off.
