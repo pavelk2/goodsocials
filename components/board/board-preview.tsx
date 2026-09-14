@@ -15,7 +15,7 @@ import { Card } from "./card";
  */
 
 const VOICE =
-  "Short declarative sentences. Willing to name a number. Never opens with a question.";
+  "Reports, does not sell. Short sentences, plain words. Every number comes from our own data and says so.";
 
 const COLUMNS: {
   name: string;
@@ -26,12 +26,8 @@ const COLUMNS: {
     name: "Idea",
     count: 4,
     cards: [
-      {
-        body: "We rejected 40 candidates before changing the job description. The change was removing the years-of-experience line.",
-      },
-      {
-        body: "Our cheapest acquisition channel last quarter was answering support tickets in public.",
-      },
+      { body: "We cut one line from our job ad. The line asked for ten years of experience." },
+      { body: "Our cheapest new customers came from answering support tickets in public." },
     ],
   },
   {
@@ -39,7 +35,7 @@ const COLUMNS: {
     count: 2,
     cards: [
       {
-        body: "Ever wondered why your hiring pipeline is slow? Let's dive into the three key factors that make all the difference.",
+        body: "Ever wondered why hiring is slow? Let's dive into the key factors that make all the difference.",
         comment: "Opens with a question and says nothing. Lead with the number.",
       },
     ],
@@ -49,11 +45,11 @@ const COLUMNS: {
     count: 6,
     cards: [
       {
-        body: "Three years of invoices in one spreadsheet taught me our pricing was wrong for exactly one customer size.",
+        body: "Three years of invoices in one spreadsheet. Our pricing was wrong for one customer size.",
         scheduledAt: new Date(Date.UTC(2026, 8, 15, 8, 30)),
       },
       {
-        body: "The support ticket that changed our roadmap was 11 words long.",
+        body: "The support ticket that changed our roadmap was eleven words long.",
         scheduledAt: new Date(Date.UTC(2026, 8, 16, 8, 30)),
       },
     ],
@@ -63,7 +59,7 @@ const COLUMNS: {
     count: 31,
     cards: [
       {
-        body: "We stopped running a weekly all-hands. Nobody has asked for it back.",
+        body: "We stopped our weekly all-hands. Nobody has asked for it back.",
         scheduledAt: new Date(Date.UTC(2026, 8, 12, 8, 30)),
       },
     ],

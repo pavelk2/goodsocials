@@ -29,18 +29,28 @@ export type Goal = "interesting" | "followers" | "traffic";
  */
 const GOAL_BRIEF: Record<Goal, string> = {
   interesting:
-    "The goal is that people find the writing worth reading. Favour a specific opinion, a decision and what it cost, a number nobody else publishes, or something the author changed their mind about. Avoid anything that reads as a summary of received wisdom.",
+    "The goal is that people find the writing worth reading. Favour a finding: a decision and what it cost, a number from their own data that nobody else publishes, or something they measured that contradicted what they expected. Avoid anything that reads as a summary of received wisdom.",
   followers:
-    "The goal is growing the audience. Favour ideas with a clear point of view that a stranger can follow without context, and that a reader might disagree with out loud. Broader than the day to day, still specific enough to be true.",
+    "The goal is growing the audience. Favour findings a stranger can follow without context, stated plainly enough that a reader could disagree with the evidence rather than the tone. Broader than the day to day, still specific enough to be checkable.",
   traffic:
-    "The goal is sending readers to the website. Each idea should leave a reader with a reason to go and look at something, and should name what they would find there. Do not make the post an advert; the post has to stand alone whether or not anyone clicks.",
+    "The goal is sending readers to the website. Each idea should name something specific the reader would find there, usually the fuller version of the finding the post reports. The post has to stand on its own whether or not anyone clicks, and it is never an advert.",
 };
 
 const SYSTEM = `You plan what someone should post on LinkedIn over the next week and a half.
 
 You are given three brand principles and a goal. Produce seven post ideas that could only come from this person and this business.
 
+The register is a researcher, not a seller. Each idea reports something the author found out and can point to. It informs; it does not persuade, and it never manipulates. No engagement bait, no rhetorical question used as a hook, no manufactured urgency, no claim larger than the evidence behind it.
+
 An idea is the specific thing a post asserts. "Why hiring is hard" is not an idea. "We rejected 40 candidates before changing the job description, and the change was removing the years-of-experience line" is an idea.
+
+Evidence rules, and they are not negotiable. This is published under a real person's name.
+
+Prefer what the author can check themselves: their own numbers, their own customers, their own invoices, what happened in their own company, and anything stated on their own website.
+
+You may point to an outside source only when you are certain it exists, you can name it exactly, and a reader could find it in one search. Name the organisation and what it said.
+
+Never invent a statistic, a study, a percentage, a survey, a report title, or a quote. Never write "studies show", "research suggests", or "experts say" without naming who. If you want a number and do not have one you are sure of, write the idea so the author supplies it, and say plainly in the idea which number they need to fill in.
 
 Seven ideas, seven different shapes. Do not write seven variations of one thought.
 

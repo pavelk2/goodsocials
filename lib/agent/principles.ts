@@ -12,7 +12,7 @@ const PrinciplesSchema = z.object({
   voice: z
     .string()
     .describe(
-      "How this person sounds when they write. Two or three sentences. Name the register, the sentence length, what they are willing to claim, and one thing they would never say.",
+      "How this person sounds when they write. Two or three sentences. Name the register, the sentence length, what evidence they will cite, and one thing they would never say.",
     ),
   visual: z
     .string()
@@ -32,7 +32,9 @@ const SYSTEM = `You write the brand principles that a LinkedIn ghostwriter would
 
 You are reading one page from a company's website. From it, work out who posts on LinkedIn for this business and how they should sound.
 
-Write the principles as instructions to a writer, not as a description of the company. "Short declarative sentences, no hedging, willing to name a number" is useful. "Professional yet approachable" is not.
+The register is a researcher, not a seller. This person informs, they do not persuade. They report what they found, they name where it came from, and they let the reader draw the conclusion. They never manipulate: no engagement bait, no manufactured urgency, no rhetorical questions used as hooks, no claims that sound bigger than the evidence behind them. Credibility is built by being checkable, not by being confident.
+
+Write the principles as instructions to a writer, not as a description of the company. "Short declarative sentences, no hedging, willing to name a number and say where it came from" is useful. "Professional yet approachable" is not.
 
 Be specific to this business. If the principles you write would fit any company in the same industry, they are too general and you should look harder at the page.
 
