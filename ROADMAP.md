@@ -16,9 +16,14 @@ The order changed once from the original plan. A bare deploy moved ahead of the 
 - [x] **All four scopes granted on a test authorization.** One consent returned `email, openid, profile, w_member_social` and a 60 day access token with no refresh token.
 - [x] **A hardcoded text post published to Pavel's real feed through `/rest/posts`.** 201, post URN returned in `x-restli-id`, live on the profile.
 - [x] **`offline_access` answer recorded.** The isolated probe was refused by LinkedIn before reaching our callback. No refresh token is available on a standard app. Written into the LinkedIn constraints section of CLAUDE.md, along with the fact that the refusal is unloggable on our side.
-- [ ] **Repo scaffold, database, auth, board schema.** `npm run db:push` creates every table in the data model, signing in through the app creates an `account`, a `profile`, and an encrypted `linkedin_connection`, and the board page renders five empty columns.
+- [x] **Repo scaffold, database, auth, board schema.** Nine tables created on Neon, signing in with LinkedIn created an `account`, a `profile`, an encrypted `linkedin_connection`, a `board` and three placeholder principles, and https://goodsocials.co/board renders five empty columns.
 
 ## Day 2: intake and ideas
+
+Two gaps carried over from Day 1. Neither blocked the done condition, both block real data.
+
+- [ ] **The board reads the database.** It currently renders hardcoded zeros and five empty states. Done when a card inserted by hand appears in its column and the counts match.
+- [ ] **The board requires a session.** `/board` is public today. It leaks nothing yet because it shows nothing, but it must not render a real card to a signed out visitor. Done when a signed out visitor is sent to `/signin` and a signed in one sees only their own profile's board.
 
 - [ ] **Brand intake from a URL.** Pasting a website URL produces three principles (voice, visual, format) generated from the page content, within 30 seconds.
 - [ ] **Principles are editable and visible on the board.** Editing a principle saves and survives a reload, and the three are readable from the board without navigating away.
