@@ -9,6 +9,11 @@ import { assertDebugSecret, htmlPage } from "@/lib/linkedin/debug-auth";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/**
+ * The first eight break sign in. The last three break the board, and they break
+ * it later and quieter: a missing REPLICATE_API_TOKEN throws inside an approve
+ * the user already clicked, which reads to them as the product not working.
+ */
 const REQUIRED = [
   "DATABASE_URL",
   "DATABASE_URL_UNPOOLED",
@@ -18,6 +23,9 @@ const REQUIRED = [
   "LINKEDIN_CLIENT_SECRET",
   "LINKEDIN_API_VERSION",
   "TOKEN_ENCRYPTION_KEY",
+  "ANTHROPIC_API_KEY",
+  "REPLICATE_API_TOKEN",
+  "BLOB_READ_WRITE_TOKEN",
 ] as const;
 
 const EXPECTED_TABLES = [
