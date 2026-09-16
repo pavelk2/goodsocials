@@ -69,3 +69,45 @@ No such endpoint exists, and the cron is a day of work.
 **Accent color `#E8590C`.**
 Rejected: LinkedIn blue, deep violet, pine green.
 Blue invites a trademark conversation and reads as a clone, violet is what four competitors already wear, and green on a cadence widget reads as a status rather than a brand.
+
+---
+
+## Decided on Day 3, building the loop
+
+**At the image cap, the card schedules without a picture.**
+Rejected: blocking approval until the month resets.
+The cap protects our margin and the queue is what the customer pays for, so a
+cap that stops publishing sells our problem to them. The message names the cap
+and the reset date, the card carries on, and a post without a picture is still
+a post.
+
+**A revise comment is allowed to change no principle at all.**
+Rejected: every comment updates one of the three.
+"The revenue figure is 40k not 60k" folded into the voice principle would
+poison every post after it. The model decides whether the correction
+generalises and the card says which way it went, because a user who cannot see
+that is guessing about the thing they are paying for.
+
+**Approve is labelled with what it does: write the draft, make the image,
+schedule it.**
+Rejected: one button reading Approve in all three columns.
+The writing rules say a button names its outcome, and approving an idea and
+approving a finished post do very different things to somebody's month. The
+row written to `card_action` still says `approve`, so the log is unchanged.
+
+**Dragging runs the same transitions as the buttons.**
+Rejected: drag writes the card's state directly.
+A card dropped in Scheduled without a `scheduled_post` row sits there looking
+correct and never publishes. Forward drops generate and cost what the buttons
+cost. Backward drops only unwind: nothing is generated, nothing is charged, and
+the card keeps the text and picture it already has.
+
+**One publish hour, 09:00 UTC, for everyone.**
+Rejected: per profile local time on Day 3.
+The cron has one thing to read and the queue has one rule. Per profile time
+zones are worth doing and they are a Day 4 item, not a Day 3 one.
+
+**UTM parameters are appended in code, not asked for in the prompt.**
+Rejected: instructing the model to tag its own links.
+A model that forgets breaks the only number a traffic customer checks, and it
+breaks it silently.

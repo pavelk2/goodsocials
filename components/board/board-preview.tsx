@@ -1,4 +1,4 @@
-import { Card } from "./card";
+import { CardShell, CardComment } from "./card-shell";
 
 /**
  * The landing page hero. Not a mockup and not a screenshot: the real Card
@@ -134,7 +134,13 @@ export function BoardPreview() {
               </header>
               <div className="flex min-h-[200px] flex-col gap-2">
                 {column.cards.map((card) => (
-                  <Card key={card.body} {...card} />
+                  <CardShell
+                    key={card.body}
+                    body={card.body}
+                    scheduledAt={card.scheduledAt}
+                  >
+                    {card.comment ? <CardComment comment={card.comment} /> : null}
+                  </CardShell>
                 ))}
               </div>
             </section>
