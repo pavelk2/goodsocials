@@ -212,7 +212,7 @@ export const scheduledPost = pgTable(
   (t) => [index("scheduled_post_due_idx").on(t.publishAt, t.publishedAt)],
 );
 
-/** Hard cap of 200 per profile per month. Checked before the Replicate call. */
+/** Hard cap of 200 per profile per month. Checked before the image call. */
 export const imageQuota = pgTable(
   "image_quota",
   {

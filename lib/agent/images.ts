@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
-import Replicate from "replicate";
 import { put } from "@vercel/blob";
 import { anthropic, MODEL, recordSpend } from "./client";
 import {
@@ -12,20 +11,34 @@ import {
 
 /**
  * Every generated image costs money on a fixed subscription, so the order here
- * is not negotiable: claim the quota, then call Replicate. A claim that is
+ * is not negotiable: claim the quota, then call the provider. A claim that is
  * refused never reaches the model. A generation that fails after the claim
  * gives the image back, because a customer should not lose one of their 200 to
  * our outage.
  *
- * Replicate's output URLs expire in about an hour and LinkedIn needs the bytes
- * at publish time, which can be days later, so the image is copied to Vercel
- * Blob before the card is told about it.
+ * OpenRouter rather than a direct provider, for one reason that matters and one
+ * that is convenient. The one that matters: the response reports what the call
+ * actually cost, so cost per customer comes from the provider instead of from a
+ * constant in this file that goes stale the first time anyone reprices.
+ * The convenient one: the model is a string, so trying a different one is a
+ * deploy rather than an integration.
+ *
+ * Text generation does not go through here. It calls Anthropic directly,
+ * because the structured output and adaptive thinking we rely on are first
+ * party features and an OpenAI-compatible gateway does not carry them.
  */
 
-const REPLICATE_MODEL = "black-forest-labs/flux-1.1-pro";
+const ENDPOINT = "https://openrouter.ai/api/v1/images";
 
-/** USD per image for REPLICATE_MODEL. Update together with the model. */
-const USD_PER_IMAGE = 0.04;
+/**
+ * FLUX.2 Pro charges 0.03 USD for the first megapixel and 0.015 for each one
+ * after it. A 4:3 image at the 1K tier is 0.79 MP, so it stays in the first
+ * bucket and the 200 cap costs at most 6 USD a month against a 100 USD
+ * subscription. Raising the resolution tier changes that arithmetic.
+ */
+const IMAGE_MODEL = "black-forest-labs/flux.2-pro";
+const RESOLUTION = "1K";
+const ASPECT_RATIO = "4:3";
 
 const PromptSchema = z.object({
   prompt: z
@@ -49,26 +62,22 @@ Banned because they are the visual equivalent of the words we ban: glowing blue 
 
 Write the prompt as a description of a photograph or a made object, not as instructions to an artist. One paragraph, no lists, no negative prompt section.`;
 
+/**
+ * The two failures are not the same failure and the board must not treat them
+ * alike. `cap` is the product working: the customer has spent their 200 and the
+ * card carries on without a picture. `failed` is us broken, and a broken
+ * provider that silently schedules a post without an image looks to the user
+ * like the agent decided it did not want one.
+ */
 export type ImageResult =
   | { ok: true; url: string; prompt: string; quota: QuotaState }
-  | { ok: false; error: string; quota: QuotaState };
+  | { ok: false; reason: "cap" | "failed"; error: string; quota: QuotaState };
 
-function replicate(): Replicate {
-  if (!process.env.REPLICATE_API_TOKEN) {
-    throw new Error("Missing environment variable: REPLICATE_API_TOKEN");
-  }
-  return new Replicate();
-}
-
-/** The SDK returns a FileOutput, an array of them, or a bare URL by version. */
-async function firstUrl(output: unknown): Promise<string | null> {
-  const candidate = Array.isArray(output) ? output[0] : output;
-  if (typeof candidate === "string") return candidate;
-  if (candidate && typeof (candidate as { url?: unknown }).url === "function") {
-    return String(await (candidate as { url: () => unknown }).url());
-  }
-  return null;
-}
+type ImageResponse = {
+  data?: { b64_json?: string; media_type?: string }[];
+  usage?: { cost?: number };
+  error?: { message?: string };
+};
 
 export async function generateImage(opts: {
   profileId: string;
@@ -80,6 +89,7 @@ export async function generateImage(opts: {
   if (!claim.ok) {
     return {
       ok: false,
+      reason: "cap",
       quota: claim.state,
       error: `You have used all ${claim.state.cap} images this month. The count resets on ${claim.state.resetsOn}.`,
     };
@@ -87,42 +97,84 @@ export async function generateImage(opts: {
 
   try {
     const prompt = await writePrompt(opts);
-    const output = await replicate().run(REPLICATE_MODEL, {
-      input: {
-        prompt,
-        aspect_ratio: "4:3",
-        output_format: "jpg",
-        safety_tolerance: 2,
-      },
-    });
-
-    const sourceUrl = await firstUrl(output);
-    if (!sourceUrl) throw new Error("Replicate returned no image URL.");
-
-    const response = await fetch(sourceUrl);
-    if (!response.ok) {
-      throw new Error(`Fetching the generated image returned ${response.status}.`);
-    }
+    const { bytes, contentType, cost } = await draw(prompt);
 
     // Randomised suffix on, so a regeneration cannot be served from a cache
     // holding the picture the user just rejected.
-    const blob = await put(
-      `cards/${opts.cardId}.jpg`,
-      await response.arrayBuffer(),
-      { access: "public", contentType: "image/jpeg", addRandomSuffix: true },
-    );
+    const blob = await put(`cards/${opts.cardId}.jpg`, bytes, {
+      access: "public",
+      contentType,
+      addRandomSuffix: true,
+    });
 
-    recordImageSpend(opts.profileId);
+    recordImageSpend(opts.profileId, cost);
     return { ok: true, url: blob.url, prompt, quota: claim.state };
   } catch (cause) {
     await releaseImage(opts.profileId);
     console.error("[images] generation failed:", cause);
     return {
       ok: false,
+      reason: "failed",
       quota: await readQuota(opts.profileId),
-      error: "The image did not generate. Try again, and it will not count against your cap.",
+      error:
+        "The image did not generate, so this card stayed in Draft. It did not count against your cap.",
     };
   }
+}
+
+async function draw(prompt: string): Promise<{
+  bytes: Buffer;
+  contentType: string;
+  cost: number | null;
+}> {
+  if (!process.env.OPENROUTER_API_KEY) {
+    throw new Error("Missing environment variable: OPENROUTER_API_KEY");
+  }
+
+  const response = await fetch(ENDPOINT, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      "Content-Type": "application/json",
+      // Attribution, so the spend is identifiable in their dashboard.
+      "HTTP-Referer": "https://goodsocials.co",
+      "X-Title": "GoodSocials",
+    },
+    body: JSON.stringify({
+      model: IMAGE_MODEL,
+      prompt,
+      n: 1,
+      aspect_ratio: ASPECT_RATIO,
+      resolution: RESOLUTION,
+      output_format: "jpeg",
+    }),
+    // A generation takes tens of seconds. Left unbounded it would sit on a
+    // serverless function until the platform kills it with no error of ours.
+    signal: AbortSignal.timeout(120_000),
+  });
+
+  const raw = await response.text();
+  let parsed: ImageResponse;
+  try {
+    parsed = JSON.parse(raw) as ImageResponse;
+  } catch {
+    throw new Error(`Image provider returned ${response.status}: ${raw.slice(0, 300)}`);
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      `Image provider returned ${response.status}: ${parsed.error?.message ?? raw.slice(0, 300)}`,
+    );
+  }
+
+  const image = parsed.data?.[0];
+  if (!image?.b64_json) throw new Error("Image provider returned no image data.");
+
+  return {
+    bytes: Buffer.from(image.b64_json, "base64"),
+    contentType: image.media_type ?? "image/jpeg",
+    cost: typeof parsed.usage?.cost === "number" ? parsed.usage.cost : null,
+  };
 }
 
 async function writePrompt(opts: {
@@ -161,15 +213,19 @@ async function writePrompt(opts: {
   return response.parsed_output.prompt;
 }
 
-/** Same shape as recordSpend in client.ts, for the same PostHog query. */
-function recordImageSpend(profileId: string): void {
+/**
+ * Same shape as recordSpend in client.ts, for the same PostHog query. The cost
+ * is what the provider charged rather than what we assumed it would charge, so
+ * there is no constant here to go stale.
+ */
+function recordImageSpend(profileId: string, cost: number | null): void {
   console.log(
     JSON.stringify({
       event: "image_spend",
       profile_id: profileId,
       operation: "image",
-      usd: USD_PER_IMAGE,
-      model: REPLICATE_MODEL,
+      usd: cost,
+      model: IMAGE_MODEL,
     }),
   );
 }

@@ -122,8 +122,8 @@ export default function Privacy() {
             value="Generates and revises post text from your brand principles and comments. Anthropic does not train models on this input"
           />
           <Row
-            label="Replicate"
-            value="Generates images from the prompt for a card"
+            label="OpenRouter"
+            value="Routes the image prompt for a card to the image model that draws it"
           />
           <Row label="Stripe" value="Payments and subscriptions" />
           <Row label="Loops" value="Receipts and expiry warnings" />

@@ -9,6 +9,11 @@ import { assertDebugSecret, htmlPage } from "@/lib/linkedin/debug-auth";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/**
+ * The first eight break sign in. The last two break the board, and they break
+ * it later and quieter: a missing image key throws inside an approve the user
+ * already clicked, which reads to them as the product not working.
+ */
 const REQUIRED = [
   "DATABASE_URL",
   "DATABASE_URL_UNPOOLED",
@@ -18,6 +23,8 @@ const REQUIRED = [
   "LINKEDIN_CLIENT_SECRET",
   "LINKEDIN_API_VERSION",
   "TOKEN_ENCRYPTION_KEY",
+  "ANTHROPIC_API_KEY",
+  "OPENROUTER_API_KEY",
 ] as const;
 
 const EXPECTED_TABLES = [
@@ -43,6 +50,23 @@ export async function GET(request: Request) {
 
   const env = REQUIRED.map((name) =>
     row(name, process.env[name] ? "set" : '<span style="color:#c94b4b">missing</span>'),
+  );
+
+  // Blob has two ways to authenticate and a connected store uses the newer one:
+  // Vercel injects BLOB_STORE_ID and mints VERCEL_OIDC_TOKEN per deployment, so
+  // there is no BLOB_READ_WRITE_TOKEN to find and its absence is not a fault.
+  // The static token still works, so either one passes.
+  const blobStore = process.env.BLOB_STORE_ID;
+  const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+  env.push(
+    row(
+      "Vercel Blob",
+      blobStore
+        ? "store connected, OIDC"
+        : blobToken
+          ? "read write token"
+          : '<span style="color:#c94b4b">missing</span>',
+    ),
   );
 
   // A key of the wrong length fails only at the moment we seal a token, which

@@ -4,7 +4,7 @@ import { imageQuota, IMAGE_CAP_PER_MONTH } from "@/db/schema";
 
 /**
  * Images are the margin risk, so the cap lives in the database and is checked
- * before the Replicate call, never after. A regeneration costs the same money
+ * before the image call, never after. A regeneration costs the same money
  * as a generation and counts the same.
  */
 
