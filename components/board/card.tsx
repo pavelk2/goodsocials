@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { approve, reject, revise } from "@/app/board/actions";
 import { CardShell } from "./card-shell";
+import { ImageLightbox } from "./image-lightbox";
 import type { Column } from "@/lib/board";
 
 /**
@@ -35,6 +36,7 @@ export function Card({
   scheduledAt?: Date | null;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [viewingImage, setViewingImage] = useState(false);
   const [commenting, setCommenting] = useState(false);
   const [comment, setComment] = useState("");
   const [confirmingReject, setConfirmingReject] = useState(false);
@@ -77,25 +79,16 @@ export function Card({
     <CardShell
       body={body}
       imageUrl={imageUrl}
+      onImageClick={imageUrl ? () => setViewingImage(true) : undefined}
       scheduledAt={scheduledAt}
       innerRef={setNodeRef}
       style={isDragging ? { opacity: 0.4 } : undefined}
       handleProps={{ ...attributes, ...listeners }}
       expanded={expanded}
+      onToggleExpanded={
+        clamped ? () => setExpanded((open) => !open) : undefined
+      }
     >
-      {/* Its own line, above the hairline, so the action row stays three
-          actions and nothing else. Outside the drag handle, so reading a post
-          never picks the card up. */}
-      {clamped ? (
-        <button
-          type="button"
-          onClick={() => setExpanded((open) => !open)}
-          className="mt-2 text-[13px] text-ink-2 underline"
-        >
-          {expanded ? "Show less" : "Read it"}
-        </button>
-      ) : null}
-
       {commenting ? (
         <div className="mt-3 border-t border-hairline pt-3">
           <textarea
@@ -170,6 +163,16 @@ export function Card({
         <p className="mt-3 text-[13px] leading-[1.4] text-ink" role="alert">
           {error}
         </p>
+      ) : null}
+
+      {/* Mounted only while open, so the dialog opens on mount and every close,
+          by Escape or by click, is the same unmount. */}
+      {viewingImage && imageUrl ? (
+        <ImageLightbox
+          src={imageUrl}
+          alt="The image generated for this post"
+          onClose={() => setViewingImage(false)}
+        />
       ) : null}
     </CardShell>
   );

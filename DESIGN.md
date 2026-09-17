@@ -56,7 +56,13 @@ The board is the dense surface. The marketing page around it is the airy one. Th
 --col-head-h     44px     column name left, count right in tabular numerals
 ```
 
-Inside a card: post preview clamped to 3 lines at 15px/1.4 in `--ink`, then a 20px meta row at 13px in `--ink-2` carrying the scheduled time in tabular numerals. A card with an image shows a 48px square thumbnail on the right of the preview, not a full-bleed header image. Nothing hovers, nothing lifts, nothing has a drop shadow. Cards separate from the column ground by being `--surface` white on `--paper` off-white, plus a 1px `--hairline` border. That is enough.
+Inside a card: post preview clamped to 3 lines at 15px/1.4 in `--ink`, then a 20px meta row at 13px in `--ink-2` carrying the scheduled time in tabular numerals. Nothing hovers, nothing lifts, nothing has a drop shadow. Cards separate from the column ground by being `--surface` white on `--paper` off-white, plus a 1px `--hairline` border. That is enough.
+
+**The image is the card's full width, below the text.** This overturns the 48px thumbnail written here first. The thumbnail was sized as decoration on a card about text, and the card in the Image column is not about text: it asks the user to approve or reject a picture, and nobody approves a picture at 48px. So the image runs the full 288px of card interior at the 4:3 it is generated in, `--r-sm`, hairline border, under the post text and the Read it control. Under the text rather than over it because that is the order LinkedIn renders a post in, which makes the card a preview of the thing instead of a note about it.
+
+Clicking it opens it full size in a native `<dialog>`: dark scrim, image at up to 90vw by 82vh, one text control reading `Close, or press Esc`. Escape, the focus trap, and inertness of the board behind come from the platform. No zoom, no pan, no next and previous. The image is outside the drag handle, so opening it is never the start of a drag, and the drag overlay and the landing hero render the same image with no click on it.
+
+The cost is a taller column, three or four cards visible instead of six. That is the correct trade: a column of cards nobody can decide on is not denser, it is longer.
 
 Drag uses `--shadow` and only while a card is actually in the air, because at that moment it is genuinely floating. It lands flat.
 
