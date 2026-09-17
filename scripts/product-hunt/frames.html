@@ -1,0 +1,238 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>GoodSocials launch assets</title>
+    <link rel="stylesheet" href="fonts/fonts.css" />
+    <link rel="stylesheet" href="frames.css" />
+  </head>
+  <body>
+    <!-- Every frame is 1270x760 and carries one idea. The renderer shows one at
+         a time by id, so this file is the whole set. Light and dark alternate,
+         so the gallery reads as a sequence rather than a pile.
+
+         Copy is either verbatim from app/page.tsx or derived from it. No
+         invented metric appears anywhere: the only numbers are the two prices,
+         the seat count from lib/legal.ts, the 60 day token life, and the
+         example board's own card counts. -->
+
+    <!-- 1. The offer, with the board coming up from under it. -->
+    <section class="frame" id="offer" style="padding: 64px 72px 0">
+      <div class="mark-row">
+        <span class="mark">GoodSocials</span>
+        <span class="site">goodsocials.co</span>
+      </div>
+      <div style="height: 52px"></div>
+      <h1 class="hero" style="font-size: 44px; max-width: 1080px">
+        <span>AI social media manager for LinkedIn.</span>
+        <span class="cont">It writes, you approve in a kanban board, it schedules so you post close to daily.</span>
+      </h1>
+      <div class="spacer" style="min-height: 52px"></div>
+      <div class="board-frame" style="padding: 24px 28px 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom: 0">
+        <div class="li-badge">LI_SVG</div>
+        <div class="board-head">
+          <span class="cap">Brand principles</span>
+          <span class="cap">Runway <b class="num accent" style="font-weight: 500">9 days</b></span>
+        </div>
+        <p class="principle">
+          <span class="muted">Voice. </span>Reports, does not sell. Short sentences, plain words. Every number comes from our own data and says so.
+        </p>
+        <div class="board" style="position: relative; height: 318px; border-bottom-left-radius: 0; border-bottom-right-radius: 0">
+          BOARD_COLUMNS
+          <div class="fade-right" style="background: linear-gradient(to left, var(--paper), rgba(244, 244, 244, 0))"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. The differentiator: the correction persists. -->
+    <section class="frame dark" id="revision">
+      <div class="mark-row">
+        <span class="mark">GoodSocials</span>
+        <span class="site">goodsocials.co</span>
+      </div>
+      <div style="display: flex; gap: 80px; flex: 1; align-items: center; padding-bottom: 20px">
+        <div style="width: 440px">
+          <p class="serif">&ldquo;Stop opening posts with a question.&rdquo;</p>
+          <p class="body" style="margin-top: 30px; font-size: 19px">
+            You say it once, on one card. The principle above the board changes with it, and the next seven drafts already know.
+          </p>
+        </div>
+        <div style="width: 630px; display: flex; flex-direction: column; gap: 16px">
+          <div class="lit" style="background: var(--surface); border-radius: var(--r-lg); padding: 20px">
+            <span class="cap">Draft</span>
+            <div class="card" style="margin-top: 12px; background: var(--paper); border-color: transparent">
+              <p class="text">Ever wondered why hiring is slow? Let&rsquo;s dive into the key factors that make all the difference.</p>
+              <div class="comment">
+                <p class="label">Revise</p>
+                <p class="said">Stop opening posts with a question. Lead with the number.</p>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; padding-left: 6px">
+            <svg width="14" height="24" viewBox="0 0 14 24" fill="none" style="color: var(--ink-3)">
+              <path d="M7 0 L7 18 M1 13 L7 19 L13 13" stroke="currentColor" stroke-width="1.5" />
+            </svg>
+            <span class="cap">Written into the principle, not only into this card</span>
+          </div>
+          <div class="lit" style="background: var(--surface); border-radius: var(--r-lg); padding: 20px">
+            <span class="cap">Voice principle, after</span>
+            <p style="margin-top: 10px; font-size: 16px; line-height: 1.45">
+              Reports, does not sell. Short sentences, plain words.
+              <span class="accent">Never open with a question. Lead with the number.</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Approved on a Tuesday, published on a Thursday, without you. The
+         board's right hand side, cropped by the frame, so this reads as a
+         different view of the same product rather than a second hero. -->
+    <section class="frame" id="publish" style="padding: 64px 72px 0">
+      <div class="mark-row">
+        <span class="mark">GoodSocials</span>
+        <span class="site">goodsocials.co</span>
+      </div>
+      <div style="display: flex; gap: 56px; flex: 1; align-items: stretch">
+        <div style="width: 510px; display: flex; flex-direction: column; justify-content: center; padding-bottom: 72px">
+          <h2 class="head" style="font-size: 38px; max-width: 100%">
+            <span>You approve on a Tuesday.</span>
+            <span class="cont">It posts on a Thursday at 09:00, whether you are looking or not.</span>
+          </h2>
+          <p class="body" style="margin-top: 28px">
+            LinkedIn has no scheduler, so the publishing loop is ours. Every post carries the time it goes out, in your board, before it goes out.
+          </p>
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: flex-end">
+          <div class="board-frame" style="padding: 24px 28px 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom: 0">
+            <div class="li-badge">LI_SVG</div>
+            <div class="board-head">
+              <span class="cap">One every day at 09:00 UTC</span>
+            </div>
+            <div class="board" style="position: relative; margin-top: 18px; height: 470px; border-bottom-left-radius: 0; border-bottom-right-radius: 0">
+              SCHEDULE_COLUMNS
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Three actions, and nothing else to learn. -->
+    <section class="frame dark" id="actions">
+      <div class="mark-row">
+        <span class="mark">GoodSocials</span>
+        <span class="site">goodsocials.co</span>
+      </div>
+      <div style="display: flex; gap: 80px; flex: 1; align-items: center; padding-bottom: 20px">
+        <div style="width: 520px">
+          <h2 class="head" style="max-width: 14ch">
+            <span>Approve. Revise. Reject.</span>
+            <span class="cont">There is no fourth action, and no editor to get lost in.</span>
+          </h2>
+          <p class="body" style="margin-top: 30px">
+            Approve says what it does next: write the draft, make the image, schedule it. Three taps on a phone and your week is posted.
+          </p>
+        </div>
+        <div style="flex: 1; display: flex; justify-content: flex-end">
+          <div class="lit" style="width: 550px; background: var(--surface); border-radius: var(--r-lg); padding: 24px">
+            <div class="col-head" style="height: auto; padding: 0 0 14px">
+              <h3>Draft</h3>
+              <span class="num">2</span>
+            </div>
+            <div class="card" style="background: var(--paper); border-color: transparent; padding: 18px 20px">
+              <p class="text" style="font-size: 17px">
+                Three years of invoices in one spreadsheet. Our pricing was wrong for one customer size, and it was the size we sell to most.
+              </p>
+              <div class="row-actions">
+                <span class="act primary">Approve, make the image</span>
+                <span class="act">Revise</span>
+                <span class="act">Reject</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. The price, on the page, as three cards. DESIGN.md section 4. -->
+    <section class="frame" id="pricing">
+      <div class="mark-row">
+        <span class="mark">GoodSocials</span>
+        <span class="site">goodsocials.co</span>
+      </div>
+      <div class="spacer" style="min-height: 48px"></div>
+      <h2 class="head" style="max-width: 1040px">
+        <span>A ghostwriter costs 1500 to 3000 a month.</span>
+        <span class="cont">Three prices, all of them on this page.</span>
+      </h2>
+      <div style="height: 48px"></div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px">
+        PRICE_CARDS
+      </div>
+      <div style="height: 40px"></div>
+      <div><span class="btn">Start for 100 USD a month</span></div>
+      <div class="spacer" style="min-height: 32px"></div>
+    </section>
+
+    <!-- 6. What we ask LinkedIn for. Shipped copy, verbatim. -->
+    <section class="frame dark" id="permissions">
+      <div class="mark-row">
+        <span class="mark">GoodSocials</span>
+        <span class="site">goodsocials.co</span>
+      </div>
+      <div class="spacer"></div>
+      <h2 class="head" style="max-width: 1000px">
+        <span>What we ask LinkedIn for.</span>
+        <span class="cont">Your name and email, and permission to post as you.</span>
+      </h2>
+      <div style="height: 44px"></div>
+      <ul class="rows" style="max-width: 1000px">
+        <li><span class="label">We never see your LinkedIn password. LinkedIn handles sign in.</span></li>
+        <li><span class="label">We never read your inbox, your connections, or your feed.</span></li>
+        <li><span class="label">We never post anything you have not approved.</span></li>
+        <li><span class="label">Access lasts 60 days, then you reconnect. We email you first.</span></li>
+      </ul>
+      <div class="spacer"></div>
+    </section>
+
+    <!-- 7. Signed by a person, with the price in the button. -->
+    <section class="frame" id="closer">
+      <div class="mark-row">
+        <span class="mark">GoodSocials</span>
+        <span class="site">goodsocials.co</span>
+      </div>
+      <div class="spacer"></div>
+      <h2 class="hero" style="max-width: 980px">
+        <span>Post close to daily.</span>
+        <span class="cont">All you do is say yes.</span>
+      </h2>
+      <div style="height: 44px"></div>
+      <div style="display: flex; align-items: center; gap: 26px">
+        <span class="btn">Start for 100 USD a month</span>
+        <span class="cap">1000 USD a month for up to ten client profiles.</span>
+      </div>
+      <div class="spacer"></div>
+      <p class="cap" style="color: var(--ink-3)">
+        Built and run by Pavel Kucherbaev in Amsterdam.
+      </p>
+    </section>
+
+    <!-- The mark. The board reduced to two fields: what is written, and the
+         one waiting on you. It holds at the 48px Product Hunt actually shows.
+         The accent is the only colour, as everywhere else. -->
+    <section class="frame dark" id="thumb" style="width: 240px; height: 240px; padding: 0; align-items: center; justify-content: center">
+      <div style="display: flex; width: 138px; height: 138px; border-radius: 26px; overflow: hidden">
+        <div style="flex: 1.6; background: #ffffff"></div>
+        <div style="flex: 1; background: var(--accent)"></div>
+      </div>
+    </section>
+
+    <script>
+      // Show one frame per render. The renderer navigates to #<id>.
+      const id = location.hash.slice(1);
+      for (const el of document.querySelectorAll(".frame")) {
+        el.style.display = el.id === id || !id ? "flex" : "none";
+      }
+    </script>
+  </body>
+</html>

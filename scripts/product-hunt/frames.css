@@ -1,0 +1,214 @@
+/* Launch assets. House tokens from app/globals.css, nothing invented here.
+   Every frame is 1270x760 CSS pixels, rendered at 2x for Product Hunt. */
+
+:root {
+  --paper: #f4f4f4;
+  --surface: #ffffff;
+  --ink: #000000;
+  --ink-2: #6e6e73;
+  --ink-3: #b4b4b8;
+  --hairline: #e6e6e6;
+  --accent: #e8590c;
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.08);
+}
+
+/* The app's own dark mode, used as a ground for the frames that carry a
+   sentence rather than a screen. A light panel sits on it as a lit object. */
+.dark {
+  --paper: #0a0a0a;
+  --surface: #1c1c1e;
+  --ink: #ffffff;
+  --ink-2: #98989d;
+  --ink-3: #545458;
+  --hairline: #2c2c2e;
+  --shadow: none;
+}
+
+/* Re-lights a subtree to the light scheme so a real product surface can sit
+   on the dark ground without being redrawn. */
+.lit {
+  --paper: #f4f4f4;
+  --surface: #ffffff;
+  --ink: #000000;
+  --ink-2: #6e6e73;
+  --ink-3: #b4b4b8;
+  --hairline: #e6e6e6;
+  color: var(--ink);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  background: #ffffff;
+  font-family: "Inter Tight", -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+.frame {
+  position: relative;
+  width: 1270px;
+  height: 760px;
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 72px;
+  display: flex;
+  flex-direction: column;
+}
+
+.num { font-variant-numeric: tabular-nums; }
+.accent { color: var(--accent); }
+.muted { color: var(--ink-2); }
+.cont { color: var(--ink-3); }
+
+/* Type scale, DESIGN.md and the house tokens. */
+.hero {
+  font-size: 60px;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.0;
+  max-width: 21ch;
+}
+.head {
+  font-size: 44px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  max-width: 22ch;
+}
+.serif {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: 68px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.02;
+}
+.body { font-size: 19px; line-height: 1.5; color: var(--ink-2); max-width: 46ch; }
+.cap { font-size: 15px; font-weight: 500; color: var(--ink-2); }
+
+/* The wordmark, top left of every frame, at caption scale. It is a name,
+   not a logo lockup. */
+.mark {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.mark-row { display: flex; align-items: center; justify-content: space-between; }
+.mark-row .site { font-size: 16px; font-weight: 500; color: var(--ink-3); }
+
+.spacer { flex: 1; }
+
+.btn {
+  display: inline-block;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  padding: 16px 26px;
+  border-radius: var(--r-md);
+}
+
+/* --- The board, drawn to DESIGN.md section 3 dimensions --- */
+.board-frame {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-xl);
+  padding: 28px;
+  box-shadow: var(--shadow);
+}
+/* The right padding reserves the corner the tilted LinkedIn mark occupies. */
+.board-head { padding-right: 56px; display: flex; align-items: baseline; justify-content: space-between; }
+.principle { margin-top: 14px; font-size: 16px; line-height: 1.4; max-width: 74ch; }
+.board {
+  margin-top: 24px;
+  background: var(--paper);
+  border-radius: var(--r-lg);
+  padding: 16px;
+  display: flex;
+  gap: 16px;
+  overflow: hidden;
+}
+.col { width: 320px; flex: 0 0 320px; }
+.col-head {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+.col-head h3 { font-size: 14px; font-weight: 500; color: var(--ink-2); }
+.col-head span { font-size: 14px; font-weight: 500; color: var(--ink-3); }
+.col-cards { display: flex; flex-direction: column; gap: 8px; }
+
+.card {
+  min-height: 88px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+}
+.card p.text { font-size: 15px; line-height: 1.4; color: var(--ink); }
+.card p.meta { margin-top: 8px; font-size: 13px; color: var(--ink-2); }
+.card .comment { margin-top: 12px; border-top: 1px solid var(--hairline); padding-top: 12px; }
+.card .comment .label { font-size: 13px; font-weight: 500; color: var(--ink-2); }
+.card .comment .said { margin-top: 4px; font-size: 13px; line-height: 1.4; color: var(--ink); }
+.card .row-actions { margin-top: 12px; border-top: 1px solid var(--hairline); padding-top: 12px; display: flex; gap: 8px; }
+.act {
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--hairline);
+  color: var(--ink);
+  background: var(--surface);
+}
+.act.primary { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+
+/* The board continues past the edge, as a real one does. */
+.fade-right {
+  position: absolute;
+  top: 0; bottom: 0; right: 0;
+  width: 200px;
+  pointer-events: none;
+}
+
+/* The LinkedIn mark, tilted on the frame corner like a sticker. */
+.li-badge {
+  position: absolute;
+  right: -20px;
+  top: -20px;
+  height: 60px;
+  width: 60px;
+  transform: rotate(15deg);
+  border-radius: 18px;
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  color: #0a66c2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+}
+.li-badge svg { height: 24px; width: 24px; }
+
+/* Hairline rows. Label left, value right, tabular, nothing else. */
+.rows { border-top: 1px solid var(--hairline); }
+.rows li {
+  list-style: none;
+  border-bottom: 1px solid var(--hairline);
+  padding: 22px 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 40px;
+}
+.rows .label { font-size: 22px; font-weight: 500; letter-spacing: -0.01em; }
+.rows .value { font-size: 22px; font-weight: 500; color: var(--ink-2); }

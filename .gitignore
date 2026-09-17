@@ -42,3 +42,8 @@ next-env.d.ts
 
 # the example file carries names only, no values
 !.env.example
+
+# Launch asset generator: cached fonts, build output, rendered PNGs
+scripts/product-hunt/fonts/
+scripts/product-hunt/build/
+scripts/product-hunt/out/
