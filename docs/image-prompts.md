@@ -71,5 +71,5 @@ full bleed header, so the image has to survive being small: one subject, one
 light source, no fine detail carrying the meaning.
 
 When image generation is wired on Day 3, the style block becomes the fixed part
-of the Replicate prompt and the `visual` brand principle becomes the variable
+of the image prompt and the `visual` brand principle becomes the variable
 part. That is what the `visual` principle is for.

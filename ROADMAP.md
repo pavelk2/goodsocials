@@ -97,7 +97,7 @@ Fallback: the client already counts calls per member per day and refuses above 1
 
 **Image cost overruns the margin.**
 Trigger: an account approaching 200 images in a month, visible in `image_quota`.
-Fallback: the cap is enforced in the database before the Replicate call. The cap is the fallback.
+Fallback: the cap is enforced in the database before the image call. The cap is the fallback.
 
 **Google Safe Browsing flags the domain as phishing.**
 Hit on Day 1. A new domain with no content, serving an unbranded "Sign in with LinkedIn" page, is the exact shape of a credential harvester and Chrome blocked it with a red interstitial. A stranger cannot get past that screen, so the launch gate is impossible while it stands.

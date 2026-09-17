@@ -19,6 +19,7 @@ export function CardShell({
   style,
   handleProps,
   floating,
+  expanded,
   children,
 }: {
   body: string;
@@ -30,6 +31,11 @@ export function CardShell({
   handleProps?: HTMLAttributes<HTMLDivElement>;
   /** True only while the card is under the cursor, mid drag. */
   floating?: boolean;
+  /**
+   * Full post, no clamp. The line breaks are the ones LinkedIn will render, so
+   * an expanded card is the closest thing to a preview of the real post.
+   */
+  expanded?: boolean;
   /** The footer: three actions on the board, an open comment on the hero. */
   children?: ReactNode;
 }) {
@@ -51,7 +57,11 @@ export function CardShell({
     >
       <div {...handleProps} className={handleProps ? "cursor-grab" : undefined}>
         <div className="flex gap-3">
-          <p className="line-clamp-3 flex-1 whitespace-pre-line text-[15px] leading-[1.4] text-ink">
+          <p
+            className={`flex-1 whitespace-pre-line text-[15px] leading-[1.4] text-ink ${
+              expanded ? "" : "line-clamp-3"
+            }`}
+          >
             {body}
           </p>
           {imageUrl ? (

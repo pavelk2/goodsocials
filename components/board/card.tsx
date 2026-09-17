@@ -34,6 +34,7 @@ export function Card({
   imageUrl?: string | null;
   scheduledAt?: Date | null;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const [commenting, setCommenting] = useState(false);
   const [comment, setComment] = useState("");
   const [confirmingReject, setConfirmingReject] = useState(false);
@@ -50,6 +51,11 @@ export function Card({
   });
 
   const approveLabel = APPROVE_LABEL[state];
+
+  // Three lines at this width is about this many characters. Showing the
+  // control on a card that is already whole would be a lie about there being
+  // more to read.
+  const clamped = body.length > 140 || body.includes("\n");
 
   function run(work: () => Promise<ActionResult>) {
     setError(null);
@@ -75,7 +81,21 @@ export function Card({
       innerRef={setNodeRef}
       style={isDragging ? { opacity: 0.4 } : undefined}
       handleProps={{ ...attributes, ...listeners }}
+      expanded={expanded}
     >
+      {/* Its own line, above the hairline, so the action row stays three
+          actions and nothing else. Outside the drag handle, so reading a post
+          never picks the card up. */}
+      {clamped ? (
+        <button
+          type="button"
+          onClick={() => setExpanded((open) => !open)}
+          className="mt-2 text-[13px] text-ink-2 underline"
+        >
+          {expanded ? "Show less" : "Read it"}
+        </button>
+      ) : null}
+
       {commenting ? (
         <div className="mt-3 border-t border-hairline pt-3">
           <textarea

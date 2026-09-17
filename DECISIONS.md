@@ -111,3 +111,22 @@ zones are worth doing and they are a Day 4 item, not a Day 3 one.
 Rejected: instructing the model to tag its own links.
 A model that forgets breaks the only number a traffic customer checks, and it
 breaks it silently.
+
+**Images go through OpenRouter. Text goes direct to Anthropic.**
+Rejected: Replicate for images, and routing everything through one gateway.
+Two different questions with two different answers. For images the gateway
+wins because the response reports what the call actually cost, which is the
+number PostHog needs, and because the model becomes a string rather than an
+integration. For text it loses: structured output and adaptive thinking are
+first party Anthropic features, and an OpenAI-compatible gateway would mean
+hand-rolling schema validation at four call sites to gain nothing. The "one
+API, one token" argument does not survive the split, because Vercel Blob is
+storage rather than a model provider and stays either way.
+
+**A failed image generation is not a spent image cap.**
+Rejected: one ok:false for both.
+At the cap the customer has spent their 200 and the card carries on without a
+picture, because blocking the queue to protect our image bill stops the thing
+they pay for. A provider that is down or unconfigured is our fault, so the card
+stays in Draft and says so. Collapsing the two shipped a post scheduled with no
+image and no reason given.

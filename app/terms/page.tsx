@@ -155,7 +155,7 @@ export default function Terms() {
 
       <Section title="Uptime and limits of liability">
         <p>
-          We run on Vercel, Neon, LinkedIn, Anthropic, Replicate, and Stripe.
+          We run on Vercel, Neon, LinkedIn, Anthropic, OpenRouter, and Stripe.
           Any one of them can go down and take a scheduled post with it. We
           watch failed publishes, retry them, and show you the error rather than
           hiding it, but we do not promise a specific uptime figure.

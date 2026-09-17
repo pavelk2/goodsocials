@@ -75,8 +75,9 @@ Log token and image spend per account so cost per customer is visible in PostHog
 - Stripe Checkout. Two prices, no custom billing UI.
 - Loops for transactional email. Day 50 re-authorization warning and receipts.
 - PostHog. Funnel to the launch gate, plus per-account cost.
-- Anthropic API for text generation. Replicate for images.
-- Vercel Blob for generated images between generation and LinkedIn upload. Replicate URLs expire in about an hour.
+- Anthropic API for text generation, called directly. Structured output and adaptive thinking are first party features an OpenAI-compatible gateway does not carry, so text never goes through one.
+- OpenRouter for images, because the response reports what each call cost, which is the number PostHog needs, and because the model is a string rather than an integration. Pinned to `black-forest-labs/flux.2-pro` at the 1K tier: 0.03 USD an image, so the 200 cap is at most 6 USD a month against a 100 USD subscription. Raising the resolution tier changes that arithmetic.
+- Vercel Blob for generated images between generation and LinkedIn upload. A store connected to the project authenticates with `BLOB_STORE_ID` and a `VERCEL_OIDC_TOKEN` Vercel mints per deployment. There is no `BLOB_READ_WRITE_TOKEN` to set.
 
 ## Directory layout
 
@@ -102,7 +103,7 @@ Log token and image spend per account so cost per customer is visible in PostHog
 - `card_action` Append-only log of `approve`, `revise`, `reject` with the actor and the comment. Revisions are read from here, never overwritten.
 - `brand_principles` Exactly three rows per profile, keyed by kind: `voice`, `visual`, `format`. Editable text. A revise comment updates the matching one.
 - `scheduled_post` The publish intent: card, profile, `publish_at`, attempt count, last error, resulting post URN. The cron reads this table and nothing else.
-- `image_quota` Per profile per calendar month. `generated_count` against a hard cap of 200. Regenerations increment it. Checked before the Replicate call, not after.
+- `image_quota` Per profile per calendar month. `generated_count` against a hard cap of 200. Regenerations increment it. Checked before the image call, not after.
 - `queue_runway` Derived, not stored: approved and scheduled cards divided by target cadence, in days. Under 3 days triggers idea generation and a board warning.
 
 ## Environment variables
@@ -120,7 +121,7 @@ No values in this file, ever.
 | `LINKEDIN_API_VERSION` | Pinned `YYYYMM` sent as `LinkedIn-Version` on every call |
 | `TOKEN_ENCRYPTION_KEY` | 32-byte base64 key for encrypting LinkedIn tokens at rest |
 | `ANTHROPIC_API_KEY` | Text generation and revision |
-| `REPLICATE_API_TOKEN` | Image generation |
+| `OPENROUTER_API_KEY` | Image generation |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob, holds images until LinkedIn upload |
 | `STRIPE_SECRET_KEY` | Checkout sessions and subscription reads |
 | `STRIPE_WEBHOOK_SECRET` | Verifies Stripe webhook signatures |
@@ -162,7 +163,7 @@ npx tsx scripts/linkedin-post.ts "text of the post"
 
 **Naming.** Database is snake_case, TypeScript is camelCase, files and routes are kebab-case. Drizzle handles the mapping. Tables are singular (`card`, not `cards`).
 
-**Error handling.** Anything that talks to LinkedIn, Stripe, Anthropic, or Replicate returns a typed result rather than throwing into a component. Never swallow an error to keep a screen rendering. A failed publish writes `last_error` on `scheduled_post` and increments the attempt count so it is visible in a query, not only in a log line. User-facing failures say what happened and what to do next.
+**Error handling.** Anything that talks to LinkedIn, Stripe, Anthropic, or OpenRouter returns a typed result rather than throwing into a component. Never swallow an error to keep a screen rendering. A failed publish writes `last_error` on `scheduled_post` and increments the attempt count so it is visible in a query, not only in a log line. User-facing failures say what happened and what to do next.
 
 **Secrets.** Vercel environment variables only. `.env.local` is gitignored, `.env.example` holds names with empty values. No secret is ever a `NEXT_PUBLIC_` variable.
 
