@@ -144,11 +144,16 @@ export async function approveCard(
     // At the cap the card carries on without a picture. Blocking the queue to
     // protect our image bill would stop the thing the customer pays for, and a
     // post without an image still publishes.
-    if (!result.ok) {
+    if (!result.ok && result.reason === "cap") {
       const slot = await schedule(card.id, profile.id, board.targetCadence);
       await log(card.id, "approve", memberId);
       return { ok: true, message: `${result.error} Scheduled for ${slot} without one.` };
     }
+
+    // A provider that is down or misconfigured is our fault, not a decision
+    // about this post. The card stays where it is and says so, because a post
+    // scheduled without the picture the user asked for is a silent wrong answer.
+    if (!result.ok) return { ok: false, error: result.error };
 
     await db
       .update(cardTable)

@@ -49,9 +49,16 @@ Banned because they are the visual equivalent of the words we ban: glowing blue 
 
 Write the prompt as a description of a photograph or a made object, not as instructions to an artist. One paragraph, no lists, no negative prompt section.`;
 
+/**
+ * The two failures are not the same failure and the board must not treat them
+ * alike. `cap` is the product working: the customer has spent their 200 and the
+ * card carries on without a picture. `failed` is us broken, and a broken
+ * provider that silently schedules a post without an image looks to the user
+ * like the agent decided it did not want one.
+ */
 export type ImageResult =
   | { ok: true; url: string; prompt: string; quota: QuotaState }
-  | { ok: false; error: string; quota: QuotaState };
+  | { ok: false; reason: "cap" | "failed"; error: string; quota: QuotaState };
 
 function replicate(): Replicate {
   if (!process.env.REPLICATE_API_TOKEN) {
@@ -80,6 +87,7 @@ export async function generateImage(opts: {
   if (!claim.ok) {
     return {
       ok: false,
+      reason: "cap",
       quota: claim.state,
       error: `You have used all ${claim.state.cap} images this month. The count resets on ${claim.state.resetsOn}.`,
     };
@@ -119,8 +127,10 @@ export async function generateImage(opts: {
     console.error("[images] generation failed:", cause);
     return {
       ok: false,
+      reason: "failed",
       quota: await readQuota(opts.profileId),
-      error: "The image did not generate. Try again, and it will not count against your cap.",
+      error:
+        "The image did not generate, so this card stayed in Draft. It did not count against your cap.",
     };
   }
 }
