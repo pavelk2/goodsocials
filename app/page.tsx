@@ -2,7 +2,13 @@ import Link from "next/link";
 import { Footer } from "@/components/footer";
 import { BoardPreview } from "@/components/board/board-preview";
 import { AGENCY_SEATS } from "@/lib/legal";
-import { PLANS, DEFAULT_PLAN, TRIAL_DAYS, TRIAL_LINE } from "@/lib/plans";
+import {
+  PLANS,
+  DEFAULT_PLAN,
+  HERO_CTA,
+  TRIAL_DAYS,
+  TRIAL_LINE,
+} from "@/lib/plans";
 
 /**
  * The offer copy is verbatim from CLAUDE.md. Do not improve it, derive from it.
@@ -36,7 +42,7 @@ const section =
 const HERO_FACTS = [
   {
     fact: "20 posts a month",
-    detail: "Written in your voice, with an image, scheduled.",
+    detail: "For followers, leads, or traffic. With an image, scheduled.",
   },
   {
     fact: "Five minutes a week",
@@ -56,15 +62,18 @@ export default function Home() {
     <>
       <main>
         <section className={section}>
-          <h1 className="max-w-[24ch] text-[clamp(36px,5.2vw,68px)] font-semibold leading-[1.0] tracking-[-0.035em]">
-            <span>
-              An AI social media manager that posts on LinkedIn without the
-              cringe and the slop.
-            </span>{" "}
-            <span className="text-ink-3">
-              Regularly, in your voice, and nothing goes out without your
-              approval. Whether you focus on growing followers, leads, or
-              traffic to your website.
+          {/* Three clauses: the claim, the objection it answers, the promise.
+              The claim is the only thing in full ink. Everything after it is
+              ink-3, the objection in italic, and the promise separating from
+              it by weight alone, dropping to 300 against the claim's 600.
+              Colour is not doing the emphasis, which keeps the one fading
+              sentence the rest of the page uses instead of making a third
+              level out of it. */}
+          <h1 className="max-w-[22ch] text-[clamp(40px,6vw,76px)] font-semibold leading-[0.98] tracking-[-0.04em]">
+            <span>An AI social media manager for LinkedIn.</span>{" "}
+            <span className="italic text-ink-3">No cringe, no slop.</span>{" "}
+            <span className="font-light text-ink-3">
+              You approve what is scheduled.
             </span>
           </h1>
 
@@ -87,7 +96,7 @@ export default function Home() {
               href={`/signin?plan=${DEFAULT_PLAN.slug}`}
               className={buttonPrimary}
             >
-              {DEFAULT_PLAN.cta}
+              {HERO_CTA}
             </Link>
             <Link href="#pricing" className="text-ink-2 underline">
               Running accounts for clients
