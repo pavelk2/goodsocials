@@ -53,6 +53,12 @@ export const PLANS: Plan[] = [
 
 export const DEFAULT_PLAN = PLANS[0];
 
+/** Free days on every plan, before the first charge. Stated wherever a price is. */
+export const TRIAL_DAYS = 7;
+
+/** The one sentence that carries the trial. Same words on every surface. */
+export const TRIAL_LINE = `${TRIAL_DAYS} days free, cancel any time.`;
+
 /** The cookie the checkout route reads once Stripe is wired. */
 export const PLAN_COOKIE = "gs_plan";
 

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Footer } from "@/components/footer";
 import { BoardPreview } from "@/components/board/board-preview";
 import { AGENCY_SEATS } from "@/lib/legal";
-import { PLANS, DEFAULT_PLAN } from "@/lib/plans";
+import { PLANS, DEFAULT_PLAN, TRIAL_DAYS, TRIAL_LINE } from "@/lib/plans";
 
 /**
  * The offer copy is verbatim from CLAUDE.md. Do not improve it, derive from it.
@@ -162,7 +162,8 @@ export default function Home() {
           <h2 className="max-w-[26ch] text-[clamp(28px,4vw,48px)] font-semibold leading-[1.05] tracking-[-0.03em]">
             <span>A ghostwriter costs $1,500 to $3,000 a month.</span>{" "}
             <span className="text-ink-3">
-              Three prices, all of them on this page.
+              Three prices, all of them on this page, each one free for the
+              first {TRIAL_DAYS} days.
             </span>
           </h2>
           {/* Each plan starts its own flow from its own card. No shared button
@@ -190,6 +191,9 @@ export default function Home() {
                 >
                   {plan.cta}
                 </Link>
+                <p className="num mt-3 text-center text-[13px] text-ink-3">
+                  {TRIAL_LINE}
+                </p>
               </li>
             ))}
           </ul>

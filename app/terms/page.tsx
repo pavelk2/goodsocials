@@ -7,7 +7,12 @@ import {
   AGENCY_SEATS,
   IMAGE_CAP_PER_MONTH,
 } from "@/lib/legal";
-import { PRICE_SOLO, PRICE_AGENCY, PRICE_CONSULTANCY } from "@/lib/plans";
+import {
+  PRICE_SOLO,
+  PRICE_AGENCY,
+  PRICE_CONSULTANCY,
+  TRIAL_DAYS,
+} from "@/lib/plans";
 
 export const metadata: Metadata = {
   title: "Terms | GoodSocials",
@@ -65,8 +70,11 @@ export default function Terms() {
           />
         </ul>
         <p className="pt-2">
-          Prices are in US dollars and exclude VAT where it applies. Billing
-          runs monthly through Stripe, in advance, and renews until you cancel.
+          Every plan starts with {TRIAL_DAYS} days free. We take no payment in
+          those days, and the first charge lands on day {TRIAL_DAYS + 1} unless
+          you cancel before then. Prices are in US dollars and exclude VAT where
+          it applies. Billing runs monthly through Stripe, in advance, and
+          renews until you cancel.
           At the image cap, generation stops for that profile until the month
           turns over, and you keep posting text.
         </p>

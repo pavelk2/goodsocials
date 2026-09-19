@@ -2,7 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { signIn } from "@/auth";
 import { Footer } from "@/components/footer";
-import { PLAN_COOKIE, planFromSlug } from "@/lib/plans";
+import { PLAN_COOKIE, TRIAL_LINE, planFromSlug } from "@/lib/plans";
 
 export const metadata = {
   title: "Sign in with LinkedIn",
@@ -14,8 +14,9 @@ export const metadata = {
  * Replaces the Auth.js default page. The stock page is an unbranded button
  * naming a major platform on a domain with no content, which is the exact
  * shape of a credential harvester and is what got goodsocials.co flagged by
- * Google Safe Browsing. Saying plainly who we are, what we ask for, and what
- * we never do is both honest and the thing that clears a review.
+ * Google Safe Browsing. So the page still says who we are, what LinkedIn is
+ * about to ask for, and what we never do, but in four lines instead of two
+ * screens. The long version lives on the landing page and in the terms.
  *
  * Each plan arrives here with its own ?plan=, so the page states the price the
  * visitor clicked, and the choice survives the trip through LinkedIn in a
@@ -31,30 +32,27 @@ export default async function SignInPage({
 
   return (
     <>
-      <main className="mx-auto max-w-[620px] px-6 py-20">
-        <h1 className="text-[40px] font-semibold leading-[1.05] tracking-[-0.03em]">
-          <span>Connect your LinkedIn profile.</span>{" "}
-          <span className="text-ink-3">
-            GoodSocials writes posts, you approve them, we publish the ones you
-            approve at the time you set.
-          </span>
+      <main className="mx-auto max-w-[440px] px-6 py-24">
+        <h1 className="text-[32px] font-semibold leading-[1.1] tracking-[-0.03em]">
+          Connect your LinkedIn profile.
         </h1>
+        <p className="mt-3 text-ink-2">
+          GoodSocials writes the posts, you approve them, we publish at the time
+          you set.
+        </p>
 
-        <ul className="mt-10 max-w-[420px]">
-          <li className="flex items-baseline justify-between gap-6 border-b border-hairline py-[14px]">
-            <span className="font-medium">{plan.name}</span>
-            <span className="num text-ink-2">{plan.priceLine}</span>
-          </li>
-          <li className="flex items-baseline justify-between gap-6 border-b border-hairline py-[14px]">
+        <div className="mt-10 flex items-baseline justify-between gap-6 border-y border-hairline py-[14px]">
+          <span>
+            <span className="font-medium">{plan.name}</span>{" "}
             <span className="text-ink-2">{plan.line}</span>
-            <Link className="shrink-0 underline" href="/#pricing">
-              Change plan
-            </Link>
-          </li>
-        </ul>
+          </span>
+          <Link className="shrink-0 text-ink-2 underline" href="/#pricing">
+            Change
+          </Link>
+        </div>
 
         <form
-          className="mt-10"
+          className="mt-8"
           action={async () => {
             "use server";
             const store = await cookies();
@@ -69,71 +67,24 @@ export default async function SignInPage({
         >
           <button
             type="submit"
-            className="rounded-[14px] bg-ink px-6 py-[14px] text-[17px] font-semibold text-paper"
+            className="w-full rounded-[14px] bg-ink px-6 py-[14px] text-[17px] font-semibold text-paper"
           >
             Continue with LinkedIn
           </button>
-          <p className="mt-3 text-[13px] text-ink-2">
-            Nothing is charged now. Your board fills first, you pay when you
-            want it published.
+          <p className="num mt-3 text-center text-[13px] text-ink-2">
+            {TRIAL_LINE} Then {plan.priceLine}.
           </p>
         </form>
 
-        <section className="mt-14">
-          <h2 className="text-[20px] font-semibold tracking-[-0.01em]">
-            What LinkedIn will ask you to allow
-          </h2>
-          <ul className="mt-4">
-            <li className="border-b border-hairline py-[14px]">
-              <p className="font-medium">Your name, photo, and email</p>
-              <p className="mt-1 text-ink-2">
-                So we know whose board this is and where to send the
-                reconnection reminder.
-              </p>
-            </li>
-            <li className="border-b border-hairline py-[14px]">
-              <p className="font-medium">Permission to post as you</p>
-              <p className="mt-1 text-ink-2">
-                Used only for posts you have approved, at the time you
-                scheduled. Nothing publishes without your approval.
-              </p>
-            </li>
-          </ul>
-        </section>
-
-        <section className="mt-12">
-          <h2 className="text-[20px] font-semibold tracking-[-0.01em]">
-            What we never do
-          </h2>
-          <ul className="mt-4">
-            {[
-              "Ask for your LinkedIn password. We never see it. LinkedIn handles sign in and hands us a token.",
-              "Read your inbox, your connections, or your feed.",
-              "Post anything you have not approved.",
-              "Sell or share your data.",
-            ].map((line) => (
-              <li
-                key={line}
-                className="border-b border-hairline py-[14px] text-ink-2"
-              >
-                {line}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-6 text-[13px] text-ink-2">
-            LinkedIn access lasts 60 days and cannot be renewed silently, so we
-            email you before it runs out and ask you to reconnect. You can
-            disconnect at any time from LinkedIn settings.{" "}
-            <Link className="underline" href="/privacy">
-              Privacy
-            </Link>{" "}
-            and{" "}
-            <Link className="underline" href="/terms">
-              Terms
-            </Link>
-            .
-          </p>
-        </section>
+        <ul className="mt-12 text-[13px] text-ink-2">
+          <li className="border-t border-hairline py-[12px]">
+            LinkedIn asks you to allow your name and email, and posting as you.
+          </li>
+          <li className="border-y border-hairline py-[12px]">
+            We never see your password, and nothing publishes without your
+            approval.
+          </li>
+        </ul>
       </main>
       <Footer />
     </>
