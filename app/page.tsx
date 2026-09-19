@@ -57,10 +57,14 @@ export default function Home() {
       <main>
         <section className={section}>
           <h1 className="max-w-[24ch] text-[clamp(36px,5.2vw,68px)] font-semibold leading-[1.0] tracking-[-0.035em]">
-            <span>A LinkedIn post every weekday, and you never write one.</span>{" "}
+            <span>
+              An AI social media manager that posts on LinkedIn without the
+              cringe and the slop.
+            </span>{" "}
             <span className="text-ink-3">
-              The agent writes it in your voice, you approve a week of them on
-              a board in one sitting, it publishes at the time you set.
+              Regularly, in your voice, and nothing goes out without your
+              approval. Whether you focus on growing followers, leads, or
+              traffic to your website.
             </span>
           </h1>
 
