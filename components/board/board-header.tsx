@@ -4,13 +4,24 @@ import Link from "next/link";
 import { useState } from "react";
 import { PrinciplesPanel } from "@/components/board/principles";
 
+/** Both controls are 30px tall, so 8px radius. Radius encodes size. */
+const TOOL_BASE =
+  "rounded-[8px] px-3 py-[6px] text-[13px] font-medium transition-[opacity,border-color,transform] duration-150 ease-[var(--ease)] active:scale-[0.98]";
+
+/**
+ * Solid ink, the house primary. Principles are the thing that makes a
+ * correction stick to every future card, so the control that opens them is
+ * the one control on this header worth pressing. Not accent: the board spends
+ * its one color on runway, per DESIGN.md.
+ */
+const PRIMARY = `${TOOL_BASE} bg-ink text-paper hover:opacity-85`;
+
 /**
  * Surface on paper with a hairline, the same way a card separates from the
  * column ground. Paper on paper, which is what the house secondary button is,
- * is invisible here. 8px because these are 30px tall, and radius encodes size.
+ * is invisible here.
  */
-const TOOL =
-  "rounded-[8px] border border-hairline bg-surface px-3 py-[6px] text-[13px] font-medium text-ink";
+const SECONDARY = `${TOOL_BASE} border border-hairline bg-surface text-ink hover:border-ink-3`;
 
 /**
  * Title, runway, and the two controls that are not part of approving a card.
@@ -56,11 +67,11 @@ export function BoardHeader({
             onClick={() => setOpen((shown) => !shown)}
             aria-expanded={open}
             aria-controls="brand-principles"
-            className={TOOL}
+            className={PRIMARY}
           >
             Brand principles
           </button>
-          <Link href="/settings" className={TOOL}>
+          <Link href="/settings" className={SECONDARY}>
             Settings
           </Link>
         </div>
