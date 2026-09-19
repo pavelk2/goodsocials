@@ -16,7 +16,7 @@ Rejected LinkedIn blue for two reasons: it reads as a clone of the thing we post
 
 Where it is allowed to appear, one per screen:
 
-- Landing page: the primary button, which reads `Start for 100 USD a month`.
+- Landing page: the primary button, which reads `Start for $100 a month`. The three plan buttons lower down are ink, not accent, so the rule holds on every screen.
 - Board: the queue runway indicator. Nothing else on the board is colored, so a board about to run dry is the only colored thing on screen, which is correct.
 - Dashboard: the current streak number.
 - Everywhere else: black, or one of the two greys.
@@ -86,7 +86,7 @@ The rule still holds for the rest of the product, and this is where the discipli
 
 - The three brand principles are rows, not cards. Three boxes with icons is the exact pattern the house style bans.
 - The dashboard is rows: posts this month, current streak, days of runway, image quota. Label left, number right, tabular, hairline between.
-- Pricing is three cards side by side, plan name, price, one line of what you get. No badge on a recommended one, no checkmark lists, no shadow.
+- Pricing is three cards side by side, plan name, price, one line of what you get, and the button that starts that plan. No badge on a recommended one, no checkmark lists, no shadow.
 - Settings is rows.
 - The landing page feature list is typographic rows with no icon, no border, no shadow.
 

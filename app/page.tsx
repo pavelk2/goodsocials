@@ -2,14 +2,15 @@ import Link from "next/link";
 import { Footer } from "@/components/footer";
 import { BoardPreview } from "@/components/board/board-preview";
 import { AGENCY_SEATS } from "@/lib/legal";
+import { PLANS, DEFAULT_PLAN } from "@/lib/plans";
 
 /**
  * The offer copy is verbatim from CLAUDE.md. Do not improve it, derive from it.
  *
  * The board carries this page, per DESIGN.md section 2. Everything else stays
- * quiet: one sentence at hero scale, features as typographic rows, two prices
- * as hairline rows, and exactly one element in the accent, which is the runway
- * figure inside the board.
+ * quiet: one sentence at hero scale, features as typographic rows, three prices
+ * as three plain cards, and exactly one element in the accent, which is the
+ * runway figure inside the board.
  *
  * One section per screen. Each one is at least a viewport tall and holds its
  * content in the vertical middle, so a scroll lands on one idea at a time.
@@ -18,43 +19,66 @@ const section =
   "mx-auto flex min-h-svh w-full max-w-[1200px] flex-col justify-center px-6 py-24";
 
 /**
- * Three plans, three cards, no badge on a recommended one. The price is the
- * only thing set large, the seat count comes from lib/legal.ts so the landing
- * page and the terms page cannot state different numbers.
+ * The hero answers the job, not the category: a visitor wants to be posting on
+ * LinkedIn every weekday and does not want to write the posts. These three rows
+ * do the price arithmetic for them before they scroll: twenty weekdays at 5 is
+ * the 100. The ghostwriter number is the same one the pricing section states,
+ * so the comparison is made once and never contradicted.
  */
-const PLANS = [
-  { name: "Pro", price: "100 USD", line: "One LinkedIn profile." },
+const HERO_FACTS = [
   {
-    name: "Agency",
-    price: "1000 USD",
-    line: `Up to ${AGENCY_SEATS} profiles, one board per client.`,
+    fact: "20 posts a month",
+    detail: "Written in your voice, with an image, scheduled.",
   },
   {
-    name: "Consultancy",
-    price: "2000 USD",
-    line: `Up to ${AGENCY_SEATS} profiles, and a call with the founder every week.`,
+    fact: "One minute a day",
+    detail: "Read the card, then approve, revise, or reject.",
+  },
+  {
+    fact: "$5 a post",
+    detail: "$100 a month. A ghostwriter charges $1,500 to $3,000.",
   },
 ];
+
+const buttonPrimary =
+  "inline-block rounded-[14px] bg-ink px-6 py-[14px] text-[17px] font-semibold text-paper";
 
 export default function Home() {
   return (
     <>
       <main>
         <section className={section}>
-          <h1 className="max-w-[26ch] text-[clamp(36px,5.2vw,68px)] font-semibold leading-[1.0] tracking-[-0.035em]">
-            <span>AI social media manager for LinkedIn.</span>{" "}
+          <h1 className="max-w-[24ch] text-[clamp(36px,5.2vw,68px)] font-semibold leading-[1.0] tracking-[-0.035em]">
+            <span>A LinkedIn post every weekday, and you never write one.</span>{" "}
             <span className="text-ink-3">
-              It writes, you approve in a kanban board, it schedules so you post
-              close to daily.
+              The agent writes it in your voice, you approve it on a board in a
+              minute, it publishes at the time you set.
             </span>
           </h1>
 
-          <div className="mt-12">
+          <ul className="mt-14 max-w-[720px]">
+            {HERO_FACTS.map((row) => (
+              <li
+                key={row.fact}
+                className="flex flex-col gap-1 border-b border-hairline py-[14px] sm:flex-row sm:items-baseline sm:justify-between sm:gap-8"
+              >
+                <span className="num font-medium">{row.fact}</span>
+                <span className="num text-ink-2 sm:text-right">
+                  {row.detail}
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-12 flex flex-wrap items-center gap-6">
             <Link
-              href="/signin"
-              className="inline-block rounded-[14px] bg-ink px-6 py-[14px] text-[17px] font-semibold text-paper"
+              href={`/signin?plan=${DEFAULT_PLAN.slug}`}
+              className={buttonPrimary}
             >
-              Start for 100 USD a month
+              {DEFAULT_PLAN.cta}
+            </Link>
+            <Link href="#pricing" className="text-ink-2 underline">
+              Running accounts for clients
             </Link>
           </div>
         </section>
@@ -127,25 +151,28 @@ export default function Home() {
                 One board per client
               </h3>
               <p className="mt-2 text-ink-2">
-                For agencies. Up to ten. Each client authorises their own
-                LinkedIn profile.
+                For agencies. Up to {AGENCY_SEATS}. Each client authorises their
+                own LinkedIn profile.
               </p>
             </li>
           </ul>
         </section>
 
-        <section className={section}>
+        <section id="pricing" className={section}>
           <h2 className="max-w-[26ch] text-[clamp(28px,4vw,48px)] font-semibold leading-[1.05] tracking-[-0.03em]">
-            <span>A ghostwriter costs 1500 to 3000 a month.</span>{" "}
+            <span>A ghostwriter costs $1,500 to $3,000 a month.</span>{" "}
             <span className="text-ink-3">
               Three prices, all of them on this page.
             </span>
           </h2>
+          {/* Each plan starts its own flow from its own card. No shared button
+              below the three, because the price in the button has to be the
+              price the visitor picked. */}
           <ul className="mt-12 grid gap-4 md:grid-cols-3">
             {PLANS.map((plan) => (
               <li
-                key={plan.name}
-                className="rounded-[20px] border border-hairline bg-surface p-6"
+                key={plan.slug}
+                className="flex flex-col rounded-[20px] border border-hairline bg-surface p-6"
               >
                 <h3 className="text-[15px] font-semibold tracking-[-0.01em]">
                   {plan.name}
@@ -154,20 +181,18 @@ export default function Home() {
                   {plan.price}
                 </p>
                 <p className="mt-2 text-[15px] text-ink-3">a month</p>
-                <p className="mt-6 border-t border-hairline pt-6 text-[15px] text-ink-2">
+                <p className="mt-6 grow border-t border-hairline pt-6 text-[15px] text-ink-2">
                   {plan.line}
                 </p>
+                <Link
+                  href={`/signin?plan=${plan.slug}`}
+                  className="num mt-8 block rounded-[14px] bg-ink px-5 py-3 text-center text-[15px] font-semibold text-paper"
+                >
+                  {plan.cta}
+                </Link>
               </li>
             ))}
           </ul>
-          <div className="mt-10">
-            <Link
-              href="/signin"
-              className="inline-block rounded-[14px] bg-ink px-6 py-[14px] text-[17px] font-semibold text-paper"
-            >
-              Start for 100 USD a month
-            </Link>
-          </div>
         </section>
 
         <section className={section}>

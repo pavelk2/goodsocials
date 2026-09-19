@@ -131,6 +131,22 @@ they pay for. A provider that is down or unconfigured is our fault, so the card
 stays in Draft and says so. Collapsing the two shipped a post scheduled with no
 image and no reason given.
 
+**Each price starts its own flow, and prices are written with a dollar sign.**
+Rejected: three cards under one button reading Start for 100 USD a month.
+An agency reading the 1000 card had to click a button naming the solo price,
+so the first thing the flow did was contradict the card. Every card now links
+to `/signin?plan=<slug>`, the sign in page states the plan it was sent, and the
+choice rides to checkout in a cookie. `$100` replaces `100 USD` everywhere a
+customer reads a price, because that is how a buyer writes it.
+
+**The hero states the job and does the price arithmetic.**
+Rejected: leading with the category, AI social media manager for LinkedIn.
+The category sentence tells a visitor what the software is and leaves them to
+work out what it is worth. The job sentence, a post every weekday and you never
+write one, plus three rows reading 20 posts a month, one minute a day, and $5 a
+post against a ghostwriter's $1,500 to $3,000, answers both before the scroll.
+The offer copy in CLAUDE.md is still the source. This is derived from it.
+
 ---
 
 ## Decided on Day 4, building the publish loop

@@ -1,0 +1,68 @@
+import { AGENCY_SEATS } from "@/lib/legal";
+
+/**
+ * The three prices, in one place, with the flow each one starts.
+ *
+ * Every plan has its own entry point. The landing page links each card to
+ * /signin?plan=<slug>, the sign in page states the plan the visitor picked and
+ * writes it to a cookie, and Stripe checkout reads that cookie to open the
+ * right price. A visitor who wants the agency plan never passes through a
+ * button that says 100.
+ */
+export type PlanSlug = "pro" | "agency" | "consultancy";
+
+export type Plan = {
+  slug: PlanSlug;
+  name: string;
+  /** The amount alone, for the price on a card. Tabular numerals, `.num`. */
+  price: string;
+  /** Price and period, for a sentence. */
+  priceLine: string;
+  /** What you get, one line. */
+  line: string;
+  /** Button label. The price is in the button, always. */
+  cta: string;
+};
+
+export const PLANS: Plan[] = [
+  {
+    slug: "pro",
+    name: "Pro",
+    price: "$100",
+    priceLine: "$100 a month",
+    line: "One LinkedIn profile.",
+    cta: "Start for $100 a month",
+  },
+  {
+    slug: "agency",
+    name: "Agency",
+    price: "$1,000",
+    priceLine: "$1,000 a month",
+    line: `Up to ${AGENCY_SEATS} profiles, one board per client.`,
+    cta: "Start for $1,000 a month",
+  },
+  {
+    slug: "consultancy",
+    name: "Consultancy",
+    price: "$2,000",
+    priceLine: "$2,000 a month",
+    line: `Up to ${AGENCY_SEATS} profiles, and a call with the founder every week.`,
+    cta: "Start for $2,000 a month",
+  },
+];
+
+export const DEFAULT_PLAN = PLANS[0];
+
+/** The cookie the checkout route reads once Stripe is wired. */
+export const PLAN_COOKIE = "gs_plan";
+
+/** Anything we did not write ourselves falls back to the entry plan. */
+export function planFromSlug(value: string | undefined | null): Plan {
+  return PLANS.find((plan) => plan.slug === value) ?? DEFAULT_PLAN;
+}
+
+const BY_SLUG = Object.fromEntries(PLANS.map((plan) => [plan.slug, plan]));
+
+export const PRICE_SOLO = BY_SLUG.pro.priceLine;
+export const PRICE_AGENCY = BY_SLUG.agency.priceLine;
+export const PRICE_CONSULTANCY = BY_SLUG.consultancy.priceLine;
