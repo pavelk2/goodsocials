@@ -8,11 +8,11 @@ Four sections. The rest gets generated on Wednesday when there is something to s
 
 ## 1. Accent
 
-`#C2255C`
+`#A61E4D`
 
-Raspberry. One saturated hue, one element per screen.
+Plum. One saturated hue, one element per screen.
 
-Rejected LinkedIn blue for two reasons: it reads as a clone of the thing we post to, and it invites a trademark conversation we do not need in week one. Rejected deep violet `#5B21B6` because four other AI writing tools already wear it. Rejected pine green `#047857` because green on a cadence widget reads as a status light rather than a brand. Rejected signal red `#E03131` because the board already has a Reject action and a dead connection state, so red is spoken for. Rejected burnt orange `#E8590C`, which this file carried first, on contrast: white text on it is 3.6:1, and the primary button is white text on the accent.
+Rejected LinkedIn blue for two reasons: it reads as a clone of the thing we post to, and it invites a trademark conversation we do not need in week one. Rejected deep violet `#5B21B6` because four other AI writing tools already wear it. Rejected pine green `#047857` because green on a cadence widget reads as a status light rather than a brand. Rejected signal red `#E03131` because the board already has a Reject action and a dead connection state, so red is spoken for. Rejected burnt orange `#E8590C`, which this file carried first, on contrast: white text on it is 3.6:1 and the primary button is white text on the accent. Rejected raspberry `#C2255C`, the same hue two steps brighter, because plum holds its own next to black type and the brighter one competes with it.
 
 Where it is allowed to appear, one per screen:
 
@@ -21,9 +21,7 @@ Where it is allowed to appear, one per screen:
 - Dashboard: the current streak number.
 - Everywhere else: black, or one of the two greys.
 
-`--accent-ink` is `#FFFFFF`. Contrast of `#C2255C` against white is 5.7:1, which passes AA for body text, so the primary button label is readable and the accent can carry type if a screen ever needs it to. It is still used sparingly: a background under white text, a 6px dot, a 2px rule. `*:focus-visible` uses it as an outline, which is the one exception to one-element-per-screen because focus is transient.
-
-The logo is the one place the accent is the whole object rather than one element on a surface. See section 5.
+`--accent-ink` is `#FFFFFF`. Contrast of `#A61E4D` against white is 7.2:1, which passes AA and AAA for body text, so the primary button label is readable and the accent can carry type where a screen needs it to. It is still used sparingly: a background under white text, a 6px dot, a 2px rule. `*:focus-visible` uses it as an outline, which is the one exception to one-element-per-screen because focus is transient.
 
 Semantic colors exist for destructive actions and for a dead LinkedIn connection. They are not the accent and they never appear on a marketing page.
 
@@ -102,18 +100,26 @@ One card component, in `components/board/`, used on one surface. If a card appea
 
 ## 5. The mark
 
-A cluster of dots that reads as both the streak grid and a raspberry. Eighteen
-drupelets, which is the number of cells the streak mark fills in a month, so the
-fruit and the calendar are the same object rather than a pun sitting next to one.
+A 5 by 5 grid of dots, one cell per day. Eighteen cells in ink for days a post
+went out, one cell in plum for today, the rest in `--hairline` for the days
+ahead. Dots are 9px on a 30px pitch inside a 200 by 200 frame.
 
-Rows are 4, 5, 4, 3, 2 from the top, each row centered, so rows of different
-counts interlock the way drupelets do. No leaf and no stem: both are one more
-part to lose at 16px, and the silhouette already reads as fruit without them.
+The mark is the dashboard metric drawn at logo size. Nothing about it is
+decorative: if a month were actually empty, the honest version of this mark
+would be almost blank, which is the correct thing for a product that sells
+cadence to say about itself.
 
 Two lockups, no others:
 
-- On paper, the cluster in `#C2255C`.
-- On ink, the same cluster on a rounded tile at `--r-xl`, for the app icon and
-  any avatar that lands on a dark background.
+- On paper, ink cells with the plum cell. `public/logo.svg`, no background, so
+  it drops onto any light ground.
+- On ink, the same grid in white with the plum cell, on a rounded tile at
+  `--r-xl`. `public/logo-tile.svg`, and the same shape full bleed for
+  `public/avatar-400.png`, because LinkedIn and X both crop to a circle.
 
-Candidates and the reasoning behind the shape are in `docs/logo-raspberry/`.
+Browser and platform icons come from the tile: `app/icon.svg`,
+`app/apple-icon.png`, `app/favicon.ico`. Regenerate all of them with
+`npx tsx scripts/logo-export.ts` rather than editing any of them by hand.
+
+Rejected: the same grid packed into a raspberry, which read as fruit before it
+read as a calendar and spent the whole mark on one saturated colour.

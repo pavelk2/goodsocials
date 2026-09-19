@@ -26,9 +26,9 @@ type Option = { hex: string; name: string; note: string; verdict: "shortlist" | 
 
 const options: Option[] = [
   { hex: "#E8590C", name: "Burnt orange", verdict: "no", note: "What the file carried first. Warm, energetic, and white text on it is 3.6 to 1." },
-  { hex: "#C2255C", name: "Raspberry", verdict: "shortlist", note: "Chosen. Confident without being loud. Nobody in this category wears it, and it is the rare accent that can also be a text colour." },
+  { hex: "#C2255C", name: "Raspberry", verdict: "shortlist", note: "Confident without being loud. Nobody in this category wears it, and it is the rare accent that can also be a text colour." },
   { hex: "#002FA7", name: "Klein blue", verdict: "shortlist", note: "Editorial and expensive looking. It is blue, but it is nothing like LinkedIn blue, which is lighter and friendlier." },
-  { hex: "#A61E4D", name: "Plum", verdict: "shortlist", note: "Raspberry with the volume down. Reads as a serious tool for people billing clients." },
+  { hex: "#A61E4D", name: "Plum", verdict: "shortlist", note: "Chosen. Raspberry with the volume down. Reads as a serious tool for people billing clients." },
   { hex: "#E64980", name: "Hot pink", verdict: "maybe", note: "Younger, louder. Harder to put in front of an agency owner charging 1000 a month." },
   { hex: "#F08C00", name: "Amber", verdict: "maybe", note: "Friendlier than the current orange and the weakest contrast here. White text on it is not readable." },
   { hex: "#9C36B5", name: "Grape", verdict: "maybe", note: "Purple that is not the AI purple. Still one hue away from the thing DESIGN.md rejected." },

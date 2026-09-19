@@ -15,7 +15,7 @@ const INK = "#000000";
 const GREY = "#6E6E73";
 const GREY_2 = "#B4B4B8";
 const HAIRLINE = "#E6E6E6";
-const ACCENT = "#C2255C";
+const ACCENT = "#A61E4D";
 const WHITE = "#FFFFFF";
 
 const OUT = join(process.cwd(), "docs", "logo-candidates");

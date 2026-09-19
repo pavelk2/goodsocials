@@ -279,3 +279,12 @@ Rejected: the three principles open on the board.
 They are what makes a correction stick and they are also the thing a user edits
 least often. Open, they took half the screen above the board. One row closed,
 three rows open, and the board is the first thing on the screen again.
+
+**Accent is plum `#A61E4D`.**
+Rejected: burnt orange `#E8590C`, raspberry `#C2255C`, signal red, LinkedIn blue, violet, green.
+Orange failed AA under white text at 3.6:1 and the primary button is white text on the accent, raspberry competed with black type, and each of the rest is either owned by a competitor or already spoken for by a state in the product.
+
+**The mark is the streak grid.**
+Rejected: the same grid packed into a raspberry.
+The fruit read as fruit before it read as a calendar, and it spent the whole mark on one saturated colour.
+
