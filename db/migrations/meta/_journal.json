@@ -15,6 +15,20 @@
       "when": 1789396032068,
       "tag": "0001_tranquil_terror",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789805785481,
+      "tag": "0002_smiling_quasimodo",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789805973780,
+      "tag": "0003_curly_forgotten_one",
+      "breakpoints": true
     }
   ]
 }

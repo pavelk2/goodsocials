@@ -156,7 +156,13 @@ export async function approveCard(
 
     await db
       .update(cardTable)
-      .set({ state: "image", imageUrl: result.url, updatedAt: new Date() })
+      .set({
+        state: "image",
+        imageUrl: result.url,
+        imageAlt: result.prompt,
+        imageUrn: null,
+        updatedAt: new Date(),
+      })
       .where(eq(cardTable.id, card.id));
     await log(card.id, "approve", actor.memberId);
     return { ok: true, message: `${result.quota.remaining} images left this month.` };
@@ -290,7 +296,15 @@ export async function reviseCard(
     if (redraw.ok) {
       await db
         .update(cardTable)
-        .set({ imageUrl: redraw.url, updatedAt: new Date() })
+        // The URN points at the picture LinkedIn already holds, and this is a
+        // different picture. Clearing it is what stops a redrawn card
+        // publishing the image it was redrawn to replace.
+        .set({
+          imageUrl: redraw.url,
+          imageAlt: redraw.prompt,
+          imageUrn: null,
+          updatedAt: new Date(),
+        })
         .where(eq(cardTable.id, card.id));
     } else {
       return { ok: true, message: `Text updated. ${redraw.error}` };

@@ -7,11 +7,7 @@ import { board as boardTable } from "@/db/schema";
 import { loadAccess, seatName } from "@/lib/profiles";
 import { readQuota } from "@/lib/quota";
 import { spacingDays } from "@/lib/schedule";
-import {
-  BANNER_AFTER_DAYS_LEFT,
-  daysUntilExpiry,
-  expiryLine,
-} from "@/lib/token-expiry";
+import { connectionLine, needsReconnect } from "@/lib/token-expiry";
 import { saveCadence, saveGoal } from "./actions";
 import { ChoiceRow } from "@/components/settings/choice-row";
 import { ProfilePicker, type SeatRow } from "@/components/settings/profile-picker";
@@ -83,10 +79,8 @@ export default async function SettingsPage({
   const seats: SeatRow[] = access.seats.map((seat) => ({
     id: seat.profile.id,
     name: seatName(seat),
-    connection: expiryLine(seat.connection?.expiresAt ?? null),
-    needsAttention:
-      !seat.connection ||
-      daysUntilExpiry(seat.connection.expiresAt) <= BANNER_AFTER_DAYS_LEFT,
+    connection: connectionLine(seat.connection),
+    needsAttention: needsReconnect(seat.connection),
     active: seat.profile.id === profile.id,
   }));
 

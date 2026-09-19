@@ -85,6 +85,9 @@ export async function exchangeCode(opts: {
 export function fetchUserInfo(accessToken: string) {
   return linkedinCall<UserInfo>({
     accessToken,
+    // The one call that cannot name a member: this is the call that
+    // tells us which member it is.
+    memberId: null,
     path: "/v2/userinfo",
     versioned: false,
   });
