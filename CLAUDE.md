@@ -14,6 +14,15 @@ This copy is the source. Do not improve it. Derive from it.
 
 An approval queue, not a writing tool: the agent writes, the user approves, the system publishes. The board has five columns (Idea, Draft, Image, Scheduled, Posted) and every card has exactly three actions (Approve, Revise, Reject). A comment on a card rewrites that card and updates the brand principles, so the correction persists to every future card, and that persistence is the differentiator, not generation quality. Cadence is the outcome sold, so the dashboard leads with posts published this month and current streak, never followers or impressions.
 
+## Brand
+
+Accent is `#C2255C`, raspberry, written once as `--accent` in `app/globals.css`. No other file holds a hex.
+
+The mark is a cluster of eighteen dots that reads as both the streak grid and a raspberry, because eighteen is the number of cells a month of posting fills. Two lockups only: the cluster on paper, and the same cluster on a rounded ink tile.
+
+DESIGN.md sections 1 and 5 hold the reasoning and the rejected hues. Do not re-litigate either.
+
+
 ## The launch gate
 
 A stranger with no help from Pavel signs in with LinkedIn, pastes a URL, sees 7 posts on a board, approves one, pays 100 USD, and watches it publish to their feed at the scheduled time. If a task does not serve that sentence, cut it.

@@ -8,11 +8,11 @@ Four sections. The rest gets generated on Wednesday when there is something to s
 
 ## 1. Accent
 
-`#E8590C`
+`#C2255C`
 
-Burnt orange. One saturated hue, one element per screen.
+Raspberry. One saturated hue, one element per screen.
 
-Rejected LinkedIn blue for two reasons: it reads as a clone of the thing we post to, and it invites a trademark conversation we do not need in week one. Rejected deep violet `#5B21B6` because four other AI writing tools already wear it. Rejected pine green `#047857` because green on a cadence widget reads as a status light rather than a brand.
+Rejected LinkedIn blue for two reasons: it reads as a clone of the thing we post to, and it invites a trademark conversation we do not need in week one. Rejected deep violet `#5B21B6` because four other AI writing tools already wear it. Rejected pine green `#047857` because green on a cadence widget reads as a status light rather than a brand. Rejected signal red `#E03131` because the board already has a Reject action and a dead connection state, so red is spoken for. Rejected burnt orange `#E8590C`, which this file carried first, on contrast: white text on it is 3.6:1, and the primary button is white text on the accent.
 
 Where it is allowed to appear, one per screen:
 
@@ -21,7 +21,9 @@ Where it is allowed to appear, one per screen:
 - Dashboard: the current streak number.
 - Everywhere else: black, or one of the two greys.
 
-`--accent-ink` is `#FFFFFF`. Contrast of `#E8590C` against white is 3.6:1, which fails AA for body text, so it is never used as a text color on paper. It is a background under white text, or a 6px dot, or a 2px rule. `*:focus-visible` uses it as an outline, which is the one exception to one-element-per-screen because focus is transient.
+`--accent-ink` is `#FFFFFF`. Contrast of `#C2255C` against white is 5.7:1, which passes AA for body text, so the primary button label is readable and the accent can carry type if a screen ever needs it to. It is still used sparingly: a background under white text, a 6px dot, a 2px rule. `*:focus-visible` uses it as an outline, which is the one exception to one-element-per-screen because focus is transient.
+
+The logo is the one place the accent is the whole object rather than one element on a surface. See section 5.
 
 Semantic colors exist for destructive actions and for a dead LinkedIn connection. They are not the accent and they never appear on a marketing page.
 
@@ -95,3 +97,23 @@ The rule still holds for the rest of the product, and this is where the discipli
 - The landing page feature list is typographic rows with no icon, no border, no shadow.
 
 One card component, in `components/board/`, used on one surface. If a card appears anywhere outside the board, it is a mistake.
+
+---
+
+## 5. The mark
+
+A cluster of dots that reads as both the streak grid and a raspberry. Eighteen
+drupelets, which is the number of cells the streak mark fills in a month, so the
+fruit and the calendar are the same object rather than a pun sitting next to one.
+
+Rows are 4, 5, 4, 3, 2 from the top, each row centered, so rows of different
+counts interlock the way drupelets do. No leaf and no stem: both are one more
+part to lose at 16px, and the silhouette already reads as fruit without them.
+
+Two lockups, no others:
+
+- On paper, the cluster in `#C2255C`.
+- On ink, the same cluster on a rounded tile at `--r-xl`, for the app icon and
+  any avatar that lands on a dark background.
+
+Candidates and the reasoning behind the shape are in `docs/logo-raspberry/`.
