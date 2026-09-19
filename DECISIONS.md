@@ -331,3 +331,13 @@ worse than no chart at all. The kind ships as the finding plus three takeaways,
 and the draft prompt is told never to refer to an attached chart. The chart is a
 roadmap item, and it is a deterministic render from numbers, not a picture of
 one.
+
+## Decided choosing the accent and the mark
+
+**Accent is plum `#A61E4D`.**
+Rejected: burnt orange `#E8590C`, raspberry `#C2255C`, signal red, LinkedIn blue, violet, green.
+Orange failed AA under white text at 3.6:1 and the primary button is white text on the accent, raspberry competed with black type, and each of the rest is either owned by a competitor or already spoken for by a state in the product.
+
+**The mark is the streak grid.**
+Rejected: the same grid packed into a raspberry.
+The fruit read as fruit before it read as a calendar, and it spent the whole mark on one saturated colour.
