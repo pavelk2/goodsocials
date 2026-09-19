@@ -3,6 +3,7 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { anthropic, MODEL, recordSpend } from "./client";
 import type { Principles } from "./principles";
 import { KIND_LABEL, type PostKind } from "@/lib/post-kind";
+import { factsBrief, type FactRow } from "@/lib/integrations/facts";
 import type { Theme } from "./themes";
 
 export type { PostKind };
@@ -123,6 +124,8 @@ Never invent a statistic, a study, a percentage, a survey, a report title, or a 
 
 The needs field is how a gap is declared. An idea with an invented number in it is a failure; an idea that names the number it is missing is correct and useful. Write needs as the author would say it out loud, not as a form field label.
 
+Readings change that calculation. When readings from connected tools appear below, they were read from this person's own Stripe, analytics, repository or notes, and they are already true. A receipt whose number is among them is not a gap: build the idea on the actual figure, quote it exactly as given including the currency and the period, and leave needs null. Only ask for what is genuinely not there. An idea that asks the author to type a number we are already holding is a card they will reject, and rightly.
+
 Seven ideas, seven different shapes. Do not write seven variations of one thought.
 
 Do not write the posts. Do not write hooks. Do not number them.
@@ -142,8 +145,16 @@ export async function generateIdeas(opts: {
   goal: Goal;
   siteUrl: string;
   siteText: string;
+  /**
+   * What the connected sources last read. Empty for a profile with nothing
+   * connected, which is every profile on day one, so this never becomes a
+   * precondition for a board filling up.
+   */
+  facts?: FactRow[];
   profileId: string;
 }): Promise<GeneratedIdea[]> {
+  const readings = factsBrief(opts.facts ?? []);
+
   const response = await anthropic().messages.parse({
     model: MODEL,
     max_tokens: 12000,
@@ -164,6 +175,9 @@ export async function generateIdeas(opts: {
           "Themes. Every idea sits under one of these, by its exact title:",
           ...opts.themes.map((t) => `${t.title}. ${t.description}`),
           "",
+          // Readings before the slate, so the planner knows which receipts it
+          // already has a number for before it is told to write two of them.
+          ...(readings ? [readings, ""] : []),
           "The slate. One idea per slot, in this order:",
           slate(),
           "",

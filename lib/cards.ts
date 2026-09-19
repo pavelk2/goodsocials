@@ -15,6 +15,7 @@ import { generateImage } from "@/lib/agent/images";
 import { reviseCardBody } from "@/lib/agent/revise";
 import type { Goal } from "@/lib/agent/ideas";
 import { nextSlot } from "@/lib/schedule";
+import { readFacts, type FactRow } from "@/lib/integrations/facts";
 
 /**
  * Three actions, no fourth. Approve advances the card one column, Revise
@@ -35,6 +36,12 @@ type Loaded = {
   principles: { voice: string; visual: string; format: string };
   /** Null when the card predates themes, or when its theme was deleted. */
   theme: { title: string; description: string } | null;
+  /**
+   * What the connected sources last read. Loaded with the card rather than at
+   * each call site, so a draft, a revision and an auto draft all write from the
+   * same numbers and no path quietly forgets them.
+   */
+  facts: FactRow[];
 };
 
 /**
@@ -67,15 +74,18 @@ async function load(actor: Actor, cardId: string): Promise<Loaded | null> {
     .limit(1);
   if (!row) return null;
 
-  const principleRows = await db
-    .select()
-    .from(brandPrinciple)
-    .where(eq(brandPrinciple.profileId, row.profile.id));
+  const [principleRows, facts] = await Promise.all([
+    db
+      .select()
+      .from(brandPrinciple)
+      .where(eq(brandPrinciple.profileId, row.profile.id)),
+    readFacts(row.profile.id),
+  ]);
 
   const principles = { voice: "", visual: "", format: "" };
   for (const p of principleRows) principles[p.kind] = p.text;
 
-  return { ...row, principles };
+  return { ...row, principles, facts };
 }
 
 async function log(
@@ -101,7 +111,7 @@ export async function approveCard(
   const loaded = await load(actor, cardId);
   if (!loaded) return { ok: false, error: "That card is not on your board." };
 
-  const { card, board, profile, principles, theme } = loaded;
+  const { card, board, profile, principles, theme, facts } = loaded;
   const db = getDb();
 
   if (card.state === "idea") {
@@ -115,6 +125,7 @@ export async function approveCard(
         principles,
         goal: board.goal as Goal,
         siteUrl: board.siteUrl,
+        facts,
         profileId: profile.id,
       });
     } catch (cause) {
@@ -244,7 +255,7 @@ export async function reviseCard(
   const loaded = await load(actor, cardId);
   if (!loaded) return { ok: false, error: "That card is not on your board." };
 
-  const { card, board, profile, principles } = loaded;
+  const { card, board, profile, principles, facts } = loaded;
   if (card.state === "scheduled" || card.state === "posted") {
     return { ok: false, error: "That card has left the queue." };
   }
@@ -259,6 +270,7 @@ export async function reviseCard(
       needs: card.needs,
       principles,
       goal: board.goal as Goal,
+      facts,
       profileId: profile.id,
     });
   } catch (cause) {
@@ -456,7 +468,7 @@ export async function topUpDrafts(profileId: string): Promise<number> {
     .sort((a, b) => a.position - b.position)
     .slice(0, AUTO_DRAFT_LIMIT - drafted);
 
-  const [principleRows, themeRows] = await Promise.all([
+  const [principleRows, themeRows, facts] = await Promise.all([
     db
       .select()
       .from(brandPrinciple)
@@ -465,6 +477,7 @@ export async function topUpDrafts(profileId: string): Promise<number> {
       .select()
       .from(themeTable)
       .where(eq(themeTable.profileId, row.profile.id)),
+    readFacts(row.profile.id),
   ]);
   const principles = { voice: "", visual: "", format: "" };
   for (const p of principleRows) principles[p.kind] = p.text;
@@ -481,6 +494,7 @@ export async function topUpDrafts(profileId: string): Promise<number> {
         principles,
         goal: row.board.goal as Goal,
         siteUrl: row.board.siteUrl,
+        facts,
         profileId: row.profile.id,
       });
       await db

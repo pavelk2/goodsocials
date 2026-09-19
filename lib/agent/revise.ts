@@ -4,6 +4,7 @@ import { anthropic, MODEL, recordSpend } from "./client";
 import { finish } from "./drafts";
 import type { Principles } from "./principles";
 import type { Goal } from "./ideas";
+import { factsBrief, type FactRow } from "@/lib/integrations/facts";
 
 /**
  * The one thing this product sells. A comment on a card fixes that card, and it
@@ -68,7 +69,15 @@ The register stays a researcher, not a seller, whatever the comment says. If the
 
 Never invent a statistic, a study, a percentage, a report title, or a quote. If the comment supplies a number, use their number.
 
+Readings from connected tools may appear below. They are real, read from the author's own accounts. You may close a bracket with one when the comment asks you to use the real figure. The comment always outranks a reading: if the two disagree, the author is telling you something the tool does not know, so use theirs and do not mention the difference.
+
 Never use em dashes. Never use "seamless", "leverage", "unlock", "supercharge", "effortless", or "game-changer". Never use "actually", "really", "simply", "just", or "basically". Never write "this is not X, this is Y".`;
+
+/** Nothing connected is the common case, and it should not leave blank lines. */
+function factsSection(facts: FactRow[] | undefined): string[] {
+  const readings = factsBrief(facts ?? []);
+  return readings ? [readings, ""] : [];
+}
 
 export async function reviseCardBody(opts: {
   /** An idea card holds a one line brief. A draft card holds a finished post. */
@@ -83,6 +92,8 @@ export async function reviseCardBody(opts: {
   needs?: string | null;
   principles: Principles;
   goal: Goal;
+  /** What the connected sources last read, so "use our real number" can work. */
+  facts?: FactRow[];
   profileId: string;
 }): Promise<Revision> {
   const response = await anthropic().messages.parse({
@@ -108,6 +119,7 @@ export async function reviseCardBody(opts: {
           opts.needs
             ? `This card was waiting on one thing from the author: ${opts.needs}. If the comment supplies it, put it into the card and remove the bracket that was holding its place. If the comment is about something else, leave the bracket where it is. This is a correction about one card, so it is not standing instruction and the principle stays null unless the comment says something separate about how posts should read.`
             : "",
+          ...factsSection(opts.facts),
           "Brand principles as they stand:",
           `Voice. ${opts.principles.voice}`,
           `Visual. ${opts.principles.visual}`,

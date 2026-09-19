@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
@@ -5,6 +6,7 @@ import { getDb } from "@/db";
 import { board as boardTable } from "@/db/schema";
 import { loadAccess, seatName } from "@/lib/profiles";
 import { readQuota } from "@/lib/quota";
+import { listSources } from "@/lib/integrations/sources";
 import { spacingDays } from "@/lib/schedule";
 import { connectionLine, needsReconnect } from "@/lib/token-expiry";
 import { AGENCY_SEATS } from "@/lib/legal";
@@ -67,8 +69,12 @@ export async function SettingsBody({ linked }: { linked?: string }) {
     .limit(1);
   if (!brd) redirect("/signin");
 
-  const quota = await readQuota(profile.id);
+  const [quota, sources] = await Promise.all([
+    readQuota(profile.id),
+    listSources(profile.id),
+  ]);
   const gap = spacingDays(brd.targetCadence);
+  const connectedSources = sources.filter((s) => s.connected !== null).length;
 
   const seats: SeatRow[] = access.seats.map((seat) => ({
     id: seat.profile.id,
@@ -125,6 +131,15 @@ export async function SettingsBody({ linked }: { linked?: string }) {
             label="Images this month"
             value={`${quota.used} of ${quota.cap}, resets ${quota.resetsOn}`}
           />
+          <LinkRow
+            label="Integrations"
+            href="/integrations"
+            value={
+              connectedSources === 0
+                ? `Nothing connected, ${sources.length} available`
+                : `${connectedSources} of ${sources.length} connected`
+            }
+          />
           <Row
             label="Plan"
             value={
@@ -142,6 +157,30 @@ export async function SettingsBody({ linked }: { linked?: string }) {
         rather than failing one post at a time.
       </p>
     </>
+  );
+}
+
+/**
+ * The one row on this page that goes somewhere. The value is the link rather
+ * than a chevron beside it, because the value is what the user came to read and
+ * a second target for the same destination is a second thing to aim at.
+ */
+function LinkRow({
+  label,
+  value,
+  href,
+}: {
+  label: string;
+  value: string;
+  href: string;
+}) {
+  return (
+    <li className="flex items-baseline justify-between gap-6 border-b border-hairline py-[14px]">
+      <span className="text-[13px] font-medium text-ink-2">{label}</span>
+      <Link href={href} className="num text-right text-[15px] text-ink underline">
+        {value}
+      </Link>
+    </li>
   );
 }
 

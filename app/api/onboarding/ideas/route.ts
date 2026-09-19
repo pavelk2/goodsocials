@@ -10,6 +10,7 @@ import {
 import { resolveActor } from "@/lib/profiles";
 import { fetchSiteText } from "@/lib/agent/site";
 import { generateIdeas, type GeneratedIdea, type Goal } from "@/lib/agent/ideas";
+import { readFacts } from "@/lib/integrations/facts";
 
 /** Step two. Fills the Idea column with seven cards. */
 export const runtime = "nodejs";
@@ -40,7 +41,9 @@ export async function POST(request: Request) {
     return Response.json({ error: "No board for this profile." }, { status: 404 });
   }
 
-  const [rows, themes] = await Promise.all([
+  // Facts join the same round trip as the principles and the themes. Onboarding
+  // has a 90 second budget and a third sequential query is not how it gets spent.
+  const [rows, themes, facts] = await Promise.all([
     db
       .select()
       .from(brandPrinciple)
@@ -50,6 +53,7 @@ export async function POST(request: Request) {
       .from(themeTable)
       .where(eq(themeTable.profileId, actor.profileId))
       .orderBy(asc(themeTable.position)),
+    readFacts(actor.profileId),
   ]);
   const principles = { voice: "", visual: "", format: "" };
   for (const row of rows) principles[row.kind] = row.text;
@@ -75,6 +79,7 @@ export async function POST(request: Request) {
       goal: brd.goal as Goal,
       siteUrl: site.url,
       siteText: site.text,
+      facts,
       profileId: actor.profileId,
     });
   } catch (cause) {

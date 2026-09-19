@@ -317,3 +317,112 @@ export const linkedinCallBudget = pgTable(
   },
   (t) => [uniqueIndex("linkedin_call_member_day_unique").on(t.memberId, t.day)],
 );
+
+/**
+ * Where a fact came from. Five, all read-only, and every one of them
+ * authenticates with a credential the user pastes once rather than an OAuth
+ * round trip, which is deliberate: LinkedIn already taught this product what a
+ * silently expiring token costs, and a Stripe restricted key, a GitHub
+ * fine-grained token, a PostHog personal key, a Plausible key and a Notion
+ * internal token all outlive the subscription. Google Calendar is the obvious
+ * sixth and it is the first one that needs a refresh flow, so it waits.
+ */
+export const sourceKind = pgEnum("source_kind", [
+  "stripe",
+  "github",
+  "posthog",
+  "plausible",
+  "notion",
+]);
+
+/** A source is broken when its last sync was refused, not when it was empty. */
+export const sourceStatus = pgEnum("source_status", ["active", "broken"]);
+
+/**
+ * One connected read-only source per kind per profile.
+ *
+ * The credential is sealed with the same cipher as a LinkedIn token and read
+ * only by lib/integrations/credentials.ts. Everything a source needs that is
+ * not a secret sits in two plain columns rather than a JSON blob, because a
+ * blob is where a required field goes to hide: `handle` is the PostHog project
+ * id, the Plausible site domain, or the GitHub login, and `host` is the base
+ * URL for the two products that are also self-hosted.
+ */
+export const source = pgTable(
+  "source",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profile.id, { onDelete: "cascade" }),
+    kind: sourceKind("kind").notNull(),
+    /** AES-256-GCM. Written and read only by lib/integrations/credentials.ts. */
+    credentialCiphertext: text("credential_ciphertext").notNull(),
+    credentialIv: text("credential_iv").notNull(),
+    credentialTag: text("credential_tag").notNull(),
+    /** Project id, site domain, or account login. Never a secret. */
+    handle: text("handle"),
+    /** Base URL, for the two of these that are also self-hosted. */
+    host: text("host"),
+    status: sourceStatus("status").notNull().default("active"),
+    /** Null until the first sync lands, so "connected, never read" is visible. */
+    lastSyncedAt: timestamp("last_synced_at", { withTimezone: true }),
+    /** Why the last sync was refused, in the words the API used. */
+    lastError: text("last_error"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    // One Stripe per profile. Two would mean two answers to "what is our MRR".
+    uniqueIndex("source_profile_kind_unique").on(t.profileId, t.kind),
+  ],
+);
+
+/**
+ * One thing that is true about this business, read from a source rather than
+ * written by a model. This is the table that makes a receipt post a receipt.
+ *
+ * Upserted on (source_id, key), never appended, for two reasons. A sync that
+ * grew the table would put a year of daily MRR readings into every draft
+ * prompt, and the cost of that lands on a 100 USD subscription. And a fact is
+ * a current reading rather than a history: nobody posts last March's churn.
+ *
+ * `value` is text, not a number, because the model reads it and "4,210 EUR" is
+ * what belongs in a sentence. Arithmetic happens in the adapter, before the row
+ * is written, where the currency and the period are still in scope.
+ */
+export const fact = pgTable(
+  "fact",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profile.id, { onDelete: "cascade" }),
+    /**
+     * Cascade rather than set null: a disconnected source's numbers are no
+     * longer ours to publish under someone's name, and a fact nobody can
+     * re-read is a fact nobody can check.
+     */
+    sourceId: uuid("source_id")
+      .notNull()
+      .references(() => source.id, { onDelete: "cascade" }),
+    /** Stable within a source. The upsert key, not shown to anyone. */
+    key: text("key").notNull(),
+    /** What it is, in the words the source uses. "Monthly recurring revenue". */
+    label: text("label").notNull(),
+    /** The reading itself, formatted for a sentence. "4,210 EUR". */
+    value: text("value").notNull(),
+    /** One more clause of context, when there is one. "up from 3,800 in August". */
+    detail: text("detail"),
+    /** What the reading is true of. "last 30 days". Never assumed downstream. */
+    period: text("period"),
+    observedAt: timestamp("observed_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("fact_source_key_unique").on(t.sourceId, t.key),
+    index("fact_profile_idx").on(t.profileId),
+  ],
+);
