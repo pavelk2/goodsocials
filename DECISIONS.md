@@ -130,3 +130,59 @@ picture, because blocking the queue to protect our image bill stops the thing
 they pay for. A provider that is down or unconfigured is our fault, so the card
 stays in Draft and says so. Collapsing the two shipped a post scheduled with no
 image and no reason given.
+
+---
+
+## Decided on Day 4, building the publish loop
+
+**The cron runs every 15 minutes, not once at 09:00.**
+Rejected: one daily run at the publish hour.
+A daily cron that fails loses the day, and nobody finds out until a customer
+asks where their post went. Slots are on the hour, so the run at :00 takes them
+and the three after it are the retry. A run with nothing due is one query.
+
+**A post approved with a picture does not publish without it.**
+Rejected: falling back to text when the image upload fails.
+The image cap is the one case where a post goes out without a picture, and that
+decision is made at approval time, on the board, where the user sees it. An
+upload that fails at 09:00 is our problem, not a new editorial decision to make
+on somebody's behalf at five past.
+
+**Five attempts, then the row stops and holds the reason.**
+Rejected: retrying until it works.
+A queue retrying a malformed post every 15 minutes for a month is a rate limit
+incident with extra steps. The row keeps `last_error`, so what stopped it is
+one query away and one line on the board.
+
+**A dead token pauses the profile in one decision, and dead is not recomputed.**
+Rejected: letting each post fail on its own 401, and deriving status purely
+from `expires_at`.
+An agency with 12 clients needs to read "this client needs to sign in again",
+not 40 identical 401s. And a token LinkedIn has refused is gone whatever the
+clock says: recomputing it back to active would retry a revoked token every
+quarter hour and take the banner off the board while it did. Only signing in
+again writes a connection that is not dead.
+
+**Our own daily budget is claimed before the call, and a refusal is not an attempt.**
+Rejected: reading LinkedIn's 429 and backing off.
+150 calls per member per day, and near-daily posting needs one, so the limit is
+not there to ration the product. It is there because an unattended cron with a
+bug can spend a member's whole day before anyone is awake, and a member who is
+rate limited by LinkedIn is rate limited for their own next action too. Our
+refusal and LinkedIn's 429 both mean "not now, and not this post's fault", so
+neither spends one of the five attempts.
+
+**Alt text is written when the picture is, not derived from the post.**
+Rejected: publishing the card's idea as the image's alt text.
+The idea says what the writing is about. Alt text says what a screen reader
+would otherwise miss. The generated image prompt is already a description of
+the picture, so it is stored on the card at generation and published as is. A
+redraw clears the uploaded image URN in the same statement, because a URN
+pointing at the picture the user just replaced is how a card publishes the
+image it was revised to get rid of.
+
+**The board says when the queue is stopped.**
+Rejected: leaving it to the day 50 email and the settings screen.
+The cron runs whether or not anybody opens the board. Without a line on the
+board the only other way to find out that a queue is paused is the client whose
+feed went quiet, and at 12 accounts that is the 1000 USD subscription.

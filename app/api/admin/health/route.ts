@@ -10,9 +10,11 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * The first eight break sign in. The last two break the board, and they break
+ * The first eight break sign in. The next two break the board, and they break
  * it later and quieter: a missing image key throws inside an approve the user
- * already clicked, which reads to them as the product not working.
+ * already clicked, which reads to them as the product not working. The last
+ * one is quieter still: without CRON_SECRET the publish route refuses Vercel's
+ * own cron, so approved posts queue up and nothing ever reaches a feed.
  */
 const REQUIRED = [
   "DATABASE_URL",
@@ -25,6 +27,7 @@ const REQUIRED = [
   "TOKEN_ENCRYPTION_KEY",
   "ANTHROPIC_API_KEY",
   "OPENROUTER_API_KEY",
+  "CRON_SECRET",
 ] as const;
 
 const EXPECTED_TABLES = [
@@ -34,6 +37,7 @@ const EXPECTED_TABLES = [
   "card",
   "card_action",
   "image_quota",
+  "linkedin_call_budget",
   "linkedin_connection",
   "profile",
   "scheduled_post",

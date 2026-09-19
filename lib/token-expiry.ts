@@ -29,3 +29,20 @@ export function expiryLine(expiresAt: Date | null, now = new Date()): string {
   }
   return `${left} days left, then you sign in again`;
 }
+
+/**
+ * The one function that decides what a connection's status should be, so the
+ * banner, the settings screen and the publish cron cannot disagree. The cron
+ * is what writes the value, because it is the only thing that runs whether or
+ * not anybody opens the board: a token that dies on a Saturday must be dead in
+ * the table before Monday's queue tries to use it.
+ */
+export function statusFor(
+  expiresAt: Date,
+  now = new Date(),
+): "active" | "expiring" | "dead" {
+  const left = daysUntilExpiry(expiresAt, now);
+  if (left === 0) return "dead";
+  if (left <= BANNER_AFTER_DAYS_LEFT) return "expiring";
+  return "active";
+}

@@ -1,10 +1,12 @@
-import { eq, asc } from "drizzle-orm";
+import { and, asc, eq, isNotNull, isNull } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   profile as profileTable,
   board as boardTable,
   card as cardTable,
   brandPrinciple,
+  linkedinConnection,
+  scheduledPost,
 } from "@/db/schema";
 
 export const COLUMNS = [
@@ -35,6 +37,15 @@ export type BoardView = {
   runwayDays: number;
   /** True while the principles are still the placeholders from sign in. */
   needsOnboarding: boolean;
+  /**
+   * What the publish queue is doing when it is not publishing. The cron runs
+   * whether or not anybody opens this page, so without these two the failure
+   * the whole product is built around is invisible until a client asks where
+   * the posts went.
+   */
+  connection: { status: "active" | "expiring" | "dead"; expiresAt: Date } | null;
+  /** The reason the oldest stuck post gave, if the queue is stuck. */
+  queueError: string | null;
 };
 
 const PLACEHOLDER_PREFIX = "Not set yet.";
@@ -56,13 +67,35 @@ export async function loadBoard(memberId: string): Promise<BoardView | null> {
     .limit(1);
   if (!brd) return null;
 
-  const [principleRows, cardRows] = await Promise.all([
+  const [principleRows, cardRows, connectionRows, stuckRows] = await Promise.all([
     db.select().from(brandPrinciple).where(eq(brandPrinciple.profileId, prof.id)),
     db
       .select()
       .from(cardTable)
       .where(eq(cardTable.boardId, brd.id))
       .orderBy(asc(cardTable.position), asc(cardTable.createdAt)),
+    db
+      .select({
+        status: linkedinConnection.status,
+        expiresAt: linkedinConnection.expiresAt,
+      })
+      .from(linkedinConnection)
+      .where(eq(linkedinConnection.profileId, prof.id))
+      .limit(1),
+    // The oldest unpublished post that has a reason attached. One sentence on
+    // the board beats twelve identical rows nobody queries.
+    db
+      .select({ lastError: scheduledPost.lastError })
+      .from(scheduledPost)
+      .where(
+        and(
+          eq(scheduledPost.profileId, prof.id),
+          isNull(scheduledPost.publishedAt),
+          isNotNull(scheduledPost.lastError),
+        ),
+      )
+      .orderBy(asc(scheduledPost.publishAt))
+      .limit(1),
   ]);
 
   const principles = { voice: "", visual: "", format: "" };
@@ -91,5 +124,7 @@ export async function loadBoard(memberId: string): Promise<BoardView | null> {
     needsOnboarding: Object.values(principles).every(
       (t) => t === "" || t.startsWith(PLACEHOLDER_PREFIX),
     ),
+    connection: connectionRows[0] ?? null,
+    queueError: stuckRows[0]?.lastError ?? null,
   };
 }
