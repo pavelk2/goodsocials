@@ -313,32 +313,39 @@ then never notice is that it quietly wrote seven findings again. The mix is
 also the thing most likely to be tuned after five real users, and tuning an
 array beats tuning a paragraph.
 
-Six of the seven are frameworks, data breakdowns or receipts. One slot stays a
-plain finding so a board that is entirely reference material still has a person
-in it.
+The split across the kinds is superseded. The four kinds here became three,
+under "Three kinds of post" at the top of this file. What holds is the shape of
+the decision: the slate is an array, the slot decides, and the model reports
+nothing about the distribution.
 
-**Receipts declare the number they are missing instead of inventing one.**
+**A personal post declares the number it is missing instead of inventing one.**
 Rejected: generating a plausible number and marking the post as an example.
-A receipt is credible only because it is the author's own, so a made up figure
-under a real name is the worst failure this product has. The idea carries a
-`needs` line naming the number in the words the author would use for it, the
-card shows it before anyone approves, the draft writes the sentence around it
-and marks the gap with one bracket, and a revise comment supplying the number
-closes it. That makes the gap a question the product asks rather than a hole it
-hides.
+It is credible only because it is the author's own, so a made up figure under a
+real name is the worst failure this product has. The idea carries a `needs`
+line naming the number in the words the author would use for it, the card shows
+it before anyone approves, the draft writes the sentence around it and marks the
+gap with one bracket, and a revise comment supplying the number closes it. That
+makes the gap a question the product asks rather than a hole it hides.
 
 It is also the cheapest version of the intake problem. The agent knows the
 website and nothing about what happened this week, and a card asking for one
 specific number gets answered where a blank box asking what happened does not.
+Reading the number from Stripe, PostHog, GitHub or Google Analytics is the
+version that removes the typing, and it ships after this one has proved someone
+answers.
 
-**A data breakdown ships without the chart.**
+(Written when this kind was called a receipt. Same rule, new name.)
+
+**A research post ships without the chart.**
 Rejected: generating the chart with the image model.
 FLUX renders text badly, which is why the image prompt already bans charts with
 labels, and a chart with wrong numbers on it published under a real name is
-worse than no chart at all. The kind ships as the finding plus three takeaways,
-and the draft prompt is told never to refer to an attached chart. The chart is a
-roadmap item, and it is a deterministic render from numbers, not a picture of
-one.
+worse than no chart at all. The kind ships as the finding, its named source and
+what it means, and the draft prompt is told never to refer to an attached chart.
+The chart is a roadmap item, and it is a deterministic render from numbers, not
+a picture of one.
+
+(Written when this kind was called a data breakdown. Same rule, new name.)
 
 ## Decided choosing the accent and the mark
 

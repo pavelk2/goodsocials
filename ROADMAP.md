@@ -80,7 +80,7 @@ done condition below is checked on the preview deploy.
 To observe on the preview deploy, in this order:
 
 - [ ] **A research card reaches Draft carrying links that open.** Approve a research idea, check the Sources list in the dialog, open each link, and confirm the post names the same organisation the link points at.
-- [ ] **The gate actually holds.** Drag an old `framework` card, migrated to `explainer` and carrying no sources, from Draft to Image and confirm it refuses with the sentence about revising or rejecting.
+- [ ] **The gate actually holds.** Drag an old `framework` card, migrated to `explainer` and carrying no sources, from Draft to Image and confirm it refuses and names moving it back to Idea or rejecting it.
 - [ ] **What a search pass costs.** Read `llm_spend` for `research:research` and `research:explainer` on one full board and check the arithmetic in the cost section of CLAUDE.md against the real number.
 
 What is deliberately not in this pass, in the order it is worth building.
