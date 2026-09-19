@@ -12,7 +12,7 @@ This copy is the source. Do not improve it. Derive from it.
 
 ## What the product is
 
-An approval queue, not a writing tool: the agent writes, the user approves, the system publishes. The board has five columns (Idea, Draft, Image, Scheduled, Posted) and every card has exactly three actions (Approve, Revise, Reject). A comment on a card rewrites that card and updates the brand principles, so the correction persists to every future card, and that persistence is the differentiator, not generation quality. Cadence is the outcome sold, so the dashboard leads with posts published this month and current streak, never followers or impressions.
+An approval queue, not a writing tool: the agent writes, the user approves, the system publishes. The board has five columns (Idea, Draft, Image, Scheduled, Posted) and every card has exactly three actions (Approve, Revise, Reject). A comment on a card rewrites that card and updates the brand principles, so the correction persists to every future card, and that persistence is the differentiator, not generation quality. Four themes per profile decide what the board is about, so ideas keep coming from somewhere after the homepage is used up. Cadence is the outcome sold, so the dashboard leads with posts published this month and current streak, never followers or impressions.
 
 ## Brand
 
@@ -106,7 +106,10 @@ Log token and image spend per account so cost per customer is visible in PostHog
 - `linkedin_connection` Per profile. Encrypted access token, LinkedIn member URN, granted scopes, `connected_at`, `expires_at`, `status` (`active`, `expiring`, `dead`).
 - `token_expiry` Not a table. Derived from `linkedin_connection.expires_at`. Day 50 sends email, day 55 shows a banner, day 60 marks the connection `dead` and pauses scheduling instead of failing post by post.
 - `board` One per profile. Holds the goal (`interesting`, `followers`, `traffic`) and the target cadence.
-- `card` The unit of work. Belongs to a board. Holds idea, draft text, image reference, scheduled time, and the LinkedIn post URN once published.
+- `theme` What this profile is known for. Four per profile, written from the site at onboarding and editable after. Principles say how a post sounds; themes say what it is allowed to be about, and without them every generation restarts from the same homepage and week four reads like week one. Ideas are dealt across them so no one theme takes the board.
+- `card` The unit of work. Belongs to a board, and to a theme. Holds idea, draft text, image reference, scheduled time, and the LinkedIn post URN once published. Also `kind`, and `needs` when the post is waiting on something only the author has.
+- `post_kind` Enum on `card`: `framework`, `data`, `receipt`, `finding`. The shape of the post, decided with the idea rather than at draft time, because a framework and a receipt are different posts from the first sentence. The mix is biased: `KIND_MIX` in `lib/agent/ideas.ts` is seven slots and six of them are frameworks, data breakdowns or receipts. That array is the bias, so tuning it is one edit.
+- `needs` on `card` The one number or source only the author can supply, named in their own words. A receipt is credible because it is theirs, so the card asks for the number instead of inventing it: the board shows the line, the draft brackets the gap, and a revise comment supplying it closes it.
 - `card_state` Enum: `idea`, `draft`, `image`, `scheduled`, `posted`, `rejected`. The board column is this field, not a position.
 - `card_action` Append-only log of `approve`, `revise`, `reject` with the actor and the comment. Revisions are read from here, never overwritten.
 - `brand_principles` Exactly three rows per profile, keyed by kind: `voice`, `visual`, `format`. Editable text. A revise comment updates the matching one.

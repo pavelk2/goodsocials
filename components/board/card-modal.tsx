@@ -25,6 +25,8 @@ export function CardModal({
   id,
   state,
   body,
+  label,
+  needs,
   imageUrl,
   scheduledAt,
   onClose,
@@ -32,6 +34,8 @@ export function CardModal({
   id: string;
   state: Column;
   body: string;
+  label?: string | null;
+  needs?: string | null;
   imageUrl?: string | null;
   scheduledAt?: Date | null;
   onClose: () => void;
@@ -91,6 +95,9 @@ export function CardModal({
         <div className="flex items-baseline justify-between gap-4">
           <p className="text-[13px] font-medium text-ink-2">
             {COLUMN_LABEL[state]}
+            {label ? (
+              <span className="ml-2 font-normal">{label}</span>
+            ) : null}
           </p>
           {when ? <p className="num text-[13px] text-ink-2">{when}</p> : null}
         </div>
@@ -115,6 +122,15 @@ export function CardModal({
               className="max-h-[45dvh] w-full rounded-[8px] border border-hairline object-contain"
             />
           </button>
+        ) : null}
+
+        {/* Above the actions, because it is the reason Approve is the wrong
+            button to press first. The revise box under it is where the answer
+            goes, and answering closes the gap. */}
+        {needs ? (
+          <p className="mt-5 text-[15px] leading-[1.4] text-ink">
+            <span className="font-medium">Needs from you.</span> {needs}
+          </p>
         ) : null}
 
         <CardActions id={id} state={state} onAdvance={onClose} />

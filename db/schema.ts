@@ -39,6 +39,20 @@ export const cardActionKind = pgEnum("card_action_kind", [
   "revise",
   "reject",
 ]);
+/**
+ * The shape of a post, which is a different question from what it is about.
+ * The mix is biased in lib/agent/ideas.ts: the first three carry more weight
+ * than a plain finding because they are the ones a reader saves, cites, or
+ * believes. `finding` is the default and what every card written before themes
+ * existed is.
+ */
+export const postKind = pgEnum("post_kind", [
+  "framework",
+  "data",
+  "receipt",
+  "finding",
+]);
+
 export const principleKind = pgEnum("principle_kind", [
   "voice",
   "visual",
@@ -133,7 +147,23 @@ export const card = pgTable(
       .notNull()
       .references(() => board.id, { onDelete: "cascade" }),
     state: cardState("state").notNull().default("idea"),
+    /** The shape the post takes. Decided with the idea, read by the draft. */
+    kind: postKind("kind").notNull().default("finding"),
+    /**
+     * The theme this post sits under. Nullable and set null on delete: a theme
+     * the user removed should not take a week of approved work with it.
+     */
+    themeId: uuid("theme_id").references(() => theme.id, {
+      onDelete: "set null",
+    }),
     idea: text("idea").notNull(),
+    /**
+     * The one number only the author has, named in their own words. Written on
+     * receipt cards, where the post is worthless without it and inventing it
+     * would be worse. Shown on the card so the gap is visible before anyone
+     * approves it, and filled with a revise comment.
+     */
+    needs: text("needs"),
     draftText: text("draft_text"),
     imageUrl: text("image_url"),
     /** Set after the three step LinkedIn image upload, before publishing. */
@@ -191,6 +221,38 @@ export const brandPrinciple = pgTable(
       .defaultNow(),
   },
   (t) => [uniqueIndex("principle_profile_kind_unique").on(t.profileId, t.kind)],
+);
+
+/**
+ * What this person is known for. Four per profile, written from their site at
+ * onboarding and editable after.
+ *
+ * Principles say how they sound; themes say what they are allowed to be about.
+ * Without them every generation starts from the same homepage and week four
+ * reads like week one, which is the way this product dies quietly. Ideas are
+ * dealt across the themes so no one of them takes the whole board.
+ *
+ * Not capped by a unique index the way principles are, because four is a
+ * starting count rather than a rule: an agency running a client for six months
+ * will add a fifth.
+ */
+export const theme = pgTable(
+  "theme",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profile.id, { onDelete: "cascade" }),
+    /** Two to four words. What a reader would say this person posts about. */
+    title: text("title").notNull(),
+    /** One or two sentences naming what they can say here that nobody else can. */
+    description: text("description").notNull(),
+    position: integer("position").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("theme_profile_idx").on(t.profileId)],
 );
 
 /** The publish intent. The cron reads this table and nothing else. */

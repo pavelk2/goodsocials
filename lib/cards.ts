@@ -7,6 +7,7 @@ import {
   cardAction,
   profile as profileTable,
   scheduledPost,
+  theme as themeTable,
 } from "@/db/schema";
 import type { Actor } from "@/lib/profiles";
 import { generateDraft } from "@/lib/agent/drafts";
@@ -32,6 +33,8 @@ type Loaded = {
   board: typeof boardTable.$inferSelect;
   profile: typeof profileTable.$inferSelect;
   principles: { voice: string; visual: string; format: string };
+  /** Null when the card predates themes, or when its theme was deleted. */
+  theme: { title: string; description: string } | null;
 };
 
 /**
@@ -48,10 +51,16 @@ async function load(actor: Actor, cardId: string): Promise<Loaded | null> {
       card: cardTable,
       board: boardTable,
       profile: profileTable,
+      // Left, not inner: a card with no theme still has to be approvable.
+      theme: {
+        title: themeTable.title,
+        description: themeTable.description,
+      },
     })
     .from(cardTable)
     .innerJoin(boardTable, eq(cardTable.boardId, boardTable.id))
     .innerJoin(profileTable, eq(boardTable.profileId, profileTable.id))
+    .leftJoin(themeTable, eq(cardTable.themeId, themeTable.id))
     .where(
       and(eq(cardTable.id, cardId), eq(profileTable.accountId, actor.accountId)),
     )
@@ -92,7 +101,7 @@ export async function approveCard(
   const loaded = await load(actor, cardId);
   if (!loaded) return { ok: false, error: "That card is not on your board." };
 
-  const { card, board, profile, principles } = loaded;
+  const { card, board, profile, principles, theme } = loaded;
   const db = getDb();
 
   if (card.state === "idea") {
@@ -100,6 +109,9 @@ export async function approveCard(
     try {
       text = await generateDraft({
         idea: card.idea,
+        kind: card.kind,
+        theme,
+        needs: card.needs,
         principles,
         goal: board.goal as Goal,
         siteUrl: board.siteUrl,
@@ -244,6 +256,7 @@ export async function reviseCard(
       bodyKind,
       body: card.draftText ?? card.idea,
       comment: trimmed,
+      needs: card.needs,
       principles,
       goal: board.goal as Goal,
       profileId: profile.id,
@@ -259,11 +272,23 @@ export async function reviseCard(
   // order the user experienced it even if a later write fails.
   await log(card.id, "revise", actor.memberId, trimmed);
 
+  // The bracket is the gap, and a post that comes back without one is a post
+  // whose number arrived, so the card stops asking. Read off the text rather
+  // than off the model saying it filled it in, because the text is what
+  // publishes. Only on a draft: an idea brief never carried a bracket, so its
+  // absence there proves nothing and the card keeps waiting.
+  const filled =
+    bodyKind === "post" && Boolean(card.needs) && !revision.body.includes("[");
+
   await db
     .update(cardTable)
     .set(
       bodyKind === "post"
-        ? { draftText: revision.body, updatedAt: new Date() }
+        ? {
+            draftText: revision.body,
+            needs: filled ? null : card.needs,
+            updatedAt: new Date(),
+          }
         : { idea: revision.body, updatedAt: new Date() },
     )
     .where(eq(cardTable.id, card.id));
@@ -431,18 +456,28 @@ export async function topUpDrafts(profileId: string): Promise<number> {
     .sort((a, b) => a.position - b.position)
     .slice(0, AUTO_DRAFT_LIMIT - drafted);
 
-  const principleRows = await db
-    .select()
-    .from(brandPrinciple)
-    .where(eq(brandPrinciple.profileId, row.profile.id));
+  const [principleRows, themeRows] = await Promise.all([
+    db
+      .select()
+      .from(brandPrinciple)
+      .where(eq(brandPrinciple.profileId, row.profile.id)),
+    db
+      .select()
+      .from(themeTable)
+      .where(eq(themeTable.profileId, row.profile.id)),
+  ]);
   const principles = { voice: "", visual: "", format: "" };
   for (const p of principleRows) principles[p.kind] = p.text;
+  const themes = new Map(themeRows.map((t) => [t.id, t]));
 
   let written = 0;
   for (const idea of ideas) {
     try {
       const text = await generateDraft({
         idea: idea.idea,
+        kind: idea.kind,
+        theme: idea.themeId ? (themes.get(idea.themeId) ?? null) : null,
+        needs: idea.needs,
         principles,
         goal: row.board.goal as Goal,
         siteUrl: row.board.siteUrl,

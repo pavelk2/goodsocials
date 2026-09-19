@@ -17,6 +17,7 @@
   --r-xl: 28px;
 
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.08);
+  --scrim: rgba(0, 0, 0, 0.35);
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
 
   /* Board dimensions, DESIGN.md section 3 */
@@ -35,6 +36,9 @@
     --ink-2: #98989d;
     --ink-3: #545458;
     --hairline: #2c2c2e;
+    /* Black on near-black does not dim. The sheet has to separate from the
+       board behind it by more than a hairline. */
+    --scrim: rgba(0, 0, 0, 0.66);
   }
 }
 
@@ -103,4 +107,93 @@ summary,
 .btn-ink:active {
   opacity: 0.84;
   transform: scale(0.985);
+}
+
+/* The secondary of the same pair. Same shape and same press as .btn-ink, but
+   it separates by hairline rather than by fill, so hover darkens the edge:
+   fading a surface button over paper would erase it. */
+.btn-outline {
+  transition:
+    border-color 180ms var(--ease),
+    transform 180ms var(--ease);
+}
+
+@media (hover: hover) {
+  .btn-outline:hover {
+    border-color: var(--ink-3);
+  }
+}
+
+.btn-outline:active {
+  transform: scale(0.985);
+}
+
+/* The one overlay. A native dialog in the top layer, so the panel is the only
+   thing styled here and the focus trap is the browser's. */
+dialog.sheet {
+  margin: auto;
+  box-shadow: var(--shadow);
+  transition:
+    opacity 180ms var(--ease),
+    transform 180ms var(--ease),
+    overlay 180ms allow-discrete,
+    display 180ms allow-discrete;
+}
+
+dialog.sheet::backdrop {
+  background: var(--scrim);
+  transition:
+    opacity 180ms var(--ease),
+    overlay 180ms allow-discrete,
+    display 180ms allow-discrete;
+}
+
+/* Closed on both sides of the transition, so the sheet fades in on open and
+   back out on close rather than appearing and vanishing. */
+dialog.sheet:not([open]),
+dialog.sheet::backdrop {
+  opacity: 0;
+}
+
+dialog.sheet[open],
+dialog.sheet[open]::backdrop {
+  opacity: 1;
+}
+
+dialog.sheet:not([open]) {
+  transform: scale(0.98);
+}
+
+@starting-style {
+  dialog.sheet[open] {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+
+  dialog.sheet[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+/* The sheet body holds focus so the ring does not park on Close. It is a
+   container rather than a control, so it does not draw one. */
+.sheet-body:focus-visible {
+  outline: none;
+}
+
+/* The page does not scroll behind an open sheet. */
+body:has(dialog[open]) {
+  overflow: hidden;
+}
+
+/* A text control that is not a button until you point at it. Used for Close
+   and for the inline Edit and Cancel inside a sheet. */
+.btn-quiet {
+  transition: color 150ms var(--ease);
+}
+
+@media (hover: hover) {
+  .btn-quiet:hover {
+    color: var(--ink);
+  }
 }

@@ -280,6 +280,60 @@ They are what makes a correction stick and they are also the thing a user edits
 least often. Open, they took half the screen above the board. One row closed,
 three rows open, and the board is the first thing on the screen again.
 
+## Decided introducing themes and post kinds
+
+**A theme is a table, not a fourth brand principle.**
+Rejected: a fourth `principle_kind` holding a comma separated list.
+Principles are capped at three because they argue with each other, and the cap
+is enforced by a unique index on kind. Themes do not argue, they divide, and
+four of them have to be countable, orderable, editable one at a time, and
+joinable from a card. A list inside one text field is none of those, and the
+first thing anyone would want is to see which theme a card came from.
+
+Four rather than three or five. Seven ideas across four themes deals two, two,
+two and one, which spreads a week and a half without a theme repeating three
+times, and four is still few enough that a reader could name what this person
+posts about.
+
+**The mix of post kinds is a constant, not a model decision.**
+Rejected: telling the planner to favour frameworks, data and receipts and
+trusting the distribution.
+`KIND_MIX` in `lib/agent/ideas.ts` is seven slots, and the slot decides the
+kind rather than the model reporting what it happened to write. A bias stated
+in a prompt is a bias the model applies unevenly, and the one thing we would
+then never notice is that it quietly wrote seven findings again. The mix is
+also the thing most likely to be tuned after five real users, and tuning an
+array beats tuning a paragraph.
+
+Six of the seven are frameworks, data breakdowns or receipts. One slot stays a
+plain finding so a board that is entirely reference material still has a person
+in it.
+
+**Receipts declare the number they are missing instead of inventing one.**
+Rejected: generating a plausible number and marking the post as an example.
+A receipt is credible only because it is the author's own, so a made up figure
+under a real name is the worst failure this product has. The idea carries a
+`needs` line naming the number in the words the author would use for it, the
+card shows it before anyone approves, the draft writes the sentence around it
+and marks the gap with one bracket, and a revise comment supplying the number
+closes it. That makes the gap a question the product asks rather than a hole it
+hides.
+
+It is also the cheapest version of the intake problem. The agent knows the
+website and nothing about what happened this week, and a card asking for one
+specific number gets answered where a blank box asking what happened does not.
+
+**A data breakdown ships without the chart.**
+Rejected: generating the chart with the image model.
+FLUX renders text badly, which is why the image prompt already bans charts with
+labels, and a chart with wrong numbers on it published under a real name is
+worse than no chart at all. The kind ships as the finding plus three takeaways,
+and the draft prompt is told never to refer to an attached chart. The chart is a
+roadmap item, and it is a deterministic render from numbers, not a picture of
+one.
+
+## Decided choosing the accent and the mark
+
 **Accent is plum `#A61E4D`.**
 Rejected: burnt orange `#E8590C`, raspberry `#C2255C`, signal red, LinkedIn blue, violet, green.
 Orange failed AA under white text at 3.6:1 and the primary button is white text on the accent, raspberry competed with black type, and each of the rest is either owned by a competitor or already spoken for by a state in the product.
@@ -287,4 +341,3 @@ Orange failed AA under white text at 3.6:1 and the primary button is white text 
 **The mark is the streak grid.**
 Rejected: the same grid packed into a raspberry.
 The fruit read as fruit before it read as a calendar, and it spent the whole mark on one saturated colour.
-
