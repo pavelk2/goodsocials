@@ -5,6 +5,7 @@ import { loadBoard } from "@/lib/board";
 import { readQuota } from "@/lib/quota";
 import { BoardColumns } from "@/components/board/board-columns";
 import { Principles } from "@/components/board/principles";
+import { QueueNotice } from "@/components/board/queue-notice";
 import { TopUp } from "@/components/board/top-up";
 
 export const metadata = { title: "Board" };
@@ -40,6 +41,8 @@ export default async function BoardPage() {
           </span>
         </p>
       </header>
+
+      <QueueNotice connection={view.connection} queueError={view.queueError} />
 
       <Principles principles={view.principles} />
 

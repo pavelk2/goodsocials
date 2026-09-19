@@ -7,7 +7,7 @@
  */
 import { fetchUserInfo } from "../lib/linkedin/oauth";
 import {
-  publishTextPost,
+  publishPost,
   deletePost,
   personUrn,
   postPermalink,
@@ -27,7 +27,16 @@ async function main() {
       console.error("Pass the post urn to delete.");
       process.exit(1);
     }
-    const result = await deletePost({ accessToken: token, postUrn: second });
+    const who = await fetchUserInfo(token);
+    if (!who.ok) {
+      console.error("userinfo failed", who);
+      process.exit(1);
+    }
+    const result = await deletePost({
+      accessToken: token,
+      memberId: who.data.sub,
+      postUrn: second,
+    });
     console.log(result.ok ? `Deleted ${second}` : result);
     process.exit(result.ok ? 0 : 1);
   }
@@ -43,8 +52,9 @@ async function main() {
     process.exit(1);
   }
 
-  const result = await publishTextPost({
+  const result = await publishPost({
     accessToken: token,
+    memberId: who.data.sub,
     authorUrn: personUrn(who.data.sub),
     text: first,
   });

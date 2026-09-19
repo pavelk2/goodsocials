@@ -102,7 +102,8 @@ Log token and image spend per account so cost per customer is visible in PostHog
 - `card_state` Enum: `idea`, `draft`, `image`, `scheduled`, `posted`, `rejected`. The board column is this field, not a position.
 - `card_action` Append-only log of `approve`, `revise`, `reject` with the actor and the comment. Revisions are read from here, never overwritten.
 - `brand_principles` Exactly three rows per profile, keyed by kind: `voice`, `visual`, `format`. Editable text. A revise comment updates the matching one.
-- `scheduled_post` The publish intent: card, profile, `publish_at`, attempt count, last error, resulting post URN. The cron reads this table and nothing else.
+- `scheduled_post` The publish intent: card, profile, `publish_at`, attempt count, last error, resulting post URN. The cron reads this table and nothing else. Five attempts and the row stops holding the reason. A paused row keeps its attempt count, because nothing about that post was wrong.
+- `linkedin_call_budget` Per member per UTC day. Claimed before every LinkedIn call, so the 150 a day limit is a limit rather than a report.
 - `image_quota` Per profile per calendar month. `generated_count` against a hard cap of 200. Regenerations increment it. Checked before the image call, not after.
 - `queue_runway` Derived, not stored: approved and scheduled cards divided by target cadence, in days. Under 3 days triggers idea generation and a board warning.
 
@@ -158,6 +159,12 @@ To publish a real LinkedIn post from the command line during development:
 ```
 npx tsx scripts/linkedin-post.ts "text of the post"
 ```
+
+The publish cron runs every 15 minutes at `/api/cron/publish`. Vercel sends
+`CRON_SECRET` as a bearer token. To run the queue by hand without waiting,
+append `?k=` and `LINKEDIN_DEBUG_SECRET`, which is a separate secret so the
+cron's own never lands in a URL or a browser history. The response is the run:
+what was due, what published, what paused and why.
 
 ## Conventions
 

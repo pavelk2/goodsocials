@@ -22,37 +22,63 @@ export function personUrn(memberId: string): string {
   return `urn:li:person:${memberId}`;
 }
 
-export async function publishTextPost(opts: {
+/**
+ * One function for both shapes, because a post with a picture and a post
+ * without one are the same publish and a second function would be a second
+ * place to forget the distribution block. The image URN comes from
+ * uploadImage and must already exist on LinkedIn's side.
+ */
+export async function publishPost(opts: {
   accessToken: string;
+  memberId: string;
   authorUrn: string;
   text: string;
+  imageUrn?: string | null;
+  altText?: string | null;
   visibility?: Visibility;
 }): Promise<LinkedInResult<unknown>> {
+  const body: Record<string, unknown> = {
+    author: opts.authorUrn,
+    commentary: opts.text,
+    visibility: opts.visibility ?? "PUBLIC",
+    distribution: {
+      feedDistribution: "MAIN_FEED",
+      targetEntities: [],
+      thirdPartyDistributionChannels: [],
+    },
+    lifecycleState: "PUBLISHED",
+    isReshareDisabledByAuthor: false,
+  };
+
+  if (opts.imageUrn) {
+    body.content = {
+      media: {
+        id: opts.imageUrn,
+        // Screen readers get the same sentence a sighted reader gets from the
+        // picture. LinkedIn shows it nowhere else, so there is nothing to
+        // proofread on the feed.
+        altText: (opts.altText ?? "").slice(0, 4000) || undefined,
+      },
+    };
+  }
+
   return linkedinCall({
     accessToken: opts.accessToken,
+    memberId: opts.memberId,
     method: "POST",
     path: "/rest/posts",
-    body: {
-      author: opts.authorUrn,
-      commentary: opts.text,
-      visibility: opts.visibility ?? "PUBLIC",
-      distribution: {
-        feedDistribution: "MAIN_FEED",
-        targetEntities: [],
-        thirdPartyDistributionChannels: [],
-      },
-      lifecycleState: "PUBLISHED",
-      isReshareDisabledByAuthor: false,
-    },
+    body,
   });
 }
 
 export async function deletePost(opts: {
   accessToken: string;
+  memberId: string;
   postUrn: string;
 }): Promise<LinkedInResult<unknown>> {
   return linkedinCall({
     accessToken: opts.accessToken,
+    memberId: opts.memberId,
     method: "DELETE",
     path: `/rest/posts/${encodeURIComponent(opts.postUrn)}`,
   });
