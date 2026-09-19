@@ -49,7 +49,7 @@ const HERO_FACTS = [
 ];
 
 const buttonPrimary =
-  "inline-block rounded-[14px] bg-ink px-6 py-[14px] text-[17px] font-semibold text-paper";
+  "btn-ink inline-block rounded-[14px] bg-ink px-6 py-[14px] text-[17px] font-semibold text-paper";
 
 export default function Home() {
   return (
@@ -195,7 +195,7 @@ export default function Home() {
                 </p>
                 <Link
                   href={`/signin?plan=${plan.slug}`}
-                  className="num mt-8 block rounded-[14px] bg-ink px-5 py-3 text-center text-[15px] font-semibold text-paper"
+                  className="btn-ink num mt-8 block rounded-[14px] bg-ink px-5 py-3 text-center text-[15px] font-semibold text-paper"
                 >
                   {plan.cta}
                 </Link>

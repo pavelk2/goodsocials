@@ -46,7 +46,7 @@ export default async function AuthErrorPage({
         <div className="mt-10">
           <Link
             href="/signin"
-            className="inline-block rounded-[14px] bg-ink px-6 py-[14px] text-[17px] font-semibold text-paper"
+            className="btn-ink inline-block rounded-[14px] bg-ink px-6 py-[14px] text-[17px] font-semibold text-paper"
           >
             Try again
           </Link>
