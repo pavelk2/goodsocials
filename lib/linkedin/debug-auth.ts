@@ -21,7 +21,7 @@ export function htmlPage(title: string, bodyHtml: string): Response {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${title}</title>
 <style>
-  :root{--paper:#F4F4F4;--surface:#fff;--ink:#000;--ink-2:#6E6E73;--hairline:#E6E6E6;--accent:#E8590C}
+  :root{--paper:#F4F4F4;--surface:#fff;--ink:#000;--ink-2:#6E6E73;--hairline:#E6E6E6;--accent:#A61E4D}
   body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.5 -apple-system,BlinkMacSystemFont,"Inter Tight",sans-serif;padding:64px 24px}
   main{max-width:760px;margin:0 auto}
   h1{font-size:40px;font-weight:600;letter-spacing:-.035em;line-height:1;margin:0 0 32px}

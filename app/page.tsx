@@ -63,15 +63,14 @@ export default function Home() {
       <main>
         <section className={section}>
           {/* Three clauses: the claim, the objection it answers, the promise.
-              The claim is the only thing in full ink. Everything after it is
-              ink-3, the objection in italic, and the promise separating from
-              it by weight alone, dropping to 300 against the claim's 600.
-              Colour is not doing the emphasis, which keeps the one fading
-              sentence the rest of the page uses instead of making a third
-              level out of it. */}
+              The claim is the only thing in full ink and the only thing at
+              600. Both clauses after it are ink-3 at 300, the objection in
+              italic to separate the two. Colour is not doing the emphasis,
+              which keeps the one fading sentence the rest of the page uses
+              instead of making a third level out of it. */}
           <h1 className="max-w-[22ch] text-[clamp(40px,6vw,76px)] font-semibold leading-[0.98] tracking-[-0.04em]">
             <span>An AI social media manager for LinkedIn.</span>{" "}
-            <span className="italic text-ink-3">No cringe, no slop.</span>{" "}
+            <span className="font-light italic text-ink-3">No cringe, no slop.</span>{" "}
             <span className="font-light text-ink-3">
               You approve what is scheduled.
             </span>
