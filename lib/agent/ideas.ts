@@ -2,7 +2,7 @@ import { z } from "zod";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { anthropic, MODEL, recordSpend } from "./client";
 import type { Principles } from "./principles";
-import { KIND_LABEL, type PostKind } from "@/lib/post-kind";
+import { KIND_LABEL, POST_KINDS, type PostKind } from "@/lib/post-kind";
 import type { Theme } from "./themes";
 
 export type { PostKind };
@@ -12,51 +12,52 @@ export type { PostKind };
  * half of near-daily posting. An idea is a sentence a writer could work from,
  * not a title and not a finished post.
  *
- * Each idea now carries two more decisions: the theme it sits under and the
- * shape it takes. Both are made here rather than in the draft, because a
- * framework and a receipt are different posts from the first sentence, and
- * deciding at draft time means the board cannot show what is coming.
+ * Each idea carries two more decisions: the theme it sits under and the kind it
+ * is. Both are made here rather than in the draft, because research and a
+ * personal number are different posts from the first sentence, and deciding at
+ * draft time means the board cannot show what is coming.
  */
 
 /**
- * The bias, in one array, because it is the thing most likely to be tuned.
+ * The mix, in one array, because it is the thing most likely to be tuned.
  *
- * Seven slots, and the order is the order the board fills in, so the first two
- * cards a new user reads are the two kinds that are hardest to fake. Six of the
- * seven are frameworks, data breakdowns or receipts. A plain finding keeps one
- * slot so a board that is nothing but reference material still has a person in
- * it.
+ * Seven slots across three kinds and nothing else. Research takes three because
+ * it is the kind that survives a stranger reading it; explainer and personal
+ * take two each.
  *
- * Receipts are weighted equal to the other two rather than above them, which
- * they would deserve, for one reason: a receipt needs a number we do not hold.
- * Three of seven cards blocked on the user is a board nobody can approve.
+ * Personal is held to two rather than raised, which its credibility would
+ * deserve, for one reason: a personal post needs a number we do not hold. Three
+ * of seven cards blocked on the author is a board nobody can approve.
  */
 export const KIND_MIX: PostKind[] = [
-  "framework",
-  "receipt",
-  "data",
-  "framework",
-  "receipt",
-  "data",
-  "finding",
+  "research",
+  "personal",
+  "explainer",
+  "research",
+  "personal",
+  "explainer",
+  "research",
 ];
 
 export const IDEA_COUNT = KIND_MIX.length;
 
 /**
- * What each kind is, written to the planner. The three biased ones are the
- * formats a reader saves, cites, or believes, and each one fails in its own
- * way, so each brief spends most of its words on the failure.
+ * What each kind is, written to the planner. Each one fails in its own way, so
+ * each brief spends most of its words on the failure.
+ *
+ * Research and explainer are both researched and cited at draft time, which is
+ * why neither brief asks the planner to name a source: a source named here
+ * would be one the model remembered rather than one it read, and that is the
+ * exact failure the search pass exists to catch. The planner's job on those two
+ * is to pose a question the search can answer.
  */
 const KIND_BRIEF: Record<PostKind, string> = {
-  framework:
-    "A method the reader can apply, in named steps or named parts, in an order that matters. It has to come from something the author has done more than once and can describe concretely, not from theory and not from what the internet already says about the subject. The test is whether a reader would come back to it a second time. If the steps would fit any company, it is not a framework, it is a listicle.",
-  data:
-    "One finding from outside the author's own business, and what it means for the reader. Name the source exactly: the organisation, the report, the year. If you cannot name a source you are certain of, do not invent one and do not soften it into 'research suggests'. Write the idea so the author supplies the source, and say in the needs field exactly what you need them to confirm.",
-  receipt:
-    "One real number from the author's own business. Revenue, conversion rate, an experiment result, churn, a cost, a price change and what happened after it. This is the most credible thing a founder can post, and it is credible only because it is theirs, so never guess at the number, never write a plausible one, and never use a rounded example. Write the sentence the number belongs in, and put in the needs field exactly which number the author has to give you, in the words they would use for it.",
-  finding:
-    "Something the author found out and can point to. A decision and what it cost, a number from their own data nobody else publishes, or something they measured that contradicted what they expected. Not a summary of received wisdom.",
+  research:
+    "A question the author wants a real answer to, which someone outside their company has published evidence on. Write the question, not the answer: the draft stage searches the web and reports what it finds, so an idea that already contains the finding is an idea that has prejudged it. The test is whether a search could come back and contradict you. If the only possible answer is the one everybody assumes, it is not worth researching. Do not name a study, a statistic, a percentage, or an organisation here.",
+  explainer:
+    "One thing in the author's field that is widely used and badly understood, and the mechanism behind it. How it actually works, why it was built that way, what the documentation or the standard or the regulation says. Name the thing precisely enough that a search can find its authoritative description. Not a definition anybody could write from memory, and not a list of tips: the reader should finish it understanding a mechanism they could not have guessed at.",
+  personal:
+    "One real thing out of the author's own business: a number, an experiment and its result, a decision and what it cost, something they measured that contradicted what they expected. This is the most credible thing a founder can post, and it is credible only because it is theirs, so never guess at the number, never write a plausible one, and never use a rounded example. Write the sentence the number belongs in, and put in the needs field exactly which number the author has to give you, in the words they would use for it. Every idea in this kind has a needs.",
 };
 
 export type Goal = "interesting" | "followers" | "traffic";
@@ -66,11 +67,11 @@ export type Goal = "interesting" | "followers" | "traffic";
  */
 const GOAL_BRIEF: Record<Goal, string> = {
   interesting:
-    "The goal is that people find the writing worth reading. Favour a finding: a decision and what it cost, a number from their own data that nobody else publishes, or something they measured that contradicted what they expected. Avoid anything that reads as a summary of received wisdom.",
+    "The goal is that people find the writing worth reading. Favour the question whose answer would change how the reader works, and the number the author has that nobody else publishes. Avoid anything that reads as a summary of received wisdom.",
   followers:
-    "The goal is growing the audience. Favour findings a stranger can follow without context, stated plainly enough that a reader could disagree with the evidence rather than the tone. Broader than the day to day, still specific enough to be checkable.",
+    "The goal is growing the audience. Favour questions and mechanisms a stranger can follow without context, put plainly enough that a reader could disagree with the evidence rather than the tone. Broader than the day to day, still specific enough to be checkable.",
   traffic:
-    "The goal is sending readers to the website. Each idea should name something specific the reader would find there, usually the fuller version of the finding the post reports. The post has to stand on its own whether or not anyone clicks, and it is never an advert.",
+    "The goal is sending readers to the website. Each idea should name something specific the reader would find there, usually the fuller version of what the post reports. The post has to stand on its own whether or not anyone clicks, and it is never an advert.",
 };
 
 const IdeasSchema = z.object({
@@ -80,11 +81,11 @@ const IdeasSchema = z.object({
         idea: z
           .string()
           .describe(
-            "One or two sentences naming the specific claim or story the post makes. Concrete enough that two writers would produce a similar post from it.",
+            "One or two sentences naming the specific question, mechanism, or claim this post is about. Concrete enough that two writers would produce a similar post from it.",
           ),
         kind: z
-          .enum(["framework", "data", "receipt", "finding"])
-          .describe("The shape assigned to this slot. Use the one you were given."),
+          .enum(POST_KINDS as [PostKind, ...PostKind[]])
+          .describe("The kind assigned to this slot. Use the one you were given."),
         theme: z
           .string()
           .describe(
@@ -94,7 +95,7 @@ const IdeasSchema = z.object({
           .string()
           .nullable()
           .describe(
-            "The one thing only the author can supply, named in their own words, for example 'your trial to paid conversion rate last quarter'. Required on a receipt. Null when the idea stands without anything from them.",
+            "The one thing only the author can supply, named in their own words, for example 'your trial to paid conversion rate last quarter'. Required on every personal idea. Null on research and explainer, which get their evidence from the web instead.",
           ),
       }),
     )
@@ -105,25 +106,23 @@ export type GeneratedIdea = z.infer<typeof IdeasSchema>["ideas"][number];
 
 const SYSTEM = `You plan what someone should post on LinkedIn over the next week and a half.
 
-You are given three brand principles, the themes this person posts under, a goal, and a slate: a numbered list saying what shape each idea has to take. Produce one idea per slot, in order, in the shape that slot asks for.
+You are given three brand principles, the themes this person posts under, a goal, and a slate: a numbered list saying what kind each idea has to be. Produce one idea per slot, in order, in the kind that slot asks for.
+
+There are three kinds of post and there is no fourth. Research and explainer are both researched against the live web before they are written, and neither publishes without a source. Personal comes out of the author's own business and names the number it needs. An idea that is none of these three is an idea nobody can check, which is the one thing this board does not carry.
 
 Every idea belongs to one of the themes you were given. Spread them: no theme takes more than two of the seven, and every theme is used at least once. Copy the theme title exactly as it was given to you.
 
-The register is a researcher, not a seller. Each idea reports something the author found out and can point to. It informs; it does not persuade, and it never manipulates. No engagement bait, no rhetorical question used as a hook, no manufactured urgency, no claim larger than the evidence behind it.
+The register is a researcher, not a seller. Each idea reports something checkable. It informs; it does not persuade, and it never manipulates. No engagement bait, no rhetorical question used as a hook, no manufactured urgency, no claim larger than the evidence behind it.
 
-An idea is the specific thing a post asserts. "Why hiring is hard" is not an idea. "We rejected 40 candidates before changing the job description, and the change was removing the years-of-experience line" is an idea.
+An idea is the specific thing a post asserts or asks. "Why hiring is hard" is not an idea. "We rejected 40 candidates before changing the job description, and the change was removing the years-of-experience line" is an idea. "Does requiring a degree in a job posting change who applies, and by how much" is an idea.
 
 Evidence rules, and they are not negotiable. This is published under a real person's name.
 
-Prefer what the author can check themselves: their own numbers, their own customers, their own invoices, what happened in their own company, and anything stated on their own website.
+Never invent a statistic, a study, a percentage, a survey, a report title, or a quote, and that includes here, in the idea. Never write "studies show", "research suggests", or "experts say". On a research or explainer idea, do not name a source at all: the draft stage searches the web and cites what it actually reads, and a source named from memory here is a source the writer will be tempted to keep.
 
-You may point to an outside source only when you are certain it exists, you can name it exactly, and a reader could find it in one search. Name the organisation and what it said.
+On a personal idea, the needs field is how the gap is declared. An idea with an invented number in it is a failure; an idea that names the number it is missing is correct and useful. Write needs as the author would say it out loud, not as a form field label.
 
-Never invent a statistic, a study, a percentage, a survey, a report title, or a quote. Never write "studies show", "research suggests", or "experts say" without naming who. If you want a number and do not have one you are sure of, write the idea so the author supplies it, and put in the needs field exactly which number they need to fill in.
-
-The needs field is how a gap is declared. An idea with an invented number in it is a failure; an idea that names the number it is missing is correct and useful. Write needs as the author would say it out loud, not as a form field label.
-
-Seven ideas, seven different shapes. Do not write seven variations of one thought.
+Seven ideas, seven different subjects. Do not write seven variations of one thought.
 
 Do not write the posts. Do not write hooks. Do not number them.
 
@@ -189,9 +188,14 @@ export async function generateIdeas(opts: {
   // returns the right seven ideas in the wrong order should not quietly change
   // the mix that was designed, and a kind the draft does not know is worse than
   // a card labelled slightly wrong.
-  return response.parsed_output.ideas.map((idea, i) => ({
-    ...idea,
-    kind: KIND_MIX[i] ?? idea.kind,
-    needs: idea.needs?.trim() ? idea.needs.trim() : null,
-  }));
+  //
+  // needs is forced to match the kind for the same reason. A research card that
+  // arrived carrying a needs would ask the author for a number the search is
+  // about to go and find, and a personal card without one is a card whose
+  // draft will invent the number rather than bracket it.
+  return response.parsed_output.ideas.map((idea, i) => {
+    const kind = KIND_MIX[i] ?? idea.kind;
+    const needs = idea.needs?.trim() ? idea.needs.trim() : null;
+    return { ...idea, kind, needs: kind === "personal" ? needs : null };
+  });
 }

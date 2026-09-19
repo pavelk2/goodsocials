@@ -40,17 +40,18 @@ export const cardActionKind = pgEnum("card_action_kind", [
   "reject",
 ]);
 /**
- * The shape of a post, which is a different question from what it is about.
- * The mix is biased in lib/agent/ideas.ts: the first three carry more weight
- * than a plain finding because they are the ones a reader saves, cites, or
- * believes. `finding` is the default and what every card written before themes
- * existed is.
+ * The three kinds of post, which is a different question from what a post is
+ * about. See lib/post-kind.ts for what each one rests on, and DECISIONS.md for
+ * why there are three and not more.
+ *
+ * `personal` is the default because it is the only kind that can be true
+ * without a source row, so a card that arrives without a kind cannot become a
+ * research post nobody researched.
  */
 export const postKind = pgEnum("post_kind", [
-  "framework",
-  "data",
-  "receipt",
-  "finding",
+  "research",
+  "explainer",
+  "personal",
 ]);
 
 export const principleKind = pgEnum("principle_kind", [
@@ -147,8 +148,8 @@ export const card = pgTable(
       .notNull()
       .references(() => board.id, { onDelete: "cascade" }),
     state: cardState("state").notNull().default("idea"),
-    /** The shape the post takes. Decided with the idea, read by the draft. */
-    kind: postKind("kind").notNull().default("finding"),
+    /** Which of the three kinds this is. Decided with the idea, read by the draft. */
+    kind: postKind("kind").notNull().default("personal"),
     /**
      * The theme this post sits under. Nullable and set null on delete: a theme
      * the user removed should not take a week of approved work with it.
@@ -159,9 +160,13 @@ export const card = pgTable(
     idea: text("idea").notNull(),
     /**
      * The one number only the author has, named in their own words. Written on
-     * receipt cards, where the post is worthless without it and inventing it
+     * personal cards, where the post is worthless without it and inventing it
      * would be worse. Shown on the card so the gap is visible before anyone
      * approves it, and filled with a revise comment.
+     *
+     * The manual half of the evidence rule: research and explainer cards get
+     * their evidence from card_source, personal cards get theirs from here.
+     * Until the integrations land, here means the author typing it.
      */
     needs: text("needs"),
     draftText: text("draft_text"),
@@ -204,6 +209,43 @@ export const cardAction = pgTable(
       .defaultNow(),
   },
   (t) => [index("card_action_card_idx").on(t.cardId)],
+);
+
+/**
+ * The pages a post was written from, one row per cited URL.
+ *
+ * Written by the draft, never by hand and never by the model naming a URL in
+ * its output: these come off the citations the web search attached to its own
+ * sentences, so a row here is a page that was read rather than a page that was
+ * recalled. A research or explainer card with no rows here does not move off
+ * Draft, which is the check that makes "with citations" a property of the
+ * system rather than an instruction in a prompt.
+ *
+ * Cascade on delete, because a source with no card is not evidence of anything.
+ */
+export const cardSource = pgTable(
+  "card_source",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    cardId: uuid("card_id")
+      .notNull()
+      .references(() => card.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    /** The page title as the search returned it. Null when it returned none. */
+    title: text("title"),
+    /** The sentence the draft leaned on, so a reviewer can check the claim. */
+    citedText: text("cited_text"),
+    position: integer("position").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("card_source_card_idx").on(t.cardId),
+    // One row per page per card. A redraft of the same card re-inserts what it
+    // found, and a post that cites the same page twice is a bibliography bug.
+    uniqueIndex("card_source_card_url_unique").on(t.cardId, t.url),
+  ],
 );
 
 /** Exactly three per profile. The unique index is what enforces the cap. */

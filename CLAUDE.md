@@ -14,6 +14,18 @@ This copy is the source. Do not improve it. Derive from it.
 
 An approval queue, not a writing tool: the agent writes, the user approves, the system publishes. The board has five columns (Idea, Draft, Image, Scheduled, Posted) and every card has exactly three actions (Approve, Revise, Reject). A comment on a card rewrites that card and updates the brand principles, so the correction persists to every future card, and that persistence is the differentiator, not generation quality. Four themes per profile decide what the board is about, so ideas keep coming from somewhere after the homepage is used up. Cadence is the outcome sold, so the dashboard leads with posts published this month and current streak, never followers or impressions.
 
+## The three kinds of post
+
+Three, and there is no fourth without DECISIONS.md changing first.
+
+- **Research.** A question somebody outside the author's company has published evidence on, answered by searching the web at draft time and citing what came back.
+- **Explainer.** How something in the author's field actually works, described from its documentation, its standard, or whoever built it, and cited the same way.
+- **Personal.** One real thing out of the author's own business: a number, an experiment and its result, a decision and what it cost.
+
+The rule underneath them: every post rests on something outside the model. Research and explainer rest on a page somebody else published, and neither leaves the Draft column without at least one row in `card_source`. Personal rests on the author's own evidence, and the card names the number it is waiting for in `needs` rather than inventing it.
+
+A post that rests on neither is a post nobody can check, which is what a LinkedIn generator produces by default and what this board is built to refuse. `KIND_MIX` in `lib/agent/ideas.ts` is seven slots: three research, two explainer, two personal. That array is the mix, so tuning it is one edit.
+
 ## Brand
 
 Accent is `#A61E4D`, plum, written once as `--accent` in `app/globals.css`. No other file holds a hex.
@@ -66,6 +78,8 @@ One real authorization and one real post to a real feed. Not documentation.
 
 Text generation runs about 0.15 USD per finished post including revisions. Not a concern against 100 USD per month.
 
+Research and explainer posts each add a web search pass before the draft is written, capped at 6 searches per post in `lib/agent/research.ts`. Five of every seven cards are one of those two kinds, so a full board is at most 30 searches, about 0.30 USD on top of the tokens. Raising `MAX_SEARCHES` or the research share of `KIND_MIX` changes that arithmetic, and both are one edit, so change them together with a look at the bill. Search count is on every `llm_spend` line, so the real number is queryable rather than estimated.
+
 Images are the margin risk. Hard cap of 200 generated images per profile per month, counted in the database, count visible in settings. Regeneration attempts count against it. A user at the cap sees a clear message, never a silent failure.
 
 Log token and image spend per account so cost per customer is visible in PostHog from launch day.
@@ -83,7 +97,7 @@ Log token and image spend per account so cost per customer is visible in PostHog
 - Stripe Checkout. Two prices, no custom billing UI.
 - Loops for transactional email. Day 50 re-authorization warning and receipts.
 - PostHog. Funnel to the launch gate, plus per-account cost.
-- Anthropic API for text generation, called directly. Structured output and adaptive thinking are first party features an OpenAI-compatible gateway does not carry, so text never goes through one.
+- Anthropic API for text generation, called directly. Structured output and adaptive thinking are first party features an OpenAI-compatible gateway does not carry, so text never goes through one. Research and explainer posts also use the Anthropic web search server tool, in a call of their own that returns citations; the writing call that follows has no search tool, so the only facts it can reach are the ones the search cited.
 - OpenRouter for images, because the response reports what each call cost, which is the number PostHog needs, and because the model is a string rather than an integration. Pinned to `black-forest-labs/flux.2-pro` at the 1K tier: 0.03 USD an image, so the 200 cap is at most 6 USD a month against a 100 USD subscription. Raising the resolution tier changes that arithmetic.
 - Vercel Blob for generated images between generation and LinkedIn upload. A store connected to the project authenticates with `BLOB_STORE_ID` and a `VERCEL_OIDC_TOKEN` Vercel mints per deployment. There is no `BLOB_READ_WRITE_TOKEN` to set.
 
@@ -93,7 +107,7 @@ Log token and image spend per account so cost per customer is visible in PostHog
 - `components/` UI. `components/board/` is the only place card markup lives.
 - `lib/` domain logic with no React import. This is where a reviewer looks first.
 - `lib/linkedin/` every call to LinkedIn. Nothing else in the repo talks to their API.
-- `lib/agent/` prompts, generation, revision, principle updates.
+- `lib/agent/` prompts, generation, revision, principle updates. `lib/agent/research.ts` is the only place that searches the web.
 - `db/` Drizzle schema and migrations.
 - `emails/` Loops template ids and payload builders.
 - `scripts/` one-off operator scripts. Not shipped, not imported by `app/`.
@@ -108,8 +122,9 @@ Log token and image spend per account so cost per customer is visible in PostHog
 - `board` One per profile. Holds the goal (`interesting`, `followers`, `traffic`) and the target cadence.
 - `theme` What this profile is known for. Four per profile, written from the site at onboarding and editable after. Principles say how a post sounds; themes say what it is allowed to be about, and without them every generation restarts from the same homepage and week four reads like week one. Ideas are dealt across them so no one theme takes the board.
 - `card` The unit of work. Belongs to a board, and to a theme. Holds idea, draft text, image reference, scheduled time, and the LinkedIn post URN once published. Also `kind`, and `needs` when the post is waiting on something only the author has.
-- `post_kind` Enum on `card`: `framework`, `data`, `receipt`, `finding`. The shape of the post, decided with the idea rather than at draft time, because a framework and a receipt are different posts from the first sentence. The mix is biased: `KIND_MIX` in `lib/agent/ideas.ts` is seven slots and six of them are frameworks, data breakdowns or receipts. That array is the bias, so tuning it is one edit.
-- `needs` on `card` The one number or source only the author can supply, named in their own words. A receipt is credible because it is theirs, so the card asks for the number instead of inventing it: the board shows the line, the draft brackets the gap, and a revise comment supplying it closes it.
+- `post_kind` Enum on `card`: `research`, `explainer`, `personal`. Decided with the idea rather than at draft time, because research and a personal number are different posts from the first sentence. See the three kinds above.
+- `card_source` The pages a post was written from, one row per cited URL, with the sentence the draft leaned on. Written from the citations the web search attached to its own answer, never from a URL the model typed, so a row here is a page that was read rather than one that was recalled. A `research` or `explainer` card with no rows here does not leave the Draft column. This is what makes "with citations" a property of the system rather than a line in a prompt.
+- `needs` on `card` The one number or source only the author can supply, named in their own words. A personal post is credible because it is theirs, so the card asks for the number instead of inventing it: the board shows the line, the draft brackets the gap, and a revise comment supplying it closes it. It is the manual half of what integrations will later read from Stripe, PostHog, GitHub and Google Analytics.
 - `card_state` Enum: `idea`, `draft`, `image`, `scheduled`, `posted`, `rejected`. The board column is this field, not a position.
 - `card_action` Append-only log of `approve`, `revise`, `reject` with the actor and the comment. Revisions are read from here, never overwritten.
 - `brand_principles` Exactly three rows per profile, keyed by kind: `voice`, `visual`, `format`. Editable text. A revise comment updates the matching one.
@@ -156,6 +171,14 @@ npm test                       # vitest, unit only
 npm run typecheck              # tsc --noEmit, run before every push
 npm run lint
 ```
+
+`db:push` diffs the schema and applies the difference, which is right for a new
+column and wrong for the `post_kind` change in `0005`: that one has to rewrite
+every existing `card.kind` between dropping the old enum and creating the new
+one, and a diff cannot know the mapping. Schema changes that move data are
+applied as SQL through `/api/admin/migrate`, which replays `db/migrations/*.sql`
+against the deployment's own `DATABASE_URL`. It replays every file every time,
+so a migration that touches rows has to be safe to run twice.
 
 Deploy: push the branch. Vercel builds a preview per branch.
 

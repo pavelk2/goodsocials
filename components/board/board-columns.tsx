@@ -137,6 +137,7 @@ export function BoardColumns({
                 // written the gap is a bracket in the text the reader can see,
                 // and saying it twice reads as an unanswered one.
                 needs={state === "idea" ? card.needs : null}
+                sources={card.sources}
                 imageUrl={card.imageUrl}
                 scheduledAt={card.scheduledAt}
               />
@@ -150,6 +151,7 @@ export function BoardColumns({
           <CardShell
             body={bodyOf(dragging, dragging.state as Column)}
             label={labelOf(dragging)}
+            sources={dragging.sources}
             imageUrl={dragging.imageUrl}
             scheduledAt={dragging.scheduledAt}
             floating

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { CardActions } from "./card-actions";
 import { ImageLightbox } from "./image-lightbox";
 import { COLUMN_LABEL, type Column } from "@/lib/board";
+import { sourceHost, type CardSource } from "@/lib/post-kind";
 
 const IMAGE_ALT = "The image generated for this post";
 
@@ -27,6 +28,7 @@ export function CardModal({
   body,
   label,
   needs,
+  sources,
   imageUrl,
   scheduledAt,
   onClose,
@@ -36,6 +38,8 @@ export function CardModal({
   body: string;
   label?: string | null;
   needs?: string | null;
+  /** The pages this post was written from, in the order they were cited. */
+  sources?: CardSource[];
   imageUrl?: string | null;
   scheduledAt?: Date | null;
   onClose: () => void;
@@ -131,6 +135,33 @@ export function CardModal({
           <p className="mt-5 text-[15px] leading-[1.4] text-ink">
             <span className="font-medium">Needs from you.</span> {needs}
           </p>
+        ) : null}
+
+        {/* Above the actions for the same reason the gap is: this is the part
+            of the decision that cannot be made from the post text. Real links,
+            opening in a new tab, because the point of listing a source is that
+            somebody checks it, and a source you cannot open is decoration. */}
+        {sources && sources.length > 0 ? (
+          <div className="mt-5 border-t border-hairline pt-4">
+            <p className="text-[13px] font-medium text-ink-2">
+              {sources.length === 1 ? "Source" : "Sources"}
+            </p>
+            <ul className="mt-2 space-y-1.5">
+              {sources.map((source) => (
+                <li key={source.url} className="text-[14px] leading-[1.4]">
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-ink underline underline-offset-2"
+                  >
+                    {source.title ?? source.url}
+                  </a>{" "}
+                  <span className="text-ink-2">{sourceHost(source.url)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         ) : null}
 
         <CardActions id={id} state={state} onAdvance={onClose} />

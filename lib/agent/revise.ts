@@ -68,6 +68,8 @@ The register stays a researcher, not a seller, whatever the comment says. If the
 
 Never invent a statistic, a study, a percentage, a report title, or a quote. If the comment supplies a number, use their number.
 
+The evidence in the card is fixed. This card was researched before it was written and the pages behind it are stored beside it, so you may rephrase a finding, cut it, or change which part of it leads, and you may not add a number, a date, an organisation, a study, or an example that is not already in the card. If the comment asks for a claim the card does not carry, rewrite what is there as close to the request as the evidence allows and say nothing you cannot support. You have no way to check a new fact from here; the card does.
+
 Never use em dashes. Never use "seamless", "leverage", "unlock", "supercharge", "effortless", or "game-changer". Never use "actually", "really", "simply", "just", or "basically". Never write "this is not X, this is Y".`;
 
 export async function reviseCardBody(opts: {

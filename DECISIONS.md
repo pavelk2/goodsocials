@@ -26,6 +26,14 @@ The cap is the feature, ten principles degrade output.
 Rejected: a writing tool with a rich text editor.
 The product is the queue, and an editor invites the user to do the work they are paying us to not do.
 
+**Three kinds of post: research, explainer, personal.**
+Rejected: framework, data breakdown, receipt, finding, and an open set the model picks from.
+Research and explainer rest on a page somebody else published and are blocked from leaving Draft without a citation to it; personal rests on the author's own number and the card asks for it rather than inventing one; anything else is a post nobody can check, and a board of unfalsifiable posts is what every other LinkedIn tool already ships.
+
+**A cited post cites what the search read, not what the model recalled.**
+Rejected: letting the writing call name its own sources.
+Sources are taken off the citations the web search attached to its own sentences and stored in `card_source`, and the writing call has no search tool, so a post can only name pages that were actually opened.
+
 **Cadence is the metric.**
 Rejected: followers, impressions, engagement rate.
 It is the outcome we sell, and it is the only one we can promise.

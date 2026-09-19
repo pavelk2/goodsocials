@@ -1,4 +1,5 @@
 import type { CSSProperties, HTMLAttributes, ReactNode, Ref } from "react";
+import { sourceHost, type CardSource } from "@/lib/post-kind";
 
 const IMAGE_ALT = "The image generated for this post";
 
@@ -17,6 +18,7 @@ export function CardShell({
   body,
   label,
   needs,
+  sources,
   imageUrl,
   onOpen,
   scheduledAt,
@@ -29,7 +31,7 @@ export function CardShell({
   body: string;
   /**
    * What kind of post this is and what it is about, already joined, for example
-   * "Receipt. What we charge and why". One line in the meta row rather than a
+   * "Research. What we charge and why". One line in the meta row rather than a
    * badge: a coloured pill on every card would spend the board's one accent
    * five times per column, and a reader scanning a column wants the subject,
    * not a taxonomy.
@@ -41,6 +43,14 @@ export function CardShell({
    * addressed to the reader rather than describing the post.
    */
   needs?: string | null;
+  /**
+   * The pages this post was written from. Publishers only, in one line: the
+   * decision being made on the board is whether the sources are ones this
+   * person would put their name to, and that is a question about who published
+   * rather than about what the headline said. The titles and the links are in
+   * the dialog, where there is room to read them.
+   */
+  sources?: CardSource[];
   imageUrl?: string | null;
   /**
    * Opens the card. Given on the board, withheld on the drag overlay and on the
@@ -102,6 +112,16 @@ export function CardShell({
       {needs ? (
         <p className="mt-2 text-[13px] leading-[1.4] text-ink">
           <span className="font-medium">Needs from you.</span> {needs}
+        </p>
+      ) : null}
+
+      {/* Grey, not ink: this one is describing the post rather than asking the
+          reader for something, so it sits with the meta line in weight even
+          though it sits under the gap in order. */}
+      {sources && sources.length > 0 ? (
+        <p className="mt-2 truncate text-[13px] leading-[1.4] text-ink-2">
+          {sources.length === 1 ? "Source." : "Sources."}{" "}
+          {sources.map((s) => sourceHost(s.url)).join(", ")}
         </p>
       ) : null}
 

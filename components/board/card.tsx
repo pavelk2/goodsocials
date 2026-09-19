@@ -6,6 +6,7 @@ import { CardShell } from "./card-shell";
 import { CardActions } from "./card-actions";
 import { CardModal } from "./card-modal";
 import type { Column } from "@/lib/board";
+import type { CardSource } from "@/lib/post-kind";
 
 /**
  * A card on the board is a summary and a dialog is the whole post. Clicking the
@@ -24,6 +25,7 @@ export function Card({
   body,
   label,
   needs,
+  sources,
   imageUrl,
   scheduledAt,
 }: {
@@ -32,6 +34,7 @@ export function Card({
   body: string;
   label?: string | null;
   needs?: string | null;
+  sources?: CardSource[];
   imageUrl?: string | null;
   scheduledAt?: Date | null;
 }) {
@@ -50,6 +53,7 @@ export function Card({
       body={body}
       label={label}
       needs={needs}
+      sources={sources}
       imageUrl={imageUrl}
       onOpen={() => setReading(true)}
       scheduledAt={scheduledAt}
@@ -68,6 +72,7 @@ export function Card({
           body={body}
           label={label}
           needs={needs}
+          sources={sources}
           imageUrl={imageUrl}
           scheduledAt={scheduledAt}
           onClose={() => setReading(false)}

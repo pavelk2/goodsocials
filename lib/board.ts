@@ -4,11 +4,13 @@ import {
   profile as profileTable,
   board as boardTable,
   card as cardTable,
+  cardSource,
   brandPrinciple,
   linkedinConnection,
   scheduledPost,
   theme as themeTable,
 } from "@/db/schema";
+import type { CardSource } from "@/lib/post-kind";
 
 export const COLUMNS = [
   "idea",
@@ -27,7 +29,15 @@ export const COLUMN_LABEL: Record<Column, string> = {
   posted: "Posted",
 };
 
-export type BoardCard = typeof cardTable.$inferSelect;
+/**
+ * The card as the board draws it, which is the row plus the pages it was
+ * written from. The sources travel with the card because they are what the
+ * person approving it is meant to check, and a link they have to go looking
+ * for is a link nobody clicks.
+ */
+export type BoardCard = typeof cardTable.$inferSelect & {
+  sources: CardSource[];
+};
 export type BoardTheme = typeof themeTable.$inferSelect;
 
 export type BoardView = {
@@ -79,7 +89,7 @@ export async function loadBoard(profileId: string): Promise<BoardView | null> {
     .limit(1);
   if (!brd) return null;
 
-  const [principleRows, themeRows, cardRows, connectionRows, stuckRows] =
+  const [principleRows, themeRows, cardRows, sourceRows, connectionRows, stuckRows] =
     await Promise.all([
       db
         .select()
@@ -95,6 +105,19 @@ export async function loadBoard(profileId: string): Promise<BoardView | null> {
         .from(cardTable)
         .where(eq(cardTable.boardId, brd.id))
         .orderBy(asc(cardTable.position), asc(cardTable.createdAt)),
+      // One join for the whole board rather than a query per card. Joined on
+      // the board so a card whose sources outlive a theme change still finds
+      // them, and ordered so every card's list reads in citation order.
+      db
+        .select({
+          cardId: cardSource.cardId,
+          url: cardSource.url,
+          title: cardSource.title,
+        })
+        .from(cardSource)
+        .innerJoin(cardTable, eq(cardSource.cardId, cardTable.id))
+        .where(eq(cardTable.boardId, brd.id))
+        .orderBy(asc(cardSource.position), asc(cardSource.createdAt)),
       db
         .select({
           status: linkedinConnection.status,
@@ -122,13 +145,20 @@ export async function loadBoard(profileId: string): Promise<BoardView | null> {
   const principles = { voice: "", visual: "", format: "" };
   for (const row of principleRows) principles[row.kind] = row.text;
 
+  const sourcesByCard = new Map<string, CardSource[]>();
+  for (const row of sourceRows) {
+    const list = sourcesByCard.get(row.cardId);
+    if (list) list.push({ url: row.url, title: row.title });
+    else sourcesByCard.set(row.cardId, [{ url: row.url, title: row.title }]);
+  }
+
   const cards = Object.fromEntries(
     COLUMNS.map((c) => [c, [] as BoardCard[]]),
   ) as Record<Column, BoardCard[]>;
   for (const row of cardRows) {
     // A rejected card is off the board. It stays in the table for the log.
     if (row.state === "rejected") continue;
-    cards[row.state].push(row);
+    cards[row.state].push({ ...row, sources: sourcesByCard.get(row.id) ?? [] });
   }
 
   // Approved work only. A draft nobody has approved cannot sustain anything.

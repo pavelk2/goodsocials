@@ -63,16 +63,31 @@ every done condition below is checked on the preview deploy.
 
 - [x] **Four themes, written from the site.** Onboarding step one writes three principles and four themes in one round trip, in parallel, so the 90 second budget does not pay for a second call in sequence. They show in the brand principles sheet under a rule, and each one is editable by hand.
 - [x] **Every idea carries a theme and a kind.** The seven ideas are dealt across the four themes, no theme takes more than two, and the card shows what it is and what it is about on one meta line. A card whose theme was deleted keeps its idea and loses the label.
-- [x] **The mix is biased and the bias is one array.** `KIND_MIX` is framework, receipt, data, framework, receipt, data, finding. The slot decides the kind, not the model, so a run cannot quietly return seven findings.
-- [x] **Each kind is built differently in the draft.** A framework is named steps in an order that matters. A data breakdown is the finding, the named source, and exactly three takeaways. A receipt opens on the number. The draft prompt is also forbidden from referring to a chart or an image, which it could not previously be trusted not to do.
-- [x] **A receipt names the number it needs.** The card shows the line before anybody approves it, the draft writes the sentence around it and brackets the gap, and a revise comment supplying the number clears it. Unobserved: whether a real user answers the question rather than rejecting the card.
+- [x] **The mix is one array.** `KIND_MIX` is the slate, and the slot decides the kind rather than the model, so a run cannot quietly return seven of one thing.
+- [x] **Each kind is built differently in the draft.** The draft prompt is also forbidden from referring to a chart or an image, which it could not previously be trusted not to do.
+- [x] **A personal post names the number it needs.** The card shows the line before anybody approves it, the draft writes the sentence around it and brackets the gap, and a revise comment supplying the number clears it. Unobserved: whether a real user answers the question rather than rejecting the card.
+
+## Day 6: three kinds, and citations behind two of them
+
+Built and green on typecheck, lint and build. Nothing here was run against the
+live Anthropic API or a live board, because the container has neither, so every
+done condition below is checked on the preview deploy.
+
+- [x] **Four kinds become three.** `research`, `explainer`, `personal`, and no fourth without DECISIONS.md changing first. `KIND_MIX` is three research, two explainer, two personal. Migration `0005` maps the old rows: framework to explainer, data to research, receipt and finding to personal.
+- [x] **Research and explainer are searched before they are written.** `lib/agent/research.ts` runs the Anthropic web search server tool, capped at 6 searches, and returns the brief plus the pages its own sentences cited. The writing call that follows has no search tool, so it cannot reach past what was found. The open question from Day 5, whether structured output and a server tool work in the same call, is now moot: they are two calls and never one.
+- [x] **Sources are stored, shown, and enforced.** `card_source` holds one row per cited URL. The card prints the publishers, the dialog lists the titles as real links, and `sourcesMissing` in `lib/cards.ts` refuses to move a research or explainer card out of Draft with no rows behind it. A search that cites nothing fails the draft and the card says to narrow the idea or reject it.
+
+To observe on the preview deploy, in this order:
+
+- [ ] **A research card reaches Draft carrying links that open.** Approve a research idea, check the Sources list in the dialog, open each link, and confirm the post names the same organisation the link points at.
+- [ ] **The gate actually holds.** Drag an old `framework` card, migrated to `explainer` and carrying no sources, from Draft to Image and confirm it refuses with the sentence about revising or rejecting.
+- [ ] **What a search pass costs.** Read `llm_spend` for `research:research` and `research:explainer` on one full board and check the arithmetic in the cost section of CLAUDE.md against the real number.
 
 What is deliberately not in this pass, in the order it is worth building.
 
-- [ ] **Research behind framework and data posts.** Both kinds are written from the model's own knowledge today, which is why the data brief refuses to name a source it is not certain of. The Anthropic web search server tool is the route. It goes on the draft call, never on the onboarding call, because onboarding has a 90 second budget and this would spend it. Open question to verify against the live API before building: whether structured output and a server tool can be requested in the same call.
-- [ ] **A real chart on a data post.** A deterministic SVG rendered from numbers the model returns as data, rasterised, and uploaded as the post image. Never the image model: FLUX cannot render legible numbers, and a chart with wrong axis labels under a real name is worse than no chart. This is what makes the data kind worth its two slots.
-- [ ] **Frameworks as LinkedIn documents.** The carousel format, which is what a saveable reference post should be. `POST /rest/documents?action=initializeUpload`, `PUT` the binary, then the document URN in the post body. The same three call shape as images and unverified against the live API, plus a PDF renderer we do not have. Check it the way the image path was checked: one real document on one real feed before anything is built around it.
-- [ ] **Receipts without typing.** Stripe, PostHog or a spreadsheet connected once, so the number the card asks for arrives on its own. The `needs` line is the manual version of this, and it is the version that ships first because it works without an integration and it proves whether anyone answers.
+- [ ] **Personal posts without typing.** The third kind is meant to read from the author's own systems: GitHub, Stripe, PostHog, Google Analytics. Today it reads from the author, through the `needs` line, which is the manual version and the version that ships first because it works without an integration and it proves whether anyone answers. Each integration is its own connection, its own token expiry, and its own set of numbers worth posting, so the first one ships alone and the rest follow the shape it sets. Stripe first: the account is already connected for billing.
+- [ ] **A real chart on a research post.** A deterministic SVG rendered from numbers the research pass returns as data, rasterised, and uploaded as the post image. Never the image model: FLUX cannot render legible numbers, and a chart with wrong axis labels under a real name is worse than no chart.
+- [ ] **Explainers as LinkedIn documents.** The carousel format, which is what a saveable reference post should be. `POST /rest/documents?action=initializeUpload`, `PUT` the binary, then the document URN in the post body. The same three call shape as images and unverified against the live API, plus a PDF renderer we do not have. Check it the way the image path was checked: one real document on one real feed before anything is built around it.
 
 ## Pre-launch
 

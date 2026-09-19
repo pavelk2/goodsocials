@@ -57,7 +57,21 @@ function png(svg: string, size: number, out: string): void {
   );
   execFileSync(
     CHROME,
-    ["--disable-gpu", "--no-sandbox", "--hide-scrollbars", `--window-size=${size},${size}`, `--screenshot=${out}`, page],
+    [
+      "--disable-gpu",
+      "--no-sandbox",
+      "--hide-scrollbars",
+      // Without this the page is opaque white and Chrome writes an RGB PNG.
+      // Turbopack's ICO decoder rejects an RGB PNG inside an ICO container,
+      // and the whole production build fails on the favicon, so the 32px tile
+      // has to come out RGBA. It has rounded corners, which leaves real
+      // transparent pixels outside them once the page background is clear.
+      // Nothing looks different: every mark paints its own opaque backing.
+      "--default-background-color=00000000",
+      `--window-size=${size},${size}`,
+      `--screenshot=${out}`,
+      page,
+    ],
     { stdio: "ignore" },
   );
 }

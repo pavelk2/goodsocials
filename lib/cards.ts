@@ -1,10 +1,11 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   board as boardTable,
   brandPrinciple,
   card as cardTable,
   cardAction,
+  cardSource,
   profile as profileTable,
   scheduledPost,
   theme as themeTable,
@@ -13,7 +14,13 @@ import type { Actor } from "@/lib/profiles";
 import { generateDraft } from "@/lib/agent/drafts";
 import { generateImage } from "@/lib/agent/images";
 import { reviseCardBody } from "@/lib/agent/revise";
+import {
+  NoSourcesError,
+  SearchUnavailableError,
+  type Source,
+} from "@/lib/agent/research";
 import type { Goal } from "@/lib/agent/ideas";
+import { needsSources, type PostKind } from "@/lib/post-kind";
 import { nextSlot } from "@/lib/schedule";
 
 /**
@@ -35,6 +42,8 @@ type Loaded = {
   principles: { voice: string; visual: string; format: string };
   /** Null when the card predates themes, or when its theme was deleted. */
   theme: { title: string; description: string } | null;
+  /** How many pages this card's draft was written from. Zero on a personal post. */
+  sourceCount: number;
 };
 
 /**
@@ -67,15 +76,69 @@ async function load(actor: Actor, cardId: string): Promise<Loaded | null> {
     .limit(1);
   if (!row) return null;
 
-  const principleRows = await db
-    .select()
-    .from(brandPrinciple)
-    .where(eq(brandPrinciple.profileId, row.profile.id));
+  const [principleRows, sourceRows] = await Promise.all([
+    db
+      .select()
+      .from(brandPrinciple)
+      .where(eq(brandPrinciple.profileId, row.profile.id)),
+    db
+      .select({ id: cardSource.id })
+      .from(cardSource)
+      .where(eq(cardSource.cardId, row.card.id)),
+  ]);
 
   const principles = { voice: "", visual: "", format: "" };
   for (const p of principleRows) principles[p.kind] = p.text;
 
-  return { ...row, principles };
+  return { ...row, principles, sourceCount: sourceRows.length };
+}
+
+/**
+ * The gate. A research or explainer card leaves the Draft column only if it is
+ * carrying the pages it was written from.
+ *
+ * It is checked here rather than trusted from the draft call because this is
+ * the last place before the card is on its way to somebody's feed, and because
+ * a card can reach this line without passing through today's draft path: a row
+ * written before the search pass existed, a draft restored by a revision, a
+ * drag from Idea straight to Scheduled. One check on the way out covers all of
+ * them.
+ */
+function sourcesMissing(
+  card: { kind: PostKind; state: string },
+  sourceCount: number,
+): CardResult | null {
+  if (!needsSources(card.kind) || sourceCount > 0) return null;
+  // Not "revise it": a revise comment rewrites the text and never searches.
+  // Back to Idea and approved again is the path that runs the research, so
+  // that is the path the sentence names.
+  return {
+    ok: false,
+    error:
+      "This one has no sources behind it, so it cannot go out. Move it back to Idea and approve it again to research it, or reject it.",
+  };
+}
+
+/** Saved in the order they were cited, so the post's first source reads first. */
+async function saveSources(cardId: string, sources: Source[]): Promise<void> {
+  if (sources.length === 0) return;
+  await getDb()
+    .insert(cardSource)
+    .values(
+      sources.map((source, position) => ({
+        cardId,
+        url: source.url,
+        title: source.title,
+        citedText: source.citedText,
+        position,
+      })),
+    )
+    // A redraft of the same card finds some of the same pages. The newest cite
+    // is the one the current text leans on, so it wins.
+    .onConflictDoUpdate({
+      target: [cardSource.cardId, cardSource.url],
+      set: { title: sql`excluded.title`, citedText: sql`excluded.cited_text` },
+    });
 }
 
 async function log(
@@ -101,13 +164,13 @@ export async function approveCard(
   const loaded = await load(actor, cardId);
   if (!loaded) return { ok: false, error: "That card is not on your board." };
 
-  const { card, board, profile, principles, theme } = loaded;
+  const { card, board, profile, principles, theme, sourceCount } = loaded;
   const db = getDb();
 
   if (card.state === "idea") {
-    let text: string;
+    let draft;
     try {
-      text = await generateDraft({
+      draft = await generateDraft({
         idea: card.idea,
         kind: card.kind,
         theme,
@@ -119,16 +182,40 @@ export async function approveCard(
       });
     } catch (cause) {
       console.error("[cards] draft failed:", cause);
+      // The search came back with nothing it could cite. That is a fact about
+      // this idea, not a transient failure, so the card says what to do about
+      // it rather than inviting the same click again.
+      if (cause instanceof NoSourcesError) {
+        return {
+          ok: false,
+          error:
+            "Nothing published came back on this one, so there is no post to write. Revise the idea to narrow it, or reject it.",
+        };
+      }
+      // The search itself broke. Nothing is wrong with the idea, so the card
+      // does not send the user off to rewrite one that was fine.
+      if (cause instanceof SearchUnavailableError) {
+        return {
+          ok: false,
+          error: "The search did not run. Try approving again in a minute.",
+        };
+      }
       return { ok: false, error: "The draft did not write. Try approving again." };
     }
 
+    // Sources first. A draft on the board that has lost the pages behind it is
+    // a card the gate will stop later with no way to explain why.
+    await saveSources(card.id, draft.sources);
     await db
       .update(cardTable)
-      .set({ state: "draft", draftText: text, updatedAt: new Date() })
+      .set({ state: "draft", draftText: draft.text, updatedAt: new Date() })
       .where(eq(cardTable.id, card.id));
     await log(card.id, "approve", actor.memberId);
     return { ok: true };
   }
+
+  const missing = sourcesMissing(card, sourceCount);
+  if (missing) return missing;
 
   if (card.state === "draft") {
     const text = card.draftText;
@@ -250,6 +337,12 @@ export async function reviseCard(
   }
 
   const bodyKind = card.draftText ? "post" : "idea";
+
+  // A revision rewrites what is on the card; it never searches again. So the
+  // source rows still describe this text, and the revise prompt is the thing
+  // keeping that true: it is told to change what the comment asks about and
+  // leave the evidence alone. A comment that wants a different claim is a
+  // different post, which is what Reject is for.
   let revision;
   try {
     revision = await reviseCardBody({
@@ -473,7 +566,7 @@ export async function topUpDrafts(profileId: string): Promise<number> {
   let written = 0;
   for (const idea of ideas) {
     try {
-      const text = await generateDraft({
+      const draft = await generateDraft({
         idea: idea.idea,
         kind: idea.kind,
         theme: idea.themeId ? (themes.get(idea.themeId) ?? null) : null,
@@ -483,13 +576,16 @@ export async function topUpDrafts(profileId: string): Promise<number> {
         siteUrl: row.board.siteUrl,
         profileId: row.profile.id,
       });
+      await saveSources(idea.id, draft.sources);
       await db
         .update(cardTable)
-        .set({ state: "draft", draftText: text, updatedAt: new Date() })
+        .set({ state: "draft", draftText: draft.text, updatedAt: new Date() })
         .where(eq(cardTable.id, idea.id));
       written += 1;
     } catch (cause) {
-      // One failed draft does not fail the page. The user can approve by hand.
+      // One failed draft does not fail the page. The user can approve by hand,
+      // and an idea the search found nothing on stays an idea and says so when
+      // they do.
       console.error("[cards] auto draft failed:", cause);
     }
   }

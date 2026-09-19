@@ -2,6 +2,7 @@ import { z } from "zod";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { anthropic, MODEL, recordSpend } from "./client";
 import { appendUtm } from "@/lib/utm";
+import { NoSourcesError, research, sourceList, type Source } from "./research";
 import type { Principles } from "./principles";
 import type { Goal, PostKind } from "./ideas";
 
@@ -10,6 +11,13 @@ import type { Goal, PostKind } from "./ideas";
  * placeholders the user has to fill in, no bracketed instructions, no title.
  * If the idea needed a number the author has and we do not, the draft says so
  * in plain language and the user fixes it with a revise comment.
+ *
+ * On a research or explainer card this runs twice: once through
+ * lib/agent/research.ts, which searches the web and comes back with citations,
+ * and once here to write the post from what was found. The writing call has no
+ * search tool of its own, so the only facts in reach are the ones the first
+ * call cited. That separation is deliberate: a single call that could both
+ * search and write can always decide to skip the searching.
  */
 const DraftSchema = z.object({
   post: z
@@ -22,21 +30,26 @@ const DraftSchema = z.object({
 /** LinkedIn truncates the feed preview near here and hard limits at 3000. */
 const MAX_COMMENTARY = 3000;
 
+/** The text, and the pages it is allowed to claim it read. */
+export type Draft = {
+  text: string;
+  /** Empty on a personal post, which cites nothing because it cites the author. */
+  sources: Source[];
+};
+
 /**
- * How each kind is built. The planner decided the shape; this decides the
- * sentences. A framework and a receipt open differently, end differently, and
- * fail differently, and a single draft prompt that tries to serve both writes
- * the same post every time.
+ * How each kind is built. The planner decided the kind; this decides the
+ * sentences. A research post and a personal one open differently, end
+ * differently, and fail differently, and a single draft prompt that tries to
+ * serve both writes the same post every time.
  */
 const KIND_BRIEF: Record<PostKind, string> = {
-  framework:
-    "Build it as a reference. Name the method in the first sentence, then the steps or parts, each one on its own line with a short name and a sentence saying what it is. Three to six of them. No narrative opener, no story about how you discovered it, no numbered lessons. It ends on the last step. The reader should be able to skim it, save it, and use it a month from now without the context.",
-  data:
-    "Lead with the finding and name where it came from in the same breath: the organisation, and the report or the year. Then exactly three things it means for the reader, each one a short paragraph of its own, each one a claim the finding supports rather than a restatement of it. If the source was not given to you, do not name one. End on the third takeaway.",
-  receipt:
-    "The number is the first sentence, with the period it covers. Then what you changed or what you learned from it, in plain language, with no lesson drawn for the reader that the number does not carry. This post is believed because it is specific and because it is theirs, so no rounding for effect and no second number that was not given to you. End where the evidence ends.",
-  finding:
-    "Open with the substance. The first sentence is the finding, not a tease of it.",
+  research:
+    "Lead with the finding and name where it came from in the same breath: the organisation, and the report or the year. Then what it means for the reader, in two or three short paragraphs, each one a claim the finding supports rather than a restatement of it. If the research came back with a qualification or a disagreement between sources, it goes in the post; a finding presented as more settled than it is, is the failure this kind has. End on the last takeaway.",
+  explainer:
+    "Build it as a reference. Name the thing in the first sentence, then explain the mechanism in the order it happens or the parts in the order they matter, each one on its own line with a short name and a sentence or two saying what it does. Three to six of them. No narrative opener, no story about how you discovered it, no numbered lessons. Say where the description comes from, once, in the sentence where it earns its place rather than as a footnote. It ends on the last part. The reader should be able to skim it, save it, and use it a month from now.",
+  personal:
+    "The number or the result is the first sentence, with the period it covers. Then what you changed or what you learned from it, in plain language, with no lesson drawn for the reader that the evidence does not carry. This post is believed because it is specific and because it is theirs, so no rounding for effect and no second number that was not given to you. End where the evidence ends.",
 };
 
 const GOAL_BRIEF: Record<Goal, string> = {
@@ -50,7 +63,7 @@ const GOAL_BRIEF: Record<Goal, string> = {
 
 const SYSTEM = `You write one LinkedIn post from one idea, in the voice of the person whose brand principles you are given.
 
-The register is a researcher, not a seller. The post reports something the author found out and can point to. It informs, it does not persuade, and it never manipulates.
+The register is a researcher, not a seller. The post reports something the author can point to. It informs, it does not persuade, and it never manipulates.
 
 Banned outright, because they are what makes LinkedIn unreadable:
 Opening with a one line hook followed by a blank line. Rhetorical questions as openers. "Here's the thing". "Let that sink in". "Unpopular opinion". Counting down a list of lessons. Manufactured urgency. Fake vulnerability. A closing question asking for comments. Anything that would read as a template.
@@ -59,7 +72,11 @@ Open with the substance. The first sentence is the finding, not a tease of the f
 
 Evidence rules, not negotiable, because this publishes under a real person's name.
 
-Never invent a statistic, a study, a percentage, a survey, a report title, a customer name, or a quote. Never write "studies show", "research suggests", or "experts say" without naming exactly who said it and where.
+When you are given research, everything factual in the post comes from it. You may not add a number, a date, an organisation, a study, or an example that is not in the research, however confident you are and however much better the post would read with it. If the research does not support a sentence you want to write, cut the sentence.
+
+Name the sources in the post itself, the way a person would say them out loud: the organisation and the year, not a URL and not a footnote marker. One or two names is a post; five is a bibliography.
+
+When you are given no research, never invent a statistic, a study, a percentage, a survey, a report title, a customer name, or a quote, and never write "studies show", "research suggests", or "experts say".
 
 If the idea calls for a number that only the author has, write the sentence around the number and mark the gap in square brackets, for example [your number here], and keep it to one bracket in the whole post. Everything else must be true as written or general enough to be uncontroversial.
 
@@ -82,7 +99,23 @@ export async function generateDraft(opts: {
   goal: Goal;
   siteUrl: string | null;
   profileId: string;
-}): Promise<string> {
+}): Promise<Draft> {
+  // The search pass, on the two kinds that rest on somebody else's page. It
+  // runs before the writing call and its citations are the only evidence the
+  // writing call gets. A pass that comes back with nothing cited stops here:
+  // the alternative is a post written from memory wearing the word Research,
+  // which is worse than a card that stayed in the Idea column.
+  let found: { brief: string; sources: Source[] } = { brief: "", sources: [] };
+  if (opts.kind === "research" || opts.kind === "explainer") {
+    found = await research({
+      kind: opts.kind,
+      idea: opts.idea,
+      theme: opts.theme,
+      profileId: opts.profileId,
+    });
+    if (found.sources.length === 0) throw new NoSourcesError(opts.kind);
+  }
+
   const response = await anthropic().messages.parse({
     model: MODEL,
     max_tokens: 8000,
@@ -100,6 +133,19 @@ export async function generateDraft(opts: {
             ? `Theme. ${opts.theme.title}. ${opts.theme.description}`
             : "",
           `Shape. ${KIND_BRIEF[opts.kind]}`,
+          // Handed over as the only permitted evidence, with the sources listed
+          // separately from the prose so the writer can see exactly how many
+          // pages it is allowed to name.
+          found.sources.length > 0
+            ? [
+                "",
+                "Research. This is everything you know about this subject. Nothing outside it goes in the post.",
+                found.brief,
+                "",
+                "The sources it came from, which are the only ones you may name:",
+                sourceList(found.sources),
+              ].join("\n")
+            : "",
           // The gap is handed over as a gap. Told what is missing, the model
           // writes the sentence around it and brackets the hole; not told, it
           // writes a number that looks right, which is the one failure this
@@ -130,7 +176,10 @@ export async function generateDraft(opts: {
   if (!response.parsed_output) {
     throw new Error("The model did not return a draft in the expected shape.");
   }
-  return finish(response.parsed_output.post, opts.goal);
+  return {
+    text: finish(response.parsed_output.post, opts.goal),
+    sources: found.sources,
+  };
 }
 
 /**

@@ -12,6 +12,12 @@ export const MODEL = "claude-opus-5";
 const INPUT_PER_MTOK = 5;
 const OUTPUT_PER_MTOK = 25;
 
+/**
+ * USD per web search, billed on top of the tokens the results cost to read.
+ * Only lib/agent/research.ts makes any, and it caps them per post.
+ */
+const SEARCH_USD = 0.01;
+
 export function anthropic(): Anthropic {
   if (!process.env.ANTHROPIC_API_KEY) {
     throw new Error("Missing environment variable: ANTHROPIC_API_KEY");
@@ -46,7 +52,14 @@ export function recordSpend(opts: {
   profileId: string;
   operation: string;
   usage: Usage;
+  /**
+   * Web searches this call made. Billed per search on top of tokens, so a
+   * research pass costs more than its token count says and the number has to
+   * be in the line or the cost per customer is wrong.
+   */
+  searches?: number;
 }): void {
+  const searches = opts.searches ?? 0;
   console.log(
     JSON.stringify({
       event: "llm_spend",
@@ -55,7 +68,10 @@ export function recordSpend(opts: {
       input_tokens: opts.usage.input_tokens,
       output_tokens: opts.usage.output_tokens,
       cached_input_tokens: opts.usage.cache_read_input_tokens ?? 0,
-      usd: Number(usdFor(opts.usage).toFixed(5)),
+      searches,
+      usd: Number(
+        (usdFor(opts.usage) + searches * SEARCH_USD).toFixed(5),
+      ),
       model: MODEL,
     }),
   );

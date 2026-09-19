@@ -119,7 +119,7 @@ export default function Privacy() {
           />
           <Row
             label="Anthropic"
-            value="Generates and revises post text from your brand principles and comments. Anthropic does not train models on this input"
+            value="Generates and revises post text from your brand principles and comments, and runs the web searches behind a research or explainer post, which sends the subject of that card to a search engine. Anthropic does not train models on this input"
           />
           <Row
             label="OpenRouter"
