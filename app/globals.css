@@ -76,3 +76,31 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Tailwind's reset sets `cursor: default` on button, so every control in the
+   app looked unclickable. Links keep the browser default. */
+button:not(:disabled),
+summary,
+[role="button"] {
+  cursor: pointer;
+}
+
+/* The solid ink button, in five places and nowhere twice. Press feedback, not
+   a hover lift: DESIGN.md section 5. Hover is gated on a real pointer so a
+   tap on a phone does not leave the button stuck in its hover state. */
+.btn-ink {
+  transition:
+    opacity 180ms var(--ease),
+    transform 180ms var(--ease);
+}
+
+@media (hover: hover) {
+  .btn-ink:hover {
+    opacity: 0.84;
+  }
+}
+
+.btn-ink:active {
+  opacity: 0.84;
+  transform: scale(0.985);
+}

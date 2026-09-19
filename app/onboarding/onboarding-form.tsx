@@ -158,7 +158,7 @@ export function OnboardingForm() {
 
       <button
         type="submit"
-        className="mt-10 rounded-[14px] bg-ink px-6 py-[14px] text-[17px] font-semibold text-paper"
+        className="btn-ink mt-10 rounded-[14px] bg-ink px-6 py-[14px] text-[17px] font-semibold text-paper"
       >
         Write my first seven posts
       </button>
