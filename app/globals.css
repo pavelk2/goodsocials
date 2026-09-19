@@ -81,6 +81,53 @@ body {
   }
 }
 
+/* Tailwind's reset sets `cursor: default` on button, so every control in the
+   app looked unclickable. Links keep the browser default. */
+button:not(:disabled),
+summary,
+[role="button"] {
+  cursor: pointer;
+}
+
+/* The solid ink button, in five places and nowhere twice. Press feedback, not
+   a hover lift: DESIGN.md section 5. Hover is gated on a real pointer so a
+   tap on a phone does not leave the button stuck in its hover state. */
+.btn-ink {
+  transition:
+    opacity 180ms var(--ease),
+    transform 180ms var(--ease);
+}
+
+@media (hover: hover) {
+  .btn-ink:hover {
+    opacity: 0.84;
+  }
+}
+
+.btn-ink:active {
+  opacity: 0.84;
+  transform: scale(0.985);
+}
+
+/* The secondary of the same pair. Same shape and same press as .btn-ink, but
+   it separates by hairline rather than by fill, so hover darkens the edge:
+   fading a surface button over paper would erase it. */
+.btn-outline {
+  transition:
+    border-color 180ms var(--ease),
+    transform 180ms var(--ease);
+}
+
+@media (hover: hover) {
+  .btn-outline:hover {
+    border-color: var(--ink-3);
+  }
+}
+
+.btn-outline:active {
+  transform: scale(0.985);
+}
+
 /* The one overlay. A native dialog in the top layer, so the panel is the only
    thing styled here and the focus trap is the browser's. */
 dialog.sheet {

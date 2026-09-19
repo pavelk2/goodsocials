@@ -7,11 +7,11 @@ import { Sheet } from "@/components/ui/sheet";
 
 /**
  * One shape for both controls: 30px tall, so 8px radius, same padding, same
- * press feedback. They differ only in weight, because they open the same kind
- * of sheet but are not equally worth opening.
+ * press. They differ only in weight, because they open the same kind of sheet
+ * but are not equally worth opening. The motion lives on .btn-ink and
+ * .btn-outline in globals.css, with the rest of the app's buttons.
  */
-const TOOL_BASE =
-  "rounded-[8px] px-3 py-[6px] text-[13px] font-medium transition-[opacity,border-color,transform] duration-150 ease-[var(--ease)] active:scale-[0.98]";
+const SHAPE = "rounded-[8px] px-3 py-[6px] text-[13px] font-medium";
 
 /**
  * Solid ink, the house primary. Principles are what makes a correction stick
@@ -19,14 +19,14 @@ const TOOL_BASE =
  * pressing. Not accent: the board spends its one color on runway, per
  * DESIGN.md section 1.
  */
-const PRIMARY = `${TOOL_BASE} bg-ink text-paper hover:opacity-85`;
+const PRIMARY = `btn-ink ${SHAPE} bg-ink text-paper`;
 
 /**
  * Surface on paper with a hairline, the same way a card separates from the
  * column ground. Paper on paper, which is what the house secondary button is,
  * is invisible here.
  */
-const SECONDARY = `${TOOL_BASE} border border-hairline bg-surface text-ink hover:border-ink-3`;
+const SECONDARY = `btn-outline ${SHAPE} border border-hairline bg-surface text-ink`;
 
 /**
  * Title, runway, and the two controls that are not part of approving a card.

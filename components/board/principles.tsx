@@ -25,7 +25,7 @@ export function PrinciplesPanel({
 }) {
   return (
     <div>
-      <ul>
+      <ul className="space-y-5">
         {ROWS.map((row) => (
           <PrincipleRow
             key={row.kind}
@@ -35,7 +35,7 @@ export function PrinciplesPanel({
           />
         ))}
       </ul>
-      <p className="mt-3 text-[13px] text-ink-3">
+      <p className="mt-6 text-[13px] text-ink-3">
         Three, and only three. A comment on a card updates the one it is about.
       </p>
     </div>
@@ -71,7 +71,7 @@ function PrincipleRow({
   }
 
   return (
-    <li className="border-b border-hairline py-[14px]">
+    <li>
       <div className="flex items-baseline justify-between gap-4">
         <p className="text-[13px] font-medium text-ink-2">{label}</p>
         {editing ? (
