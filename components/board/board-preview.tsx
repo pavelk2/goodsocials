@@ -29,14 +29,25 @@ const VOICE =
 const COLUMNS: {
   name: string;
   count: number;
-  cards: { body: string; scheduledAt?: Date; comment?: string }[];
+  cards: {
+    body: string;
+    label: string;
+    scheduledAt?: Date;
+    comment?: string;
+  }[];
 }[] = [
   {
     name: "Idea",
     count: 4,
     cards: [
-      { body: "We cut one line from our job ad. The line asked for ten years of experience." },
-      { body: "Our cheapest new customers came from answering support tickets in public." },
+      {
+        body: "We cut one line from our job ad. The line asked for ten years of experience.",
+        label: "Finding. How we hire",
+      },
+      {
+        body: "Our cheapest new customers came from answering support tickets in public.",
+        label: "Receipt. What growth costs us",
+      },
     ],
   },
   {
@@ -45,6 +56,7 @@ const COLUMNS: {
     cards: [
       {
         body: "Ever wondered why hiring is slow? Let's dive into the key factors that make all the difference.",
+        label: "Framework. How we hire",
         comment: "Opens with a question and says nothing. Lead with the number.",
       },
     ],
@@ -55,10 +67,12 @@ const COLUMNS: {
     cards: [
       {
         body: "Three years of invoices in one spreadsheet. Our pricing was wrong for one customer size.",
+        label: "Receipt. What we charge and why",
         scheduledAt: new Date(Date.UTC(2026, 8, 15, 8, 30)),
       },
       {
         body: "The support ticket that changed our roadmap was eleven words long.",
+        label: "Finding. What customers ask us for",
         scheduledAt: new Date(Date.UTC(2026, 8, 16, 8, 30)),
       },
     ],
@@ -69,6 +83,7 @@ const COLUMNS: {
     cards: [
       {
         body: "We stopped our weekly all-hands. Nobody has asked for it back.",
+        label: "Finding. How we run the company",
         scheduledAt: new Date(Date.UTC(2026, 8, 12, 8, 30)),
       },
     ],
@@ -137,6 +152,7 @@ export function BoardPreview() {
                   <CardShell
                     key={card.body}
                     body={card.body}
+                    label={card.label}
                     scheduledAt={card.scheduledAt}
                   >
                     {card.comment ? <CardComment comment={card.comment} /> : null}

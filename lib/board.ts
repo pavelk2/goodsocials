@@ -7,6 +7,7 @@ import {
   brandPrinciple,
   linkedinConnection,
   scheduledPost,
+  theme as themeTable,
 } from "@/db/schema";
 
 export const COLUMNS = [
@@ -27,11 +28,14 @@ export const COLUMN_LABEL: Record<Column, string> = {
 };
 
 export type BoardCard = typeof cardTable.$inferSelect;
+export type BoardTheme = typeof themeTable.$inferSelect;
 
 export type BoardView = {
   profile: typeof profileTable.$inferSelect;
   board: typeof boardTable.$inferSelect;
   principles: { voice: string; visual: string; format: string };
+  /** What this profile posts about. Ordered, editable, four to start with. */
+  themes: BoardTheme[];
   cards: Record<Column, BoardCard[]>;
   /** Days of near-daily posting the approved queue can sustain. */
   runwayDays: number;
@@ -43,7 +47,10 @@ export type BoardView = {
    * the whole product is built around is invisible until a client asks where
    * the posts went.
    */
-  connection: { status: "active" | "expiring" | "dead"; expiresAt: Date } | null;
+  connection: {
+    status: "active" | "expiring" | "dead";
+    expiresAt: Date;
+  } | null;
   /** The reason the oldest stuck post gave, if the queue is stuck. */
   queueError: string | null;
 };
@@ -72,36 +79,45 @@ export async function loadBoard(profileId: string): Promise<BoardView | null> {
     .limit(1);
   if (!brd) return null;
 
-  const [principleRows, cardRows, connectionRows, stuckRows] = await Promise.all([
-    db.select().from(brandPrinciple).where(eq(brandPrinciple.profileId, prof.id)),
-    db
-      .select()
-      .from(cardTable)
-      .where(eq(cardTable.boardId, brd.id))
-      .orderBy(asc(cardTable.position), asc(cardTable.createdAt)),
-    db
-      .select({
-        status: linkedinConnection.status,
-        expiresAt: linkedinConnection.expiresAt,
-      })
-      .from(linkedinConnection)
-      .where(eq(linkedinConnection.profileId, prof.id))
-      .limit(1),
-    // The oldest unpublished post that has a reason attached. One sentence on
-    // the board beats twelve identical rows nobody queries.
-    db
-      .select({ lastError: scheduledPost.lastError })
-      .from(scheduledPost)
-      .where(
-        and(
-          eq(scheduledPost.profileId, prof.id),
-          isNull(scheduledPost.publishedAt),
-          isNotNull(scheduledPost.lastError),
-        ),
-      )
-      .orderBy(asc(scheduledPost.publishAt))
-      .limit(1),
-  ]);
+  const [principleRows, themeRows, cardRows, connectionRows, stuckRows] =
+    await Promise.all([
+      db
+        .select()
+        .from(brandPrinciple)
+        .where(eq(brandPrinciple.profileId, prof.id)),
+      db
+        .select()
+        .from(themeTable)
+        .where(eq(themeTable.profileId, prof.id))
+        .orderBy(asc(themeTable.position), asc(themeTable.createdAt)),
+      db
+        .select()
+        .from(cardTable)
+        .where(eq(cardTable.boardId, brd.id))
+        .orderBy(asc(cardTable.position), asc(cardTable.createdAt)),
+      db
+        .select({
+          status: linkedinConnection.status,
+          expiresAt: linkedinConnection.expiresAt,
+        })
+        .from(linkedinConnection)
+        .where(eq(linkedinConnection.profileId, prof.id))
+        .limit(1),
+      // The oldest unpublished post that has a reason attached. One sentence on
+      // the board beats twelve identical rows nobody queries.
+      db
+        .select({ lastError: scheduledPost.lastError })
+        .from(scheduledPost)
+        .where(
+          and(
+            eq(scheduledPost.profileId, prof.id),
+            isNull(scheduledPost.publishedAt),
+            isNotNull(scheduledPost.lastError),
+          ),
+        )
+        .orderBy(asc(scheduledPost.publishAt))
+        .limit(1),
+    ]);
 
   const principles = { voice: "", visual: "", format: "" };
   for (const row of principleRows) principles[row.kind] = row.text;
@@ -124,6 +140,7 @@ export async function loadBoard(profileId: string): Promise<BoardView | null> {
     profile: prof,
     board: brd,
     principles,
+    themes: themeRows,
     cards,
     runwayDays,
     needsOnboarding: Object.values(principles).every(

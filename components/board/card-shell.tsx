@@ -15,6 +15,8 @@ const IMAGE_ALT = "The image generated for this post";
  */
 export function CardShell({
   body,
+  label,
+  needs,
   imageUrl,
   onOpen,
   scheduledAt,
@@ -25,6 +27,20 @@ export function CardShell({
   children,
 }: {
   body: string;
+  /**
+   * What kind of post this is and what it is about, already joined, for example
+   * "Receipt. What we charge and why". One line in the meta row rather than a
+   * badge: a coloured pill on every card would spend the board's one accent
+   * five times per column, and a reader scanning a column wants the subject,
+   * not a taxonomy.
+   */
+  label?: string | null;
+  /**
+   * The one thing the author has to supply before this post is true. Shown in
+   * ink rather than grey, because it is the only thing on a card that is
+   * addressed to the reader rather than describing the post.
+   */
+  needs?: string | null;
   imageUrl?: string | null;
   /**
    * Opens the card. Given on the board, withheld on the drag overlay and on the
@@ -69,8 +85,25 @@ export function CardShell({
         <p className="line-clamp-3 whitespace-pre-line text-[15px] leading-[1.4] text-ink">
           {body}
         </p>
-        {when ? <p className="num mt-2 text-[13px] text-ink-2">{when}</p> : null}
+        {/* One meta row, per DESIGN.md section 3. The label and the time share
+            it rather than stacking, so a card gains a subject without gaining
+            a line. */}
+        {label || when ? (
+          <p className="mt-2 flex items-baseline justify-between gap-3 text-[13px] text-ink-2">
+            {label ? <span className="truncate">{label}</span> : <span />}
+            {when ? <span className="num shrink-0">{when}</span> : null}
+          </p>
+        ) : null}
       </div>
+
+      {/* Outside the drag handle: this is a question, and a press on it should
+          not pick the card up. It sits above the actions because it is the
+          reason one of them is not ready to be pressed yet. */}
+      {needs ? (
+        <p className="mt-2 text-[13px] leading-[1.4] text-ink">
+          <span className="font-medium">Needs from you.</span> {needs}
+        </p>
+      ) : null}
 
       {/* The keyboard route into the card, and the visible sign that there is
           one. Enter on the body above starts a keyboard drag, so opening the

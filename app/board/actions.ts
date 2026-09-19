@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { eq, and } from "drizzle-orm";
 import { auth } from "@/auth";
 import { getDb } from "@/db";
-import { brandPrinciple } from "@/db/schema";
+import { brandPrinciple, theme as themeTable } from "@/db/schema";
 import {
   approveCard,
   moveCard,
@@ -117,6 +117,46 @@ export async function savePrinciple(
         eq(brandPrinciple.kind, kind as "voice" | "visual" | "format"),
       ),
     );
+
+  revalidatePath("/board");
+  return { ok: true };
+}
+
+/**
+ * A theme, edited by hand. Same shape as editing a principle and the same
+ * reason: what the agent wrote from a homepage is a first draft of what this
+ * person is known for, and the person is the one who knows.
+ *
+ * Scoped by profile in the where clause rather than checked first, so a theme
+ * id belonging to somebody else's board updates nothing instead of updating
+ * something.
+ */
+export async function saveTheme(
+  id: string,
+  title: string,
+  description: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const who = await actor();
+  if (!who) return { ok: false, error: "Sign in first." };
+
+  const name = title.trim();
+  const body = description.trim();
+  if (name.length < 2) return { ok: false, error: "Give the theme a name." };
+  if (name.length > 80) return { ok: false, error: "Keep a theme name short." };
+  if (body.length < 10) return { ok: false, error: "Say a little more than that." };
+  if (body.length > 2000) {
+    return { ok: false, error: "Keep a theme under 2000 characters." };
+  }
+
+  const updated = await getDb()
+    .update(themeTable)
+    .set({ title: name, description: body })
+    .where(and(eq(themeTable.id, id), eq(themeTable.profileId, who.profileId)))
+    .returning({ id: themeTable.id });
+
+  if (updated.length === 0) {
+    return { ok: false, error: "That theme is not on your board." };
+  }
 
   revalidatePath("/board");
   return { ok: true };
