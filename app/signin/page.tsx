@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { signIn } from "@/auth";
 import { Footer } from "@/components/footer";
+import { PLAN_COOKIE, planFromSlug } from "@/lib/plans";
 
 export const metadata = {
   title: "Sign in with LinkedIn",
@@ -14,8 +16,19 @@ export const metadata = {
  * shape of a credential harvester and is what got goodsocials.co flagged by
  * Google Safe Browsing. Saying plainly who we are, what we ask for, and what
  * we never do is both honest and the thing that clears a review.
+ *
+ * Each plan arrives here with its own ?plan=, so the page states the price the
+ * visitor clicked, and the choice survives the trip through LinkedIn in a
+ * cookie that checkout reads. An unknown or missing slug falls back to the
+ * entry plan rather than blocking the flow.
  */
-export default function SignInPage() {
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ plan?: string }>;
+}) {
+  const plan = planFromSlug((await searchParams).plan);
+
   return (
     <>
       <main className="mx-auto max-w-[620px] px-6 py-20">
@@ -27,10 +40,30 @@ export default function SignInPage() {
           </span>
         </h1>
 
+        <ul className="mt-10 max-w-[420px]">
+          <li className="flex items-baseline justify-between gap-6 border-b border-hairline py-[14px]">
+            <span className="font-medium">{plan.name}</span>
+            <span className="num text-ink-2">{plan.priceLine}</span>
+          </li>
+          <li className="flex items-baseline justify-between gap-6 border-b border-hairline py-[14px]">
+            <span className="text-ink-2">{plan.line}</span>
+            <Link className="shrink-0 underline" href="/#pricing">
+              Change plan
+            </Link>
+          </li>
+        </ul>
+
         <form
           className="mt-10"
           action={async () => {
             "use server";
+            const store = await cookies();
+            store.set(PLAN_COOKIE, plan.slug, {
+              httpOnly: true,
+              sameSite: "lax",
+              path: "/",
+              maxAge: 60 * 60 * 24 * 30,
+            });
             await signIn("linkedin", { redirectTo: "/board" });
           }}
         >
@@ -40,6 +73,10 @@ export default function SignInPage() {
           >
             Continue with LinkedIn
           </button>
+          <p className="mt-3 text-[13px] text-ink-2">
+            Nothing is charged now. Your board fills first, you pay when you
+            want it published.
+          </p>
         </form>
 
         <section className="mt-14">

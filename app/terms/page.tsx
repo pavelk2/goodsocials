@@ -4,12 +4,10 @@ import {
   OPERATOR,
   CONTACT,
   LAST_UPDATED,
-  PRICE_SOLO,
-  PRICE_AGENCY,
-  PRICE_CONSULTANCY,
   AGENCY_SEATS,
   IMAGE_CAP_PER_MONTH,
 } from "@/lib/legal";
+import { PRICE_SOLO, PRICE_AGENCY, PRICE_CONSULTANCY } from "@/lib/plans";
 
 export const metadata: Metadata = {
   title: "Terms | GoodSocials",
@@ -19,8 +17,8 @@ export const metadata: Metadata = {
 
 /**
  * The terms of use URL LinkedIn asks for alongside the privacy policy. Public,
- * static, no auth. The prices and the image cap come from lib/legal.ts so this
- * page cannot disagree with the product.
+ * static, no auth. The prices come from lib/plans.ts and the image cap from
+ * lib/legal.ts, so this page cannot disagree with the product.
  */
 export default function Terms() {
   return (

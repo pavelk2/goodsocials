@@ -56,8 +56,8 @@ export default async function SettingsPage() {
       label: "Plan",
       value:
         row.account.plan === "agency"
-          ? `Agency, ${row.account.seatLimit} profiles, 1000 USD a month`
-          : "Solo, one profile, 100 USD a month",
+          ? `Agency, ${row.account.seatLimit} profiles, $1,000 a month`
+          : "Solo, one profile, $100 a month",
     },
     { label: "Goal", value: GOAL_LABEL[row.board.goal] },
     {
