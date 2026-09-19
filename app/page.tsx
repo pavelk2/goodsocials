@@ -21,9 +21,13 @@ const section =
 /**
  * The hero answers the job, not the category: a visitor wants to be posting on
  * LinkedIn every weekday and does not want to write the posts. These three rows
- * do the price arithmetic for them before they scroll: twenty weekdays at 5 is
- * the 100. The ghostwriter number is the same one the pricing section states,
- * so the comparison is made once and never contradicted.
+ * say what arrives, what it costs the reader in time, and what it costs in
+ * money, in that order.
+ *
+ * The price row is the whole price against the whole job, a social media
+ * manager for 100 a month. No per post arithmetic: a number that small invites
+ * a comparison with a cheap generator rather than with a hire. The ghostwriter
+ * figure belongs to the pricing section, where it is stated once.
  *
  * The middle row is a week, not a day. Cards are scheduled ahead, so the work
  * is one sitting that clears the week, and a daily figure would sell a daily
@@ -39,8 +43,8 @@ const HERO_FACTS = [
     detail: "Approve a week of cards in one sitting.",
   },
   {
-    fact: "$5 a post",
-    detail: "$100 a month. A ghostwriter charges $1,500 to $3,000.",
+    fact: "$100 a month",
+    detail: "A social media manager for your LinkedIn profile.",
   },
 ];
 
