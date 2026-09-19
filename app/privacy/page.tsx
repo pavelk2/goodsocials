@@ -128,6 +128,10 @@ export default function Privacy() {
           <Row label="Stripe" value="Payments and subscriptions" />
           <Row label="Loops" value="Receipts and expiry warnings" />
           <Row label="PostHog" value="Product analytics" />
+          <Row
+            label="Crisp"
+            value="The support chat in the corner, and the messages you send in it"
+          />
         </ul>
         <p className="pt-2">
           We also disclose data if the law requires it, and to a buyer if the
@@ -202,8 +206,9 @@ export default function Privacy() {
       <Section title="Cookies">
         <p>
           One cookie keeps you signed in. PostHog sets an analytics cookie so we
-          can count how a feature is used. No advertising cookies, no
-          third-party trackers, no data sold to brokers.
+          can count how a feature is used. Crisp sets one so the support chat
+          remembers your conversation between visits. No advertising cookies,
+          no third-party trackers, no data sold to brokers.
         </p>
       </Section>
 
