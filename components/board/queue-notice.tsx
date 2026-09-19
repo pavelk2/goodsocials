@@ -13,11 +13,18 @@ import { daysUntilExpiry } from "@/lib/token-expiry";
 export function QueueNotice({
   connection,
   queueError,
+  ownProfile,
 }: {
   connection: { status: "active" | "expiring" | "dead"; expiresAt: Date } | null;
   queueError: string | null;
+  /**
+   * True when this board's profile is the signed in member's own. On any other
+   * seat, signing in again re-authorizes the agency rather than the client, so
+   * the banner would never come down. That seat renews through the link flow.
+   */
+  ownProfile: boolean;
 }) {
-  const line = noticeFor(connection, queueError);
+  const line = noticeFor(connection, queueError, ownProfile);
   if (!line) return null;
 
   return (
@@ -42,10 +49,15 @@ type Notice = { text: string; action?: { href: string; label: string } };
 function noticeFor(
   connection: { status: "active" | "expiring" | "dead"; expiresAt: Date } | null,
   queueError: string | null,
+  ownProfile: boolean,
 ): Notice | null {
   // Our own sign in page, not the Auth.js route. It names the four scopes and
   // says what we never do, which is the page that got the domain unflagged.
-  const reconnect = { href: "/signin", label: "Sign in again" };
+  // A seat that is not the member's own has no sign in of its own, so it
+  // renews through the link flow with the owner signed in the whole time.
+  const reconnect = ownProfile
+    ? { href: "/signin", label: "Sign in again" }
+    : { href: "/api/linkedin/link", label: "Reconnect this profile" };
 
   if (!connection) {
     return { text: "This profile has no LinkedIn connection, so nothing can publish.", action: reconnect };

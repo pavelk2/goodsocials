@@ -1,11 +1,8 @@
 import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { getDb } from "@/db";
-import {
-  profile as profileTable,
-  board as boardTable,
-  brandPrinciple,
-} from "@/db/schema";
+import { board as boardTable, brandPrinciple } from "@/db/schema";
+import { loadAccess } from "@/lib/profiles";
 import { fetchSiteText } from "@/lib/agent/site";
 import { generatePrinciples } from "@/lib/agent/principles";
 import type { Goal } from "@/lib/agent/ideas";
@@ -36,11 +33,10 @@ export async function POST(request: Request) {
   if (!site.ok) return Response.json({ error: site.error }, { status: 400 });
 
   const db = getDb();
-  const [prof] = await db
-    .select()
-    .from(profileTable)
-    .where(eq(profileTable.linkedinMemberId, session.memberId))
-    .limit(1);
+  // The profile picked in settings, not the member's own. An agency sets up a
+  // client's board while signed in as itself.
+  const access = await loadAccess(session.memberId);
+  const prof = access?.active?.profile;
   if (!prof) {
     return Response.json({ error: "No profile for this account." }, { status: 404 });
   }

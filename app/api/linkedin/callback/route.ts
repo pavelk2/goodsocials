@@ -2,6 +2,7 @@ import { exchangeCode, fetchUserInfo } from "@/lib/linkedin/oauth";
 import { publishPost, personUrn, postPermalink } from "@/lib/linkedin/posts";
 import { LINKEDIN_VERSION } from "@/lib/linkedin/config";
 import { debugRedirectUri, htmlPage } from "@/lib/linkedin/debug-auth";
+import { completeLink, isLinkState } from "@/lib/linkedin/link";
 
 /**
  * Day 1 only. Exchanges the code, reads the member id, and publishes one
@@ -23,6 +24,12 @@ export async function GET(request: Request) {
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state") ?? "";
   const oauthError = url.searchParams.get("error");
+
+  // The product flow shares this URI so there is one redirect URI registered
+  // with LinkedIn rather than two. It owns its own errors and its own exits.
+  if (isLinkState(state)) {
+    return completeLink(request, { code, state, error: oauthError });
+  }
 
   if (oauthError) {
     const description =

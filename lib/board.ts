@@ -50,13 +50,18 @@ export type BoardView = {
 
 const PLACEHOLDER_PREFIX = "Not set yet.";
 
-export async function loadBoard(memberId: string): Promise<BoardView | null> {
+/**
+ * By profile id, not by member id. An agency account has one profile per seat
+ * under one login, so which board to draw is a choice the user made in
+ * settings, resolved once in lib/profiles.ts and passed in here.
+ */
+export async function loadBoard(profileId: string): Promise<BoardView | null> {
   const db = getDb();
 
   const [prof] = await db
     .select()
     .from(profileTable)
-    .where(eq(profileTable.linkedinMemberId, memberId))
+    .where(eq(profileTable.id, profileId))
     .limit(1);
   if (!prof) return null;
 

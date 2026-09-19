@@ -14,27 +14,54 @@ const ROWS = [
   { kind: "format", label: "Format" },
 ] as const;
 
+/**
+ * Closed by default. The principles are what makes a correction stick, and they
+ * are still the thing a user edits least often, so they open on request and the
+ * board starts at the top of the screen. One row closed, three rows open.
+ */
 export function Principles({
   principles,
 }: {
   principles: { voice: string; visual: string; format: string };
 }) {
+  const [open, setOpen] = useState(false);
+
   return (
-    <section className="mb-10 max-w-[760px]">
-      <h2 className="text-[13px] font-medium text-ink-2">Brand principles</h2>
-      <ul className="mt-2">
-        {ROWS.map((row) => (
-          <PrincipleRow
-            key={row.kind}
-            kind={row.kind}
-            label={row.label}
-            text={principles[row.kind]}
-          />
-        ))}
-      </ul>
-      <p className="mt-3 text-[13px] text-ink-3">
-        Three, and only three. A comment on a card updates the one it is about.
-      </p>
+    <section className="mb-8 max-w-[760px]">
+      <div className="flex items-baseline justify-between gap-4 border-b border-hairline py-[14px]">
+        <h2 className="text-[13px] font-medium text-ink-2">
+          Brand principles{" "}
+          <span className="font-normal text-ink-3">voice, visual, format</span>
+        </h2>
+        <button
+          type="button"
+          onClick={() => setOpen((shown) => !shown)}
+          aria-expanded={open}
+          aria-controls="brand-principles"
+          className="text-[13px] text-ink-2 underline"
+        >
+          {open ? "Hide" : "Show"}
+        </button>
+      </div>
+
+      {open ? (
+        <div id="brand-principles">
+          <ul>
+            {ROWS.map((row) => (
+              <PrincipleRow
+                key={row.kind}
+                kind={row.kind}
+                label={row.label}
+                text={principles[row.kind]}
+              />
+            ))}
+          </ul>
+          <p className="mt-3 text-[13px] text-ink-3">
+            Three, and only three. A comment on a card updates the one it is
+            about.
+          </p>
+        </div>
+      ) : null}
     </section>
   );
 }

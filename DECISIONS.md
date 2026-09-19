@@ -202,3 +202,63 @@ Rejected: leaving it to the day 50 email and the settings screen.
 The cron runs whether or not anybody opens the board. Without a line on the
 board the only other way to find out that a queue is paused is the client whose
 feed went quiet, and at 12 accounts that is the 1000 USD subscription.
+
+---
+
+## Decided making the board and settings usable
+
+**The account, not the member, is the authorization boundary for a card.**
+Rejected: keep resolving everything from `profile.linkedin_member_id`.
+Agency mode is one login with one board per seat, so a card is reachable
+through any profile on the signed in member's account. Access is resolved from
+`account.owner_member_id`, never from the profile's own member id: an agency's
+client must not be able to sign in with their own LinkedIn and read the rest
+of them. A member whose profile an agency already connected keeps that
+seat, their own empty account stays empty, and settings says so rather than
+stealing the profile back and taking the agency's board with it.
+
+**Which profile the board shows is a cookie, not a column.**
+Rejected: an `active_profile_id` on `account`.
+It is a view of the account rather than a fact about it, so two browsers signed
+in as the same agency can sit on two different clients at once. The cookie is
+validated against the account's seats on every read, so a stale one reads as no
+choice rather than as an error.
+
+**Connecting a second profile is its own OAuth round trip, not a second sign in.**
+Rejected: Auth.js `signIn` with a link marker.
+Signing in again swaps the session to the new member and hands them the
+account, which is the opposite of what an agency wants. The link flow keeps the
+owner's session and lands on the `/api/linkedin/callback` URI the Day 1 flow
+already registered, distinguished by a `link.` state prefix, so there is one
+redirect URI to keep registered rather than two.
+
+It is also how a seat is renewed. Tokens last 60 days with no refresh token,
+and a seat that is not the owner's own has no sign in of its own to renew
+through, so the same link is the re-authorization path for every seat.
+
+**Company pages stay out, and the settings screen says so.**
+Rejected: silence about it.
+`w_organization_social` is gated behind a 3 to 6 month approval. Somebody who
+buys agency mode to run four brands will look for the company page first, so
+the profile list states that it is personal profiles only rather than letting
+them find out by connecting the wrong thing.
+
+**A card opens a dialog. It does not expand in the column.**
+Rejected: the in-place Read it toggle.
+A 320px column is a summary, and expanding one card pushes the rest of the
+column down to read text that is still 288px wide. The dialog carries the full
+text at 17px with the line breaks LinkedIn will render, the picture at a size
+somebody can judge, and the same three actions, so a post can be read and
+approved without going anywhere. The picture inside it still opens full size,
+which is a second dialog stacked on the first, and Escape closes them in order.
+
+The click and the drag share the card body: dnd-kit's pointer sensor waits for
+8px of movement, so a press that does not move is a click. Enter on the body
+starts a keyboard drag, so the keyboard route into the post is the separate
+Read it control rather than the same key meaning two things.
+
+**The brand principles start collapsed.**
+Rejected: the three principles open on the board.
+They are what makes a correction stick and they are also the thing a user edits
+least often. Open, they took half the screen above the board. One row closed,
+three rows open, and the board is the first thing on the screen again.

@@ -120,6 +120,7 @@ No values in this file, ever.
 | `LINKEDIN_CLIENT_ID` | LinkedIn app client id |
 | `LINKEDIN_CLIENT_SECRET` | LinkedIn app client secret |
 | `LINKEDIN_API_VERSION` | Pinned `YYYYMM` sent as `LinkedIn-Version` on every call |
+| `LINKEDIN_REDIRECT_URI` | Only when the registered callback is not this deployment's own host |
 | `TOKEN_ENCRYPTION_KEY` | 32-byte base64 key for encrypting LinkedIn tokens at rest |
 | `ANTHROPIC_API_KEY` | Text generation and revision |
 | `OPENROUTER_API_KEY` | Image generation |
@@ -165,6 +166,12 @@ The publish cron runs every 15 minutes at `/api/cron/publish`. Vercel sends
 append `?k=` and `LINKEDIN_DEBUG_SECRET`, which is a separate secret so the
 cron's own never lands in a URL or a browser history. The response is the run:
 what was due, what published, what paused and why.
+
+Agency mode needs more than one seat, and until the Stripe webhook sets the
+plan the seat limit is 1 for everyone:
+```
+npx tsx scripts/set-plan.ts <account email> agency
+```
 
 ## Conventions
 

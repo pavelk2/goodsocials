@@ -23,6 +23,20 @@ export type UserInfo = {
   picture?: string;
 };
 
+/**
+ * The redirect URI must match one registered in the LinkedIn app exactly, and
+ * LinkedIn rejects anything that is not HTTPS. Derived from the request so a
+ * preview deployment authorizes against itself, overridable for the case where
+ * the only registered URI is the production domain.
+ */
+export function callbackUri(request: Request): string {
+  const override =
+    process.env.LINKEDIN_REDIRECT_URI ??
+    process.env.LINKEDIN_DEBUG_REDIRECT_URI;
+  if (override) return override;
+  return `https://${new URL(request.url).host}/api/linkedin/callback`;
+}
+
 export function authorizeUrl(opts: {
   redirectUri: string;
   state: string;
