@@ -49,7 +49,13 @@ function tile(rx: number): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" role="img" aria-label="GoodSocials"><title>GoodSocials</title><rect width="200" height="200" rx="${rx}" fill="${INK}"/>${dots(WHITE, ACCENT, INK_EMPTY)}</svg>`;
 }
 
-function png(svg: string, size: number, out: string): void {
+/**
+ * `transparent` is not a styling choice, it is what decides the PNG's colour
+ * type. Chromium paints an opaque white page by default and writes colour type
+ * 2, RGB with no alpha channel. With the background cleared it writes colour
+ * type 6, RGBA. Only the favicon needs it, and it needs it badly: see ico().
+ */
+function png(svg: string, size: number, out: string, transparent = false): void {
   const page = join(TMP, `${size}.html`);
   writeFileSync(
     page,
@@ -57,12 +63,29 @@ function png(svg: string, size: number, out: string): void {
   );
   execFileSync(
     CHROME,
-    ["--disable-gpu", "--no-sandbox", "--hide-scrollbars", `--window-size=${size},${size}`, `--screenshot=${out}`, page],
+    [
+      "--disable-gpu",
+      "--no-sandbox",
+      "--hide-scrollbars",
+      ...(transparent ? ["--default-background-color=00000000"] : []),
+      `--window-size=${size},${size}`,
+      `--screenshot=${out}`,
+      page,
+    ],
     { stdio: "ignore" },
   );
 }
 
-/** A single 32px PNG wrapped in an ICO container, which is all a favicon needs. */
+/**
+ * A single 32px PNG wrapped in an ICO container, which is all a favicon needs,
+ * with one condition that is not optional: the PNG has to be RGBA.
+ *
+ * Next decodes app/favicon.ico at build time to generate the metadata, and its
+ * ICO decoder accepts RGBA only. An opaque RGB PNG in here fails the build with
+ * "Format error decoding Ico: The PNG is not in RGBA format!", which names
+ * neither this script nor the file, so it is worth the comment. That is why the
+ * screenshot below is taken transparent.
+ */
 function ico(pngPath: string, out: string): void {
   const image = readFileSync(pngPath);
   const header = Buffer.alloc(22);
@@ -92,7 +115,7 @@ png(tile(0), 400, join(ROOT, "public", "avatar-400.png"));
 // iOS applies its own mask and its own corner radius.
 png(tile(0), 180, join(ROOT, "app", "apple-icon.png"));
 
-png(tile(6), 32, join(TMP, "favicon-32.png"));
+png(tile(6), 32, join(TMP, "favicon-32.png"), true);
 ico(join(TMP, "favicon-32.png"), join(ROOT, "app", "favicon.ico"));
 
 rmSync(TMP, { recursive: true, force: true });
