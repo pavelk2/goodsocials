@@ -38,7 +38,7 @@ type Loaded = {
  * One query that is also the authorization check. A card is reachable only
  * through the board of a profile on the actor's own account, so there is no
  * separate "is this mine" branch to forget. The account rather than the member
- * is the boundary because an agency posts as twelve people from one login.
+ * is the boundary because an agency posts as many people from one login.
  */
 async function load(actor: Actor, cardId: string): Promise<Loaded | null> {
   const db = getDb();

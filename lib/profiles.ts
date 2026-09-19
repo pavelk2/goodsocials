@@ -10,11 +10,11 @@ import {
 /**
  * Which LinkedIn profile the app is looking at right now.
  *
- * Agency mode is one login with up to twelve boards, so the signed in member
+ * Agency mode is one login with one board per seat, so the signed in member
  * is the account owner and every profile under that account is a seat they
  * post as. Resolution is by account.owner_member_id, never by
  * profile.linkedin_member_id: a client whose profile an agency manages must
- * not be able to sign in and read the other eleven boards.
+ * not be able to sign in and read the rest of them.
  *
  * A seat other than the owner's own has no login of its own, which is the
  * point. Its 60 day token is refreshed through the link flow in

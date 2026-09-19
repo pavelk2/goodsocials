@@ -39,8 +39,8 @@ export default async function BoardPage() {
       <header className="mb-8 flex items-baseline justify-between gap-6">
         <h1 className="text-[28px] font-semibold tracking-[-0.03em]">
           Board
-          {/* An agency runs up to twelve of these. Whose board this is has to
-              be on screen before anyone approves a week of somebody's posts. */}
+          {/* An agency runs one of these per client. Whose board this is has
+              to be on screen before anyone approves a week of somebody's posts. */}
           {access.seats.length > 1 ? (
             <span className="ml-3 align-baseline text-[15px] font-normal text-ink-2">
               {seatName(access.active)}

@@ -166,7 +166,7 @@ export type AttachResult =
  * A second, third or twelfth LinkedIn profile under an account that already
  * exists. Sign in creates an account; this adds a seat to one, with the owner
  * signed in the whole time, so the agency keeps one login and the client never
- * gets a way into the other eleven boards.
+ * gets a way into the rest of them.
  *
  * It is also how a seat is renewed. LinkedIn tokens last 60 days with no
  * refresh token, and a seat that is not the owner's own has no sign in of its

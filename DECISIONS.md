@@ -131,6 +131,22 @@ they pay for. A provider that is down or unconfigured is our fault, so the card
 stays in Draft and says so. Collapsing the two shipped a post scheduled with no
 image and no reason given.
 
+**Each price starts its own flow, and prices are written with a dollar sign.**
+Rejected: three cards under one button reading Start for 100 USD a month.
+An agency reading the 1000 card had to click a button naming the solo price,
+so the first thing the flow did was contradict the card. Every card now links
+to `/signin?plan=<slug>`, the sign in page states the plan it was sent, and the
+choice rides to checkout in a cookie. `$100` replaces `100 USD` everywhere a
+customer reads a price, because that is how a buyer writes it.
+
+**The hero states the job and does the price arithmetic.**
+Rejected: leading with the category, AI social media manager for LinkedIn.
+The category sentence tells a visitor what the software is and leaves them to
+work out what it is worth. The job sentence, a post every weekday and you never
+write one, plus three rows reading 20 posts a month, one minute a day, and $5 a
+post against a ghostwriter's $1,500 to $3,000, answers both before the scroll.
+The offer copy in CLAUDE.md is still the source. This is derived from it.
+
 ---
 
 ## Decided on Day 4, building the publish loop
@@ -193,11 +209,11 @@ feed went quiet, and at 12 accounts that is the 1000 USD subscription.
 
 **The account, not the member, is the authorization boundary for a card.**
 Rejected: keep resolving everything from `profile.linkedin_member_id`.
-Agency mode is one login with up to twelve boards, so a card is reachable
+Agency mode is one login with one board per seat, so a card is reachable
 through any profile on the signed in member's account. Access is resolved from
 `account.owner_member_id`, never from the profile's own member id: an agency's
-client must not be able to sign in with their own LinkedIn and read the other
-eleven boards. A member whose profile an agency already connected keeps that
+client must not be able to sign in with their own LinkedIn and read the rest
+of them. A member whose profile an agency already connected keeps that
 seat, their own empty account stays empty, and settings says so rather than
 stealing the profile back and taking the agency's board with it.
 
@@ -218,7 +234,7 @@ redirect URI to keep registered rather than two.
 
 It is also how a seat is renewed. Tokens last 60 days with no refresh token,
 and a seat that is not the owner's own has no sign in of its own to renew
-through, so the same link is the re-authorization path for all twelve.
+through, so the same link is the re-authorization path for every seat.
 
 **Company pages stay out, and the settings screen says so.**
 Rejected: silence about it.

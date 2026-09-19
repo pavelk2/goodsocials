@@ -8,6 +8,8 @@ import { loadAccess, seatName } from "@/lib/profiles";
 import { readQuota } from "@/lib/quota";
 import { spacingDays } from "@/lib/schedule";
 import { connectionLine, needsReconnect } from "@/lib/token-expiry";
+import { AGENCY_SEATS } from "@/lib/legal";
+import { PRICE_AGENCY, PRICE_SOLO, planFromSlug } from "@/lib/plans";
 import { saveCadence, saveGoal } from "./actions";
 import { ChoiceRow } from "@/components/settings/choice-row";
 import { ProfilePicker, type SeatRow } from "@/components/settings/profile-picker";
@@ -84,10 +86,13 @@ export default async function SettingsPage({
     active: seat.profile.id === profile.id,
   }));
 
-  const planLine =
-    access.account.plan === "agency"
-      ? `All ${access.account.seatLimit} seats are in use.`
-      : "Solo covers one profile at 100 USD a month. Agency is 1000 USD a month for up to 12.";
+  // The plan column is solo or agency; the names and prices are lib/plans.ts,
+  // so a price written once on the landing page is the price written here.
+  const agency = access.account.plan === "agency";
+  const plan = planFromSlug(agency ? "agency" : "pro");
+  const planLine = agency
+    ? `All ${access.account.seatLimit} seats are in use.`
+    : `${plan.name} covers one profile at ${PRICE_SOLO}. Agency is ${PRICE_AGENCY} for up to ${AGENCY_SEATS}.`;
 
   return (
     <main className="px-6 py-10">
@@ -138,9 +143,9 @@ export default async function SettingsPage({
           <Row
             label="Plan"
             value={
-              access.account.plan === "agency"
-                ? `Agency, ${access.account.seatLimit} profiles, 1000 USD a month`
-                : "Solo, one profile, 100 USD a month"
+              agency
+                ? `${plan.name}, ${access.account.seatLimit} profiles, ${plan.priceLine}`
+                : `${plan.name}, one profile, ${plan.priceLine}`
             }
           />
         </ul>

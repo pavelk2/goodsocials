@@ -8,7 +8,7 @@ import { LINK_STATE_COOKIE, LINK_STATE_PREFIX } from "@/lib/linkedin/link";
  * Adds a LinkedIn profile to the account that is already signed in, or renews
  * one whose 60 days are running out. Not Auth.js: signing in again would swap
  * the session to the new member and hand them the account, and an agency needs
- * one login that owns twelve seats.
+ * one login that owns every seat on its plan.
  *
  * It lands on the same /api/linkedin/callback URI the Day 1 flow registered, so
  * there is one redirect URI to keep registered rather than two. The state

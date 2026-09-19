@@ -51,7 +51,7 @@ export type BoardView = {
 const PLACEHOLDER_PREFIX = "Not set yet.";
 
 /**
- * By profile id, not by member id. An agency account has up to twelve profiles
+ * By profile id, not by member id. An agency account has one profile per seat
  * under one login, so which board to draw is a choice the user made in
  * settings, resolved once in lib/profiles.ts and passed in here.
  */

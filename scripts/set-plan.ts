@@ -14,8 +14,9 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "../db";
 import { account as accountTable } from "../db/schema";
+import { AGENCY_SEATS } from "../lib/legal";
 
-const SEATS = { solo: 1, agency: 12 } as const;
+const SEATS = { solo: 1, agency: AGENCY_SEATS } as const;
 
 async function main() {
   const [email, plan] = process.argv.slice(2);

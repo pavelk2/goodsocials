@@ -15,9 +15,9 @@ export type SeatRow = {
 };
 
 /**
- * Which LinkedIn profile the posts go to. An agency runs up to twelve of these
- * from one login, so this is the screen where a whole client's month is picked
- * up or put down, and it is rows: name left, state right.
+ * Which LinkedIn profile the posts go to. An agency runs every seat on its
+ * plan from one login, so this is the screen where a whole client's month is
+ * picked up or put down, and it is rows: name left, state right.
  *
  * The same list is the token monitor. A seat with a dead connection publishes
  * nothing and nobody finds out for weeks, so every row says how long it has
