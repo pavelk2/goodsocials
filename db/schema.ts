@@ -138,6 +138,12 @@ export const card = pgTable(
     imageUrl: text("image_url"),
     /** Set after the three step LinkedIn image upload, before publishing. */
     imageUrn: text("image_urn"),
+    /**
+     * What the picture is of, written when it is generated and published as
+     * the post's alt text. The post idea would be a lie here: it says what the
+     * writing is about, not what a screen reader would otherwise miss.
+     */
+    imageAlt: text("image_alt"),
     scheduledAt: timestamp("scheduled_at", { withTimezone: true }),
     postUrn: text("post_urn"),
     /** Ordering within a column only. Never the column itself. */
@@ -228,3 +234,24 @@ export const imageQuota = pgTable(
 );
 
 export const IMAGE_CAP_PER_MONTH = 200;
+
+/**
+ * LinkedIn allows 150 requests per member per day, reset daily UTC. The count
+ * has to survive between invocations, so it is a row rather than a number in
+ * memory: two cron runs an hour apart share no process.
+ *
+ * Claimed before the call, like the image quota, because a limit checked after
+ * the fact is a report rather than a limit.
+ */
+export const linkedinCallBudget = pgTable(
+  "linkedin_call_budget",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** OIDC sub. The same key the author URN is built from. */
+    memberId: text("member_id").notNull(),
+    /** UTC day as YYYY-MM-DD, because that is when LinkedIn resets. */
+    day: text("day").notNull(),
+    count: integer("count").notNull().default(0),
+  },
+  (t) => [uniqueIndex("linkedin_call_member_day_unique").on(t.memberId, t.day)],
+);

@@ -1,5 +1,5 @@
 import { exchangeCode, fetchUserInfo } from "@/lib/linkedin/oauth";
-import { publishTextPost, personUrn, postPermalink } from "@/lib/linkedin/posts";
+import { publishPost, personUrn, postPermalink } from "@/lib/linkedin/posts";
 import { LINKEDIN_VERSION } from "@/lib/linkedin/config";
 import { debugRedirectUri, htmlPage } from "@/lib/linkedin/debug-auth";
 
@@ -94,8 +94,9 @@ export async function GET(request: Request) {
   }
 
   const author = personUrn(who.data.sub);
-  const published = await publishTextPost({
+  const published = await publishPost({
     accessToken: token.access_token,
+    memberId: who.data.sub,
     authorUrn: author,
     text: TEST_POST_TEXT,
   });

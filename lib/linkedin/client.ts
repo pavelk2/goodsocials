@@ -1,9 +1,11 @@
 import { LINKEDIN_API_BASE, LINKEDIN_VERSION } from "./config";
+import { claimCalls } from "./budget";
 
 /**
  * The only place in the repo that calls LinkedIn's API. Every call carries
  * LinkedIn-Version and X-Restli-Protocol-Version, because every versioned
- * endpoint requires both.
+ * endpoint requires both, and every call is counted against the member's 150
+ * a day before it is made.
  */
 
 export type LinkedInOk<T> = {
@@ -32,6 +34,13 @@ type CallOptions = {
   body?: unknown;
   /** Some endpoints (userinfo) are unversioned and reject the version header. */
   versioned?: boolean;
+  /**
+   * The member whose daily budget this call spends. Required rather than
+   * optional, and nullable rather than absent, so a call site has to say which
+   * one it is. null means "we do not know the member yet", which is true for
+   * exactly one call: the userinfo request that tells us who they are.
+   */
+  memberId: string | null;
 };
 
 export async function linkedinCall<T = unknown>({
@@ -40,7 +49,23 @@ export async function linkedinCall<T = unknown>({
   path,
   body,
   versioned = true,
+  memberId,
 }: CallOptions): Promise<LinkedInResult<T>> {
+  if (memberId) {
+    const { ok, budget } = await claimCalls(memberId);
+    if (!ok) {
+      // Not LinkedIn's 429. This is ours, raised before the call, so the
+      // member never reaches the state where their own next action is refused.
+      return {
+        ok: false,
+        status: 429,
+        code: "DAILY_BUDGET_SPENT",
+        message: `This profile has used all ${budget.limit} LinkedIn calls for ${budget.day}. The count resets at midnight UTC.`,
+        raw: "",
+      };
+    }
+  }
+
   const headers: Record<string, string> = {
     Authorization: `Bearer ${accessToken}`,
     "X-Restli-Protocol-Version": "2.0.0",

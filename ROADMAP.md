@@ -45,8 +45,12 @@ under each item rather than implied.
 
 ## Day 4: publish and money
 
-- [ ] **Cron publishes.** A card scheduled for a time in the next 10 minutes publishes to the real feed at that time with no human present, and the card moves to Posted carrying the LinkedIn post URN.
-- [ ] **Token expiry monitor.** A connection 50 days old sends the re-authorization email through Loops, at 55 days the board shows a banner, and at 60 days the connection is marked dead and scheduling pauses rather than failing post by post.
+Built and green on typecheck, lint and build. As on Day 3, the container has no
+database and no LinkedIn session, so the observable conditions are checked on
+the preview deploy. What is unobserved is listed under each item.
+
+- [x] **Cron publishes.** `/api/cron/publish` runs every 15 minutes, reads `scheduled_post` and nothing else, publishes, and moves the card to Posted carrying the post URN from the `x-restli-id` header. A post with a picture is the three call image upload first, and each of those three steps reports which one failed. Every call is claimed against the member's 150 a day before it is made. Unobserved: a real post reaching a real feed from the cron rather than from a hand run, and the `content.media` shape on a post with an image, which is the one request body Day 1 did not verify against the live API.
+- [ ] **Token expiry monitor.** Day 60 is done: the cron derives the connection status, marks it dead, and pauses the whole profile with the reason on every row it skipped rather than failing post by post. The board carries the line. Day 50 email through Loops is not built.
 - [ ] **Queue runway warning.** A board with fewer than 3 days of approved cards shows the runway in days and generates new ideas automatically.
 - [ ] **Stripe checkout at both prices.** Both prices complete a real checkout in test mode, the webhook sets the plan and seat limit, and an agency account can create a second profile while a solo account cannot.
 - [ ] **Landing page and pricing page.** Partly done early, pulled forward because thin content was half of what got the domain flagged. The board screenshot still replaces the type-led hero once there is a real board to photograph. Both live at https://goodsocials.co over a valid certificate, the offer copy is verbatim, both prices are on the page with no gap between them, and the board screenshot is the hero.
