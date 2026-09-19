@@ -8,6 +8,7 @@ import {
   profile as profileTable,
   scheduledPost,
 } from "@/db/schema";
+import type { Actor } from "@/lib/profiles";
 import { generateDraft } from "@/lib/agent/drafts";
 import { generateImage } from "@/lib/agent/images";
 import { reviseCardBody } from "@/lib/agent/revise";
@@ -35,10 +36,11 @@ type Loaded = {
 
 /**
  * One query that is also the authorization check. A card is reachable only
- * through the board of the profile the signed in member owns, so there is no
- * separate "is this mine" branch to forget.
+ * through the board of a profile on the actor's own account, so there is no
+ * separate "is this mine" branch to forget. The account rather than the member
+ * is the boundary because an agency posts as twelve people from one login.
  */
-async function load(memberId: string, cardId: string): Promise<Loaded | null> {
+async function load(actor: Actor, cardId: string): Promise<Loaded | null> {
   const db = getDb();
 
   const [row] = await db
@@ -51,10 +53,7 @@ async function load(memberId: string, cardId: string): Promise<Loaded | null> {
     .innerJoin(boardTable, eq(cardTable.boardId, boardTable.id))
     .innerJoin(profileTable, eq(boardTable.profileId, profileTable.id))
     .where(
-      and(
-        eq(cardTable.id, cardId),
-        eq(profileTable.linkedinMemberId, memberId),
-      ),
+      and(eq(cardTable.id, cardId), eq(profileTable.accountId, actor.accountId)),
     )
     .limit(1);
   if (!row) return null;
@@ -87,10 +86,10 @@ async function log(
  * there is nothing left to approve.
  */
 export async function approveCard(
-  memberId: string,
+  actor: Actor,
   cardId: string,
 ): Promise<CardResult> {
-  const loaded = await load(memberId, cardId);
+  const loaded = await load(actor, cardId);
   if (!loaded) return { ok: false, error: "That card is not on your board." };
 
   const { card, board, profile, principles } = loaded;
@@ -115,7 +114,7 @@ export async function approveCard(
       .update(cardTable)
       .set({ state: "draft", draftText: text, updatedAt: new Date() })
       .where(eq(cardTable.id, card.id));
-    await log(card.id, "approve", memberId);
+    await log(card.id, "approve", actor.memberId);
     return { ok: true };
   }
 
@@ -130,7 +129,7 @@ export async function approveCard(
         .update(cardTable)
         .set({ state: "image", updatedAt: new Date() })
         .where(eq(cardTable.id, card.id));
-      await log(card.id, "approve", memberId);
+      await log(card.id, "approve", actor.memberId);
       return { ok: true };
     }
 
@@ -146,7 +145,7 @@ export async function approveCard(
     // post without an image still publishes.
     if (!result.ok && result.reason === "cap") {
       const slot = await schedule(card.id, profile.id, board.targetCadence);
-      await log(card.id, "approve", memberId);
+      await log(card.id, "approve", actor.memberId);
       return { ok: true, message: `${result.error} Scheduled for ${slot} without one.` };
     }
 
@@ -159,13 +158,13 @@ export async function approveCard(
       .update(cardTable)
       .set({ state: "image", imageUrl: result.url, updatedAt: new Date() })
       .where(eq(cardTable.id, card.id));
-    await log(card.id, "approve", memberId);
+    await log(card.id, "approve", actor.memberId);
     return { ok: true, message: `${result.quota.remaining} images left this month.` };
   }
 
   if (card.state === "image") {
     const slot = await schedule(card.id, profile.id, board.targetCadence);
-    await log(card.id, "approve", memberId);
+    await log(card.id, "approve", actor.memberId);
     return { ok: true, message: `Publishing ${slot}.` };
   }
 
@@ -212,7 +211,7 @@ async function schedule(
  * revising is not rejecting, and a revised draft is still a draft.
  */
 export async function reviseCard(
-  memberId: string,
+  actor: Actor,
   cardId: string,
   comment: string,
 ): Promise<CardResult> {
@@ -224,7 +223,7 @@ export async function reviseCard(
     return { ok: false, error: "Keep a comment under 2000 characters." };
   }
 
-  const loaded = await load(memberId, cardId);
+  const loaded = await load(actor, cardId);
   if (!loaded) return { ok: false, error: "That card is not on your board." };
 
   const { card, board, profile, principles } = loaded;
@@ -252,7 +251,7 @@ export async function reviseCard(
 
   // The comment is logged before anything it changed, so the log reads in the
   // order the user experienced it even if a later write fails.
-  await log(card.id, "revise", memberId, trimmed);
+  await log(card.id, "revise", actor.memberId, trimmed);
 
   await db
     .update(cardTable)
@@ -321,11 +320,11 @@ const ORDER = ["idea", "draft", "image", "scheduled", "posted"] as const;
 type Ordered = (typeof ORDER)[number];
 
 export async function moveCard(
-  memberId: string,
+  actor: Actor,
   cardId: string,
   target: Ordered,
 ): Promise<CardResult> {
-  const loaded = await load(memberId, cardId);
+  const loaded = await load(actor, cardId);
   if (!loaded) return { ok: false, error: "That card is not on your board." };
 
   const from = ORDER.indexOf(loaded.card.state as Ordered);
@@ -345,7 +344,7 @@ export async function moveCard(
   if (to > from) {
     let last: CardResult = { ok: true };
     for (let step = from; step < to; step += 1) {
-      last = await approveCard(memberId, cardId);
+      last = await approveCard(actor, cardId);
       if (!last.ok) return last;
     }
     return last;
@@ -367,10 +366,10 @@ export async function moveCard(
 
 /** Off the board, still in the table. The log is the point. */
 export async function rejectCard(
-  memberId: string,
+  actor: Actor,
   cardId: string,
 ): Promise<CardResult> {
-  const loaded = await load(memberId, cardId);
+  const loaded = await load(actor, cardId);
   if (!loaded) return { ok: false, error: "That card is not on your board." };
   if (loaded.card.state === "posted") {
     return { ok: false, error: "That one is already published." };
@@ -382,7 +381,7 @@ export async function rejectCard(
     .update(cardTable)
     .set({ state: "rejected", scheduledAt: null, updatedAt: new Date() })
     .where(eq(cardTable.id, loaded.card.id));
-  await log(loaded.card.id, "reject", memberId);
+  await log(loaded.card.id, "reject", actor.memberId);
 
   return { ok: true };
 }
@@ -394,14 +393,14 @@ export async function rejectCard(
  */
 const AUTO_DRAFT_LIMIT = 2;
 
-export async function topUpDrafts(memberId: string): Promise<number> {
+export async function topUpDrafts(profileId: string): Promise<number> {
   const db = getDb();
 
   const [row] = await db
     .select({ board: boardTable, profile: profileTable })
     .from(boardTable)
     .innerJoin(profileTable, eq(boardTable.profileId, profileTable.id))
-    .where(eq(profileTable.linkedinMemberId, memberId))
+    .where(eq(profileTable.id, profileId))
     .limit(1);
   if (!row) return 0;
 

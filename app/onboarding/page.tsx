@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { loadBoard } from "@/lib/board";
+import { loadAccess } from "@/lib/profiles";
 import { OnboardingForm } from "./onboarding-form";
 
 export const metadata = { title: "Set up your board" };
@@ -9,7 +10,11 @@ export default async function OnboardingPage() {
   const session = await auth();
   if (!session?.memberId) redirect("/signin");
 
-  const view = await loadBoard(session.memberId);
+  const access = await loadAccess(session.memberId);
+  if (!access) redirect("/signin");
+  if (!access.active) redirect("/settings");
+
+  const view = await loadBoard(access.active.profile.id);
   if (!view) redirect("/signin");
   if (!view.needsOnboarding) redirect("/board");
 

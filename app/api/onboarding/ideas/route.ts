@@ -2,11 +2,11 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { getDb } from "@/db";
 import {
-  profile as profileTable,
   board as boardTable,
   card as cardTable,
   brandPrinciple,
 } from "@/db/schema";
+import { resolveActor } from "@/lib/profiles";
 import { fetchSiteText } from "@/lib/agent/site";
 import { generateIdeas, type Goal } from "@/lib/agent/ideas";
 
@@ -20,22 +20,20 @@ export async function POST(request: Request) {
     return Response.json({ error: "Sign in first." }, { status: 401 });
   }
 
-  const body = (await request.json()) as { url?: string };
-  const db = getDb();
-
-  const [prof] = await db
-    .select()
-    .from(profileTable)
-    .where(eq(profileTable.linkedinMemberId, session.memberId))
-    .limit(1);
-  if (!prof) {
+  // The profile picked in settings, not the member's own. An agency sets up a
+  // client's board while signed in as itself.
+  const actor = await resolveActor(session.memberId);
+  if (!actor) {
     return Response.json({ error: "No profile for this account." }, { status: 404 });
   }
+
+  const body = (await request.json()) as { url?: string };
+  const db = getDb();
 
   const [brd] = await db
     .select()
     .from(boardTable)
-    .where(eq(boardTable.profileId, prof.id))
+    .where(eq(boardTable.profileId, actor.profileId))
     .limit(1);
   if (!brd) {
     return Response.json({ error: "No board for this profile." }, { status: 404 });
@@ -44,7 +42,7 @@ export async function POST(request: Request) {
   const rows = await db
     .select()
     .from(brandPrinciple)
-    .where(eq(brandPrinciple.profileId, prof.id));
+    .where(eq(brandPrinciple.profileId, actor.profileId));
   const principles = { voice: "", visual: "", format: "" };
   for (const row of rows) principles[row.kind] = row.text;
 
@@ -58,7 +56,7 @@ export async function POST(request: Request) {
       goal: brd.goal as Goal,
       siteUrl: site.url,
       siteText: site.text,
-      profileId: prof.id,
+      profileId: actor.profileId,
     });
   } catch (cause) {
     console.error("[onboarding] ideas failed:", cause);

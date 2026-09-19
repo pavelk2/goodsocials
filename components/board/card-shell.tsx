@@ -16,24 +16,22 @@ const IMAGE_ALT = "The image generated for this post";
 export function CardShell({
   body,
   imageUrl,
-  onImageClick,
+  onOpen,
   scheduledAt,
   innerRef,
   style,
   handleProps,
   floating,
-  expanded,
-  onToggleExpanded,
   children,
 }: {
   body: string;
   imageUrl?: string | null;
   /**
-   * Opens the image full size. Given on the board, withheld on the drag
-   * overlay and on the landing hero, where a card in the air or in a still is
-   * not something anybody can click.
+   * Opens the card. Given on the board, withheld on the drag overlay and on the
+   * landing hero, where a card in the air or in a still is not something
+   * anybody can click.
    */
-  onImageClick?: () => void;
+  onOpen?: () => void;
   scheduledAt?: Date | null;
   innerRef?: Ref<HTMLElement>;
   style?: CSSProperties;
@@ -41,17 +39,6 @@ export function CardShell({
   handleProps?: HTMLAttributes<HTMLDivElement>;
   /** True only while the card is under the cursor, mid drag. */
   floating?: boolean;
-  /**
-   * Full post, no clamp. The line breaks are the ones LinkedIn will render, so
-   * an expanded card is the closest thing to a preview of the real post.
-   */
-  expanded?: boolean;
-  /**
-   * Given only when there is more body than three lines. It lives here rather
-   * than in the footer so the control that opens the text stays next to the
-   * text, with the image below both of them.
-   */
-  onToggleExpanded?: () => void;
   /** The footer: three actions on the board, an open comment on the hero. */
   children?: ReactNode;
 }) {
@@ -71,40 +58,45 @@ export function CardShell({
       style={floating ? { ...style, boxShadow: "var(--shadow)" } : style}
       className="min-h-[88px] rounded-[14px] border border-hairline bg-surface px-4 py-[14px]"
     >
-      <div {...handleProps} className={handleProps ? "cursor-grab" : undefined}>
-        <p
-          className={`whitespace-pre-line text-[15px] leading-[1.4] text-ink ${
-            expanded ? "" : "line-clamp-3"
-          }`}
-        >
+      {/* The drag handle and the click target are the same surface. dnd-kit's
+          pointer sensor waits for 8px of movement, so a press that does not
+          move never becomes a drag and the click lands. */}
+      <div
+        {...handleProps}
+        onClick={onOpen}
+        className={handleProps ? "cursor-grab" : undefined}
+      >
+        <p className="line-clamp-3 whitespace-pre-line text-[15px] leading-[1.4] text-ink">
           {body}
         </p>
         {when ? <p className="num mt-2 text-[13px] text-ink-2">{when}</p> : null}
       </div>
 
-      {/* Outside the drag handle, so reading a post never picks the card up. */}
-      {onToggleExpanded ? (
+      {/* The keyboard route into the card, and the visible sign that there is
+          one. Enter on the body above starts a keyboard drag, so opening the
+          post needs a control of its own. Outside the drag handle, so reading a
+          post never picks the card up. */}
+      {onOpen ? (
         <button
           type="button"
-          onClick={onToggleExpanded}
+          onClick={onOpen}
           className="mt-2 text-[13px] text-ink-2 underline"
         >
-          {expanded ? "Show less" : "Read it"}
+          Read it
         </button>
       ) : null}
 
-      {/* Outside the drag handle. Opening the image is a click, and a click on
-          the handle is the start of a drag, so the two cannot share a surface.
-          Below the text because that is the order LinkedIn renders a post in,
+      {/* Below the text because that is the order LinkedIn renders a post in,
           which makes the card a preview of the thing rather than a note about
-          it. */}
+          it. Outside the drag handle: a click on it opens the card, and a click
+          on the handle is the start of a drag. */}
       {imageUrl ? (
-        onImageClick ? (
+        onOpen ? (
           <button
             type="button"
-            onClick={onImageClick}
-            aria-label={`${IMAGE_ALT}. Opens it full size.`}
-            className="mt-3 block w-full cursor-zoom-in"
+            onClick={onOpen}
+            aria-label={`${IMAGE_ALT}. Opens the post.`}
+            className="mt-3 block w-full cursor-pointer"
           >
             <CardImage src={imageUrl} alt="" />
           </button>

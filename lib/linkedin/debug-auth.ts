@@ -12,18 +12,8 @@ export function assertDebugSecret(url: URL): string | null {
   return null;
 }
 
-/**
- * The redirect URI must match the one registered in the LinkedIn app exactly,
- * and LinkedIn rejects anything that is not HTTPS. Derived from the request so
- * preview deployments work without a config change, overridable for the case
- * where the registered URI is the production domain.
- */
-export function debugRedirectUri(request: Request): string {
-  const override = process.env.LINKEDIN_DEBUG_REDIRECT_URI;
-  if (override) return override;
-  const url = new URL(request.url);
-  return `https://${url.host}/api/linkedin/callback`;
-}
+/** The same URI the product flow uses, so one registration covers both. */
+export { callbackUri as debugRedirectUri } from "./oauth";
 
 export function htmlPage(title: string, bodyHtml: string): Response {
   return new Response(

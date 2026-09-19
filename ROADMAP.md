@@ -48,7 +48,7 @@ under each item rather than implied.
 - [ ] **Cron publishes.** A card scheduled for a time in the next 10 minutes publishes to the real feed at that time with no human present, and the card moves to Posted carrying the LinkedIn post URN.
 - [ ] **Token expiry monitor.** A connection 50 days old sends the re-authorization email through Loops, at 55 days the board shows a banner, and at 60 days the connection is marked dead and scheduling pauses rather than failing post by post.
 - [ ] **Queue runway warning.** A board with fewer than 3 days of approved cards shows the runway in days and generates new ideas automatically.
-- [ ] **Stripe checkout at both prices.** Both prices complete a real checkout in test mode, the webhook sets the plan and seat limit, and an agency account can create a second profile while a solo account cannot.
+- [ ] **Stripe checkout at both prices.** Both prices complete a real checkout in test mode, the webhook sets the plan and seat limit, and an agency account can create a second profile while a solo account cannot. The seat side is built: settings connects and switches between profiles and refuses past the seat limit. What is missing is the webhook that sets the limit, so until then `npx tsx scripts/set-plan.ts <email> agency` is the hand crank.
 - [ ] **Landing page and pricing page.** Partly done early, pulled forward because thin content was half of what got the domain flagged. The board screenshot still replaces the type-led hero once there is a real board to photograph. Both live at https://goodsocials.co over a valid certificate, the offer copy is verbatim, both prices are on the page with no gap between them, and the board screenshot is the hero.
 
 ## Pre-launch

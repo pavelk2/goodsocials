@@ -119,6 +119,7 @@ No values in this file, ever.
 | `LINKEDIN_CLIENT_ID` | LinkedIn app client id |
 | `LINKEDIN_CLIENT_SECRET` | LinkedIn app client secret |
 | `LINKEDIN_API_VERSION` | Pinned `YYYYMM` sent as `LinkedIn-Version` on every call |
+| `LINKEDIN_REDIRECT_URI` | Only when the registered callback is not this deployment's own host |
 | `TOKEN_ENCRYPTION_KEY` | 32-byte base64 key for encrypting LinkedIn tokens at rest |
 | `ANTHROPIC_API_KEY` | Text generation and revision |
 | `OPENROUTER_API_KEY` | Image generation |
@@ -157,6 +158,12 @@ are derived from the incoming request, so a preview authorizes against itself.
 To publish a real LinkedIn post from the command line during development:
 ```
 npx tsx scripts/linkedin-post.ts "text of the post"
+```
+
+Agency mode needs more than one seat, and until the Stripe webhook sets the
+plan the seat limit is 1 for everyone:
+```
+npx tsx scripts/set-plan.ts <account email> agency
 ```
 
 ## Conventions
