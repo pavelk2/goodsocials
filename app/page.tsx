@@ -62,12 +62,14 @@ export default function Home() {
     <>
       <main>
         <section className={section}>
-          <h1 className="max-w-[20ch] text-[clamp(40px,6vw,76px)] font-semibold leading-[0.98] tracking-[-0.04em]">
+          {/* Three clauses, two levels: the claim, the objection it answers,
+              then the promise. The last clause comes back to full ink rather
+              than fading with the middle one, because approval is the thing
+              being bought and the sentence should not trail off on it. */}
+          <h1 className="max-w-[22ch] text-[clamp(40px,6vw,76px)] font-semibold leading-[0.98] tracking-[-0.04em]">
             <span>An AI social media manager for LinkedIn.</span>{" "}
-            <span className="text-ink-3">
-              In your voice, no cringe, no slop, and nothing posts until you
-              approve it.
-            </span>
+            <span className="text-ink-3">No cringe, no slop.</span>{" "}
+            <span>You approve what is scheduled.</span>
           </h1>
 
           <ul className="mt-14 max-w-[720px]">
