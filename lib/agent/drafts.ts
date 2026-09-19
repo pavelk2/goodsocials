@@ -3,7 +3,7 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { anthropic, MODEL, recordSpend } from "./client";
 import { appendUtm } from "@/lib/utm";
 import type { Principles } from "./principles";
-import type { Goal } from "./ideas";
+import type { Goal, PostKind } from "./ideas";
 
 /**
  * One idea becomes one finished post. The draft is publishable as written: no
@@ -21,6 +21,23 @@ const DraftSchema = z.object({
 
 /** LinkedIn truncates the feed preview near here and hard limits at 3000. */
 const MAX_COMMENTARY = 3000;
+
+/**
+ * How each kind is built. The planner decided the shape; this decides the
+ * sentences. A framework and a receipt open differently, end differently, and
+ * fail differently, and a single draft prompt that tries to serve both writes
+ * the same post every time.
+ */
+const KIND_BRIEF: Record<PostKind, string> = {
+  framework:
+    "Build it as a reference. Name the method in the first sentence, then the steps or parts, each one on its own line with a short name and a sentence saying what it is. Three to six of them. No narrative opener, no story about how you discovered it, no numbered lessons. It ends on the last step. The reader should be able to skim it, save it, and use it a month from now without the context.",
+  data:
+    "Lead with the finding and name where it came from in the same breath: the organisation, and the report or the year. Then exactly three things it means for the reader, each one a short paragraph of its own, each one a claim the finding supports rather than a restatement of it. If the source was not given to you, do not name one. End on the third takeaway.",
+  receipt:
+    "The number is the first sentence, with the period it covers. Then what you changed or what you learned from it, in plain language, with no lesson drawn for the reader that the number does not carry. This post is believed because it is specific and because it is theirs, so no rounding for effect and no second number that was not given to you. End where the evidence ends.",
+  finding:
+    "Open with the substance. The first sentence is the finding, not a tease of it.",
+};
 
 const GOAL_BRIEF: Record<Goal, string> = {
   interesting:
@@ -46,6 +63,8 @@ Never invent a statistic, a study, a percentage, a survey, a report title, a cus
 
 If the idea calls for a number that only the author has, write the sentence around the number and mark the gap in square brackets, for example [your number here], and keep it to one bracket in the whole post. Everything else must be true as written or general enough to be uncontroversial.
 
+Never refer to an attached chart, image, graph, table, or screenshot. The picture beside a post is abstract and it is not always there, so a post that says "see the chart below" is a post that is wrong in the feed.
+
 Obey the format principle on length, line breaks, and how the post ends. Obey the voice principle on register and sentence shape. If the two disagree, voice wins.
 
 Never use em dashes. Never use "seamless", "leverage", "unlock", "supercharge", "effortless", or "game-changer". Never use "actually", "really", "simply", "just", or "basically". Never write "this is not X, this is Y".
@@ -54,6 +73,11 @@ Return the post text and nothing else. No preamble, no explanation, no quotation
 
 export async function generateDraft(opts: {
   idea: string;
+  kind: PostKind;
+  /** The theme this post sits under, for what it is about, not how it reads. */
+  theme?: { title: string; description: string } | null;
+  /** The number the idea asked the author for, if it asked for one. */
+  needs?: string | null;
   principles: Principles;
   goal: Goal;
   siteUrl: string | null;
@@ -71,6 +95,18 @@ export async function generateDraft(opts: {
         content: [
           "Idea:",
           opts.idea,
+          "",
+          opts.theme
+            ? `Theme. ${opts.theme.title}. ${opts.theme.description}`
+            : "",
+          `Shape. ${KIND_BRIEF[opts.kind]}`,
+          // The gap is handed over as a gap. Told what is missing, the model
+          // writes the sentence around it and brackets the hole; not told, it
+          // writes a number that looks right, which is the one failure this
+          // kind of post cannot survive.
+          opts.needs
+            ? `The author has not given you this yet: ${opts.needs}. Write the sentence it belongs in and mark the gap with one bracket. Do not estimate it.`
+            : "",
           "",
           "Brand principles:",
           `Voice. ${opts.principles.voice}`,

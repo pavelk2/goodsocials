@@ -31,7 +31,7 @@ type Step = "idle" | "reading" | "writing" | "done";
  * the reader wants to know it is still working.
  */
 const STEP_LINES: { key: Exclude<Step, "idle">; line: string }[] = [
-  { key: "reading", line: "Reading your website" },
+  { key: "reading", line: "Reading your website and picking your themes" },
   { key: "writing", line: "Writing seven posts in your voice" },
   { key: "done", line: "Putting them on your board" },
 ];

@@ -55,6 +55,25 @@ the preview deploy. What is unobserved is listed under each item.
 - [ ] **Stripe checkout at both prices.** Both prices complete a real checkout in test mode, the webhook sets the plan and seat limit, and an agency account can create a second profile while a solo account cannot. The seat side is built: settings connects and switches between profiles and refuses past the seat limit. What is missing is the webhook that sets the limit, so until then `npx tsx scripts/set-plan.ts <email> agency` is the hand crank.
 - [ ] **Landing page and pricing page.** Partly done early, pulled forward because thin content was half of what got the domain flagged. The board screenshot still replaces the type-led hero once there is a real board to photograph. Both live at https://goodsocials.co over a valid certificate, the offer copy is verbatim, both prices are on the page with no gap between them, and the board screenshot is the hero.
 
+## Day 5: themes and post kinds
+
+Built and green on typecheck, lint and build. Nothing here was observed against
+a live board or the live Anthropic API, because the container has neither, so
+every done condition below is checked on the preview deploy.
+
+- [x] **Four themes, written from the site.** Onboarding step one writes three principles and four themes in one round trip, in parallel, so the 90 second budget does not pay for a second call in sequence. They show in the brand principles sheet under a rule, and each one is editable by hand.
+- [x] **Every idea carries a theme and a kind.** The seven ideas are dealt across the four themes, no theme takes more than two, and the card shows what it is and what it is about on one meta line. A card whose theme was deleted keeps its idea and loses the label.
+- [x] **The mix is biased and the bias is one array.** `KIND_MIX` is framework, receipt, data, framework, receipt, data, finding. The slot decides the kind, not the model, so a run cannot quietly return seven findings.
+- [x] **Each kind is built differently in the draft.** A framework is named steps in an order that matters. A data breakdown is the finding, the named source, and exactly three takeaways. A receipt opens on the number. The draft prompt is also forbidden from referring to a chart or an image, which it could not previously be trusted not to do.
+- [x] **A receipt names the number it needs.** The card shows the line before anybody approves it, the draft writes the sentence around it and brackets the gap, and a revise comment supplying the number clears it. Unobserved: whether a real user answers the question rather than rejecting the card.
+
+What is deliberately not in this pass, in the order it is worth building.
+
+- [ ] **Research behind framework and data posts.** Both kinds are written from the model's own knowledge today, which is why the data brief refuses to name a source it is not certain of. The Anthropic web search server tool is the route. It goes on the draft call, never on the onboarding call, because onboarding has a 90 second budget and this would spend it. Open question to verify against the live API before building: whether structured output and a server tool can be requested in the same call.
+- [ ] **A real chart on a data post.** A deterministic SVG rendered from numbers the model returns as data, rasterised, and uploaded as the post image. Never the image model: FLUX cannot render legible numbers, and a chart with wrong axis labels under a real name is worse than no chart. This is what makes the data kind worth its two slots.
+- [ ] **Frameworks as LinkedIn documents.** The carousel format, which is what a saveable reference post should be. `POST /rest/documents?action=initializeUpload`, `PUT` the binary, then the document URN in the post body. The same three call shape as images and unverified against the live API, plus a PDF renderer we do not have. Check it the way the image path was checked: one real document on one real feed before anything is built around it.
+- [ ] **Receipts without typing.** Stripe, PostHog or a spreadsheet connected once, so the number the card asks for arrives on its own. The `needs` line is the manual version of this, and it is the version that ships first because it works without an integration and it proves whether anyone answers.
+
 ## Pre-launch
 
 - [ ] **PostHog events named and firing.** The funnel from sign-in to first publish is visible as one funnel, and cost per account (tokens plus images) is a queryable property.

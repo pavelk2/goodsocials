@@ -22,12 +22,16 @@ export function Card({
   id,
   state,
   body,
+  label,
+  needs,
   imageUrl,
   scheduledAt,
 }: {
   id: string;
   state: Column;
   body: string;
+  label?: string | null;
+  needs?: string | null;
   imageUrl?: string | null;
   scheduledAt?: Date | null;
 }) {
@@ -44,6 +48,8 @@ export function Card({
   return (
     <CardShell
       body={body}
+      label={label}
+      needs={needs}
       imageUrl={imageUrl}
       onOpen={() => setReading(true)}
       scheduledAt={scheduledAt}
@@ -60,6 +66,8 @@ export function Card({
           id={id}
           state={state}
           body={body}
+          label={label}
+          needs={needs}
           imageUrl={imageUrl}
           scheduledAt={scheduledAt}
           onClose={() => setReading(false)}

@@ -13,7 +13,14 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { move } from "@/app/board/actions";
-import { COLUMNS, COLUMN_LABEL, type BoardCard, type Column } from "@/lib/board";
+import {
+  COLUMNS,
+  COLUMN_LABEL,
+  type BoardCard,
+  type BoardTheme,
+  type Column,
+} from "@/lib/board";
+import { cardLabel } from "@/lib/post-kind";
 import { Column as ColumnShell } from "./column";
 import { Card } from "./card";
 import { CardShell } from "./card-shell";
@@ -42,9 +49,15 @@ function bodyOf(card: BoardCard, state: Column): string {
  */
 export function BoardColumns({
   cards,
+  themes,
 }: {
   cards: Record<Column, BoardCard[]>;
+  themes: BoardTheme[];
 }) {
+  // Titles by id, once for the whole board rather than a lookup per card.
+  const themeTitle = new Map(themes.map((t) => [t.id, t.title]));
+  const labelOf = (card: BoardCard) =>
+    cardLabel(card.kind, card.themeId ? themeTitle.get(card.themeId) : null);
   const [optimistic, moveOptimistic] = useOptimistic(
     cards,
     (state, { id, to }: { id: string; to: Column }) => {
@@ -119,6 +132,11 @@ export function BoardColumns({
                 id={card.id}
                 state={state}
                 body={bodyOf(card, state)}
+                label={labelOf(card)}
+                // Only while the card is still a question. Once a draft is
+                // written the gap is a bracket in the text the reader can see,
+                // and saying it twice reads as an unanswered one.
+                needs={state === "idea" ? card.needs : null}
                 imageUrl={card.imageUrl}
                 scheduledAt={card.scheduledAt}
               />
@@ -131,6 +149,7 @@ export function BoardColumns({
         {dragging ? (
           <CardShell
             body={bodyOf(dragging, dragging.state as Column)}
+            label={labelOf(dragging)}
             imageUrl={dragging.imageUrl}
             scheduledAt={dragging.scheduledAt}
             floating

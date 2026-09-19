@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { PrinciplesPanel } from "@/components/board/principles";
+import { ThemesPanel, type ThemeRow } from "@/components/board/themes";
 import { Sheet } from "@/components/ui/sheet";
 
 /**
@@ -38,10 +39,12 @@ export function BoardHeader({
   seat,
   runwayDays,
   principles,
+  themes,
 }: {
   seat: string | null;
   runwayDays: number;
   principles: { voice: string; visual: string; format: string };
+  themes: ThemeRow[];
 }) {
   const [open, setOpen] = useState(false);
 
@@ -86,6 +89,15 @@ export function BoardHeader({
       {open ? (
         <Sheet title="Brand principles" onClose={() => setOpen(false)}>
           <PrinciplesPanel principles={principles} />
+
+          {/* One sheet, two halves, a rule between them. How the writing sounds
+              is one question and what it is about is another, and a user
+              correcting a card needs to see which of the two they are about to
+              change. */}
+          <div className="mt-8 border-t border-hairline pt-6">
+            <h3 className="mb-5 text-[15px] font-medium">Themes</h3>
+            <ThemesPanel themes={themes} />
+          </div>
         </Sheet>
       ) : null}
     </div>

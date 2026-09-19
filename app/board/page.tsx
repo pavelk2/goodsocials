@@ -39,6 +39,7 @@ export default async function BoardPage() {
         seat={access.seats.length > 1 ? seatName(access.active) : null}
         runwayDays={view.runwayDays}
         principles={view.principles}
+        themes={view.themes}
       />
 
       <QueueNotice
@@ -49,7 +50,7 @@ export default async function BoardPage() {
         }
       />
 
-      <BoardColumns cards={view.cards} />
+      <BoardColumns cards={view.cards} themes={view.themes} />
 
       <p className="mt-6 text-[13px] text-ink-2">
         <span className="num">{quota.used}</span> of{" "}

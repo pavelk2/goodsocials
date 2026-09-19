@@ -75,6 +75,12 @@ export async function reviseCardBody(opts: {
   bodyKind: "idea" | "post";
   body: string;
   comment: string;
+  /**
+   * The number this card was waiting on, when it was waiting on one. Handed
+   * over so the comment supplying it reads as the answer to a question rather
+   * than as a stray instruction, and so the bracket closes.
+   */
+  needs?: string | null;
   principles: Principles;
   goal: Goal;
   profileId: string;
@@ -99,6 +105,9 @@ export async function reviseCardBody(opts: {
           "The comment:",
           opts.comment,
           "",
+          opts.needs
+            ? `This card was waiting on one thing from the author: ${opts.needs}. If the comment supplies it, put it into the card and remove the bracket that was holding its place. If the comment is about something else, leave the bracket where it is. This is a correction about one card, so it is not standing instruction and the principle stays null unless the comment says something separate about how posts should read.`
+            : "",
           "Brand principles as they stand:",
           `Voice. ${opts.principles.voice}`,
           `Visual. ${opts.principles.visual}`,
