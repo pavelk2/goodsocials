@@ -24,6 +24,10 @@ const section =
  * do the price arithmetic for them before they scroll: twenty weekdays at 5 is
  * the 100. The ghostwriter number is the same one the pricing section states,
  * so the comparison is made once and never contradicted.
+ *
+ * The middle row is a week, not a day. Cards are scheduled ahead, so the work
+ * is one sitting that clears the week, and a daily figure would sell a daily
+ * chore the product exists to remove.
  */
 const HERO_FACTS = [
   {
@@ -31,8 +35,8 @@ const HERO_FACTS = [
     detail: "Written in your voice, with an image, scheduled.",
   },
   {
-    fact: "One minute a day",
-    detail: "Read the card, then approve, revise, or reject.",
+    fact: "Five minutes a week",
+    detail: "Approve a week of cards in one sitting.",
   },
   {
     fact: "$5 a post",
@@ -51,8 +55,8 @@ export default function Home() {
           <h1 className="max-w-[24ch] text-[clamp(36px,5.2vw,68px)] font-semibold leading-[1.0] tracking-[-0.035em]">
             <span>A LinkedIn post every weekday, and you never write one.</span>{" "}
             <span className="text-ink-3">
-              The agent writes it in your voice, you approve it on a board in a
-              minute, it publishes at the time you set.
+              The agent writes it in your voice, you approve a week of them on
+              a board in one sitting, it publishes at the time you set.
             </span>
           </h1>
 

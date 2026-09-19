@@ -143,9 +143,19 @@ customer reads a price, because that is how a buyer writes it.
 Rejected: leading with the category, AI social media manager for LinkedIn.
 The category sentence tells a visitor what the software is and leaves them to
 work out what it is worth. The job sentence, a post every weekday and you never
-write one, plus three rows reading 20 posts a month, one minute a day, and $5 a
-post against a ghostwriter's $1,500 to $3,000, answers both before the scroll.
-The offer copy in CLAUDE.md is still the source. This is derived from it.
+write one, plus three rows reading 20 posts a month, five minutes a week, and
+$5 a post against a ghostwriter's $1,500 to $3,000, answers both before the
+scroll. The offer copy in CLAUDE.md is still the source. This is derived from
+it.
+
+**The effort row is a week, not a day.**
+Rejected: one minute a day, which was the first draft of the middle row.
+Cards are scheduled ahead, so a user clears a week of them in one sitting and
+then does not open the board until the runway warning. A daily figure sells a
+daily chore, which is the habit the product removes, and it reads as small
+print next to a competitor promising the whole week is handled. Five minutes a
+week is both the larger number and the true one. The hero sentence moved with
+it: you approve a week of them on a board in one sitting.
 
 ---
 
