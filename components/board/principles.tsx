@@ -15,9 +15,8 @@ const ROWS = [
 ] as const;
 
 /**
- * The panel itself. The control that opens it lives in the board header, so the
- * board starts at the top of the screen and the principles are one click away
- * from the same place Settings is.
+ * The body of the brand principles sheet. The sheet draws its own title and
+ * Close, so this is rows and nothing else.
  */
 export function PrinciplesPanel({
   principles,
@@ -25,12 +24,8 @@ export function PrinciplesPanel({
   principles: { voice: string; visual: string; format: string };
 }) {
   return (
-    <section
-      id="brand-principles"
-      aria-labelledby="brand-principles-button"
-      className="mt-6 max-w-[760px]"
-    >
-      <ul className="border-t border-hairline">
+    <div>
+      <ul>
         {ROWS.map((row) => (
           <PrincipleRow
             key={row.kind}
@@ -43,7 +38,7 @@ export function PrinciplesPanel({
       <p className="mt-3 text-[13px] text-ink-3">
         Three, and only three. A comment on a card updates the one it is about.
       </p>
-    </section>
+    </div>
   );
 }
 
@@ -85,7 +80,7 @@ function PrincipleRow({
               type="button"
               onClick={save}
               disabled={pending}
-              className="font-medium text-ink underline"
+              className="btn-quiet font-medium text-ink underline"
             >
               {pending ? "Saving" : "Save"}
             </button>
@@ -96,7 +91,7 @@ function PrincipleRow({
                 setError(null);
                 setEditing(false);
               }}
-              className="text-ink-2 underline"
+              className="btn-quiet text-ink-2 underline"
             >
               Cancel
             </button>
@@ -105,7 +100,7 @@ function PrincipleRow({
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="text-[13px] text-ink-2 underline"
+            className="btn-quiet text-[13px] text-ink-2 underline"
           >
             Edit
           </button>

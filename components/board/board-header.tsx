@@ -3,16 +3,21 @@
 import Link from "next/link";
 import { useState } from "react";
 import { PrinciplesPanel } from "@/components/board/principles";
+import { Sheet } from "@/components/ui/sheet";
 
-/** Both controls are 30px tall, so 8px radius. Radius encodes size. */
+/**
+ * One shape for both controls: 30px tall, so 8px radius, same padding, same
+ * press feedback. They differ only in weight, because they open the same kind
+ * of sheet but are not equally worth opening.
+ */
 const TOOL_BASE =
   "rounded-[8px] px-3 py-[6px] text-[13px] font-medium transition-[opacity,border-color,transform] duration-150 ease-[var(--ease)] active:scale-[0.98]";
 
 /**
- * Solid ink, the house primary. Principles are the thing that makes a
- * correction stick to every future card, so the control that opens them is
- * the one control on this header worth pressing. Not accent: the board spends
- * its one color on runway, per DESIGN.md.
+ * Solid ink, the house primary. Principles are what makes a correction stick
+ * to every future card, so this is the one control on the header worth
+ * pressing. Not accent: the board spends its one color on runway, per
+ * DESIGN.md section 1.
  */
 const PRIMARY = `${TOOL_BASE} bg-ink text-paper hover:opacity-85`;
 
@@ -25,8 +30,9 @@ const SECONDARY = `${TOOL_BASE} border border-hairline bg-surface text-ink hover
 
 /**
  * Title, runway, and the two controls that are not part of approving a card.
- * The principles panel opens under the button that opens it, so the correction
- * a user is about to write and the button they pressed are in one glance.
+ * Both open a sheet over the board rather than replacing it, because a user
+ * reads a principle or checks a cadence in the middle of approving a week of
+ * posts and should come back to the same scroll position and the same board.
  */
 export function BoardHeader({
   seat,
@@ -63,21 +69,25 @@ export function BoardHeader({
           </p>
           <button
             type="button"
-            id="brand-principles-button"
-            onClick={() => setOpen((shown) => !shown)}
-            aria-expanded={open}
-            aria-controls="brand-principles"
+            onClick={() => setOpen(true)}
+            aria-haspopup="dialog"
             className={PRIMARY}
           >
             Brand principles
           </button>
+          {/* A real link to a real page. From the board it is intercepted by
+              app/board/@modal and opens as the same sheet. */}
           <Link href="/settings" className={SECONDARY}>
             Settings
           </Link>
         </div>
       </header>
 
-      {open ? <PrinciplesPanel principles={principles} /> : null}
+      {open ? (
+        <Sheet title="Brand principles" onClose={() => setOpen(false)}>
+          <PrinciplesPanel principles={principles} />
+        </Sheet>
+      ) : null}
     </div>
   );
 }
