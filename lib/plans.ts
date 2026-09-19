@@ -53,6 +53,14 @@ export const PLANS: Plan[] = [
 
 export const DEFAULT_PLAN = PLANS[0];
 
+/**
+ * The landing hero's button. It names the job, not the step, because the hero
+ * is where a visitor decides whether this replaces a person. The three pricing
+ * cards keep the short `cta`, where the plan name above the button already
+ * says which job is being bought.
+ */
+export const HERO_CTA = `Hire a social media manager for ${DEFAULT_PLAN.price} / month`;
+
 /** Free days on every plan, before the first charge. Stated wherever a price is. */
 export const TRIAL_DAYS = 7;
 
