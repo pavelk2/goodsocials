@@ -24,20 +24,6 @@
      the same two values, so nothing new enters the palette. */
   --nav-h: 64px;
 
-  /* Tile tints, DESIGN.md section 6. Five hues at low chroma, used only as a
-     20px glyph plate or a whole panel, never as type on paper and never as a
-     button. The accent rule still holds: plum is the only hue that appears on
-     a control. */
-  --tint-plum-bg: #fbe9ef;
-  --tint-plum-fg: #a61e4d;
-  --tint-amber-bg: #fdf0dd;
-  --tint-amber-fg: #8f5c17;
-  --tint-sage-bg: #e6f0e8;
-  --tint-sage-fg: #2c6942;
-  --tint-slate-bg: #e8eef5;
-  --tint-slate-fg: #2a537d;
-  --tint-clay-bg: #f6ebe6;
-  --tint-clay-fg: #874630;
 
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.08);
   --scrim: rgba(0, 0, 0, 0.35);
@@ -62,19 +48,6 @@
     /* Black on near-black does not dim. The sheet has to separate from the
        board behind it by more than a hairline. */
     --scrim: rgba(0, 0, 0, 0.66);
-
-    /* The same five, inverted rather than dimmed: a light tint behind white
-       type is unreadable, so the plate goes dark and the glyph goes light. */
-    --tint-plum-bg: #3a1522;
-    --tint-plum-fg: #f0a2bc;
-    --tint-amber-bg: #332610;
-    --tint-amber-fg: #e8bd79;
-    --tint-sage-bg: #16291d;
-    --tint-sage-fg: #8dc8a3;
-    --tint-slate-bg: #17252f;
-    --tint-slate-fg: #93bcdd;
-    --tint-clay-bg: #2c1d17;
-    --tint-clay-fg: #d6a38c;
   }
 }
 
@@ -234,12 +207,10 @@ body:has(dialog[open]) {
   }
 }
 
-/* The plum pair, marketing only. Notion carries one filled brand button and
-   one tinted button of the same hue beside it, and that pair is the single
-   loudest thing it does. Ours is plum instead of blue, so the accent lands on
-   the two controls that start the purchase and nowhere else on the page.
-   DESIGN.md section 6 records why one screen now carries two accent elements
-   where the rest of the product still carries one. */
+/* Plum means now. DESIGN.md section 6: the accent marks the live edge of time
+   and nothing else, which on this page is today's cell in every streak grid
+   and the button that starts one. The secondary beside it is .btn-outline,
+   which separates by hairline, so the page holds exactly one saturated idea. */
 .btn-accent {
   background: var(--accent);
   color: var(--accent-ink);
@@ -258,25 +229,6 @@ body:has(dialog[open]) {
   transform: scale(0.985);
 }
 
-/* The secondary of that pair: the accent's own tint behind the accent, so it
-   reads as the quieter half of one control rather than as a second colour. */
-.btn-soft {
-  background: var(--tint-plum-bg);
-  color: var(--tint-plum-fg);
-  transition:
-    filter 180ms var(--ease),
-    transform 180ms var(--ease);
-}
-
-@media (hover: hover) {
-  .btn-soft:hover {
-    filter: brightness(0.97);
-  }
-}
-
-.btn-soft:active {
-  transform: scale(0.985);
-}
 
 /* Nav links. They are not underlined, so hover has to say they are links. */
 .nav-link {
@@ -289,18 +241,3 @@ body:has(dialog[open]) {
   }
 }
 
-/* A card that is a panel rather than an object: the tile grid and the audience
-   panels both lift a little under the pointer, which is the one Notion move
-   the board is not allowed to copy. Marketing only, never on a board card. */
-.tile {
-  transition:
-    transform 220ms var(--ease),
-    border-color 220ms var(--ease);
-}
-
-@media (hover: hover) {
-  .tile:hover {
-    transform: translateY(-2px);
-    border-color: var(--ink-3);
-  }
-}

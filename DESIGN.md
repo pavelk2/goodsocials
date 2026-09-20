@@ -126,49 +126,64 @@ read as a calendar and spent the whole mark on one saturated colour.
 
 ---
 
-## 6. The landing page is Notion's skeleton on our palette
+## 6. The landing page is the mark at three scales
 
-Pavel's call, after looking at notion.com: three quarters of that page, one
-quarter of what we had. This section records what that bought and what it cost,
-because several of the moves below are ones the house style ends the discussion
-on, and a reader who does not know they were chosen will revert them.
+The first pass at this page copied notion.com: centred hero, a word in a
+tinted lozenge, five rounded tiles with coloured icon plates, three duotone
+story panels. Pavel's read was correct and short, so it is recorded here
+rather than softened. It was not inspired by that page. It was that page with
+our hex codes in it, and swapping a blue for a plum does not make a decision
+yours. Every one of those moves was also a thing section 5 of the house style
+ends the discussion on, which is what being borrowed feels like from inside.
 
-**What came from Notion.** A sticky header with the mark left, three anchors
-centred and a filled button right. A centred hero at 86px with one word in a
-tinted lozenge. One line of subhead. Two buttons side by side, filled and
-tinted, the same hue. Bands of alternating ground instead of one continuous
-page. A five-up tile grid with a coloured glyph plate on each tile. Three large
-tinted panels where they run customer stories. A closing call to action on the
-quiet band. A footer with link columns instead of two lines of legal.
+**The fix was already in the repo.** Section 5 above describes a 5 by 5 grid of
+dots, one cell per day, ink for a day a post went out, plum for today. It says
+outright that the mark is the dashboard metric drawn at logo size. That is the
+most specific thing GoodSocials owns, and it was being used at 26px as a
+favicon.
 
-**What stayed ours.** Plum, not their blue. Geist, not their grotesk. The real
-`CardShell` and the real `BoardPreview`, so the page cannot drift from the
-product. Tabular numerals on anything that counts. The price in every buying
-button. The fading sentence, kept in the two headings where the grey clause is
-genuinely the same sentence continuing, and dropped in the hero, where Notion's
-claim-then-subhead is the stronger shape.
+So the grid stops being a logo and becomes the page's layout primitive. It is
+the only thing on the landing page that is drawn at all.
 
-**What this overrides, on the landing page only.**
+- **Hero, 260px.** One month at the cadence we sell: twenty cells in ink,
+  today in plum, the rest of the month scheduled and still hairline.
+- **Every section head, 56px.** The same grid at the count that section has
+  reached, 1, 4, 11, 18, 22, and the count spelled out beside it in the mono.
+  Reading down the page is watching a month fill. It replaces the eyebrow, the
+  icon and the tinted plate in one object, and it is data rather than
+  ornament: the grid at the top of the page is genuinely thinner than the one
+  at the bottom.
+- **Footer, twelve of them.** A year. Months that have not happened yet are
+  drawn empty, because filling them would be the one dishonest thing on the
+  page.
 
-- *One accent element per screen* becomes two, and they are the same control:
-  the filled button and the tinted button beside it. Nothing else on the page
-  is plum except the runway figure inside the board screenshot, which belongs
-  to the board.
-- *One word in a headline coloured for emphasis* is exactly what the lozenge
-  is. It earns it because the word is `daily`, which is the thing sold, and
-  because it appears once on the page rather than once per heading.
-- *A feature grid of identical rounded cards with a tinted icon plate* is the
-  five-column row. Five hues at low chroma, listed as `--tint-*` in
-  `app/globals.css`, inverted rather than dimmed for dark mode. They are
-  allowed on a glyph plate and on a whole panel. They are never type on paper
-  and never a button, so the accent still owns every control.
-- *Trusted-by logo strips* stays banned. The row under the hero, where Notion
-  runs customer logos, holds four true facts instead. Nothing on this page is
-  a customer we do not have.
+`components/marketing/streak.tsx` is the single implementation, on the mark's
+own geometry: 9px dots on a 30px pitch. That 30px pitch is also the page's
+vertical rhythm, so the spacing and the mark come from one number.
 
-The app keeps section 3 and section 4 unchanged. The board is still dense, the
-dashboard is still rows, and a tile with a coloured plate outside `app/page.tsx`
-and `components/marketing/` is a mistake.
+**Plum means now.** This replaces the one-element-per-screen rule with
+something that can actually be applied. The accent marks the live edge of
+time and nothing else: today's cell in every grid, the queue runway on the
+board, the streak on the dashboard, and the button that starts one. The
+secondary button beside it separates by hairline, so the page holds exactly
+one saturated idea rather than a palette.
+
+**Geist Mono ships in the repo and was not being used.** It now carries every
+count, date, price period and caption. Prose stays in Geist Sans. That split
+is a typographic signature a single-grotesk page cannot have, and it costs
+nothing because the font was already loading.
+
+**What survived from the Notion pass**, because it is good page-building
+rather than anybody's signature: a sticky header, bands of alternating ground,
+the board screenshot sitting across the first seam so it joins the claim above
+it to the explanation below, and a footer with link columns. None of that is
+Notion's to own.
+
+**What the page refuses.** No tinted icon plates, no coloured panels, no
+lozenge, no centred hero, no logo wall. The five columns are rows with a mono
+index, the three audiences are three columns of type under an ink rule with a
+real card beneath, and the one screenshot on the page is the real board
+rendered by the real components.
 
 Marketing components live in `components/marketing/`. The slim `Footer` in
 `components/footer.tsx` still serves sign in and the error page; `SiteFooter`
