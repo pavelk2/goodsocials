@@ -82,3 +82,38 @@ export function StreakMark({ posted }: { posted: number }) {
     </div>
   );
 }
+
+/**
+ * The board's five columns as five dots: the ones behind this card in ink, the
+ * column it is in now in plum, the ones ahead still hairline.
+ *
+ * Same semantics as the grid above and the same geometry, which is the point.
+ * It replaces the tinted icon plate the first pass put on these tiles, and it
+ * says something the plate could not: where in the card's life this column is.
+ */
+export function StepDots({ index, total }: { index: number; total: number }) {
+  return (
+    <svg
+      width={total * 10.4}
+      height="10.4"
+      viewBox={`0 0 ${total * 30} 30`}
+      aria-hidden="true"
+    >
+      {Array.from({ length: total }, (_, i) => (
+        <circle
+          key={i}
+          cx={15 + i * 30}
+          cy="15"
+          r="9"
+          fill={
+            i < index
+              ? "var(--ink)"
+              : i === index
+                ? "var(--accent)"
+                : "var(--hairline)"
+          }
+        />
+      ))}
+    </svg>
+  );
+}

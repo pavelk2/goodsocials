@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { SiteNav } from "@/components/marketing/site-nav";
 import { SiteFooter } from "@/components/marketing/site-footer";
-import { Streak, StreakMark } from "@/components/marketing/streak";
+import { Streak, StreakMark, StepDots } from "@/components/marketing/streak";
 import { BoardPreview } from "@/components/board/board-preview";
 import { CardShell, CardComment } from "@/components/board/card-shell";
 import { AGENCY_SEATS } from "@/lib/legal";
@@ -174,15 +174,31 @@ export default function Home() {
               </h1>
             </div>
 
-            {/* The mark at poster size. Twenty ink cells is the twenty posts
-                the rows below promise, plum is today, and the five hairline
-                cells are the rest of the month, already scheduled. */}
-            <div className="shrink-0 lg:pt-3">
-              <Streak posted={20} size={260} className="h-auto w-[180px] sm:w-[220px] lg:w-[260px]" />
-              <p className="mt-5 max-w-[260px] font-mono text-[12px] leading-[1.5] text-ink-2">
-                <span className="num block text-ink">One month, 20 posts</span>
-                One cell a day. Ink for a day you posted, plum for today.
-              </p>
+            {/* The dashboard, drawn at poster size. Twenty ink cells is the
+                twenty posts the rows below promise, plum is today, and the
+                hairline cells are the rest of the month, already scheduled.
+                It sits in a panel because it is a real screen, not a motif:
+                the two numbers under it are the two the dashboard leads with,
+                and neither of them is followers. */}
+            <div className="w-full shrink-0 rounded-[var(--r-xl)] border border-hairline bg-surface p-7 lg:w-[336px]">
+              <p className="font-mono text-[12px] text-ink-3">This month</p>
+              <Streak
+                posted={20}
+                size={260}
+                className="mx-auto mt-5 block h-auto w-[200px] sm:w-[240px] lg:w-[260px]"
+              />
+              <dl className="mt-7 border-t border-hairline">
+                <div className="flex items-baseline justify-between gap-4 border-b border-hairline py-[13px]">
+                  <dt className="text-[15px] text-ink-2">Posts published</dt>
+                  <dd className="num font-mono text-[15px] font-medium">20</dd>
+                </div>
+                <div className="flex items-baseline justify-between gap-4 py-[13px]">
+                  <dt className="text-[15px] text-ink-2">Current streak</dt>
+                  <dd className="num font-mono text-[15px] font-medium text-accent">
+                    20 days
+                  </dd>
+                </div>
+              </dl>
             </div>
           </div>
 
@@ -237,21 +253,19 @@ export default function Home() {
               </div>
             </SectionHead>
 
-            <ul className="mt-14">
+            <ul className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
               {COLUMNS.map((column, i) => (
                 <li
                   key={column.name}
-                  className="flex flex-col gap-2 border-b border-hairline py-6 sm:flex-row sm:gap-10"
+                  className="rounded-[var(--r-lg)] border border-hairline bg-surface p-6"
                 >
-                  <span className="num w-[28px] shrink-0 font-mono text-[13px] leading-[1.6] text-ink-3">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <span className="w-[160px] shrink-0 font-medium">
+                  <StepDots index={i} total={COLUMNS.length} />
+                  <h3 className="mt-5 text-[17px] font-semibold tracking-[-0.01em]">
                     {column.name}
-                  </span>
-                  <span className="max-w-[620px] text-ink-2">
+                  </h3>
+                  <p className="mt-2 text-[15px] leading-[1.45] text-ink-2">
                     {column.line}
-                  </span>
+                  </p>
                 </li>
               ))}
             </ul>
@@ -337,14 +351,16 @@ export default function Home() {
               </div>
             </SectionHead>
 
-            <ul className="mt-14 grid gap-10 lg:grid-cols-3 lg:gap-8">
+            <ul className="mt-14 grid gap-4 lg:grid-cols-3">
               {AUDIENCES.map((audience) => (
                 <li
                   key={audience.who}
-                  className="flex flex-col border-t border-ink pt-6"
+                  className="flex flex-col rounded-[var(--r-xl)] border border-hairline bg-surface p-7"
                 >
                   <p className="font-medium">{audience.who}</p>
-                  <p className="mt-3 grow text-ink-2">{audience.line}</p>
+                  <p className="mt-3 grow text-[15px] leading-[1.5] text-ink-2">
+                    {audience.line}
+                  </p>
                   <div className="mt-8">
                     <CardShell
                       body={audience.card.body}
@@ -434,42 +450,39 @@ export default function Home() {
           </div>
         </section>
 
-        {/* The close. The month is full, which is the only argument left. */}
-        <section className="bg-surface">
-          <div className={`${wrap} ${band}`}>
-            <div className="flex flex-col gap-12 border-t border-ink pt-12 lg:flex-row lg:items-start lg:justify-between lg:gap-20">
-              <div className="max-w-[640px]">
-                <h2 className={sectionHeading}>
-                  <span>Your board is full in 90 seconds.</span>{" "}
-                  <span className="text-ink-3">
-                    Sign in with LinkedIn, paste your website, and seven posts
-                    are waiting before you have paid anything.
-                  </span>
-                </h2>
-                <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <Link
-                    href={`/signin?plan=${DEFAULT_PLAN.slug}`}
-                    className={primary}
-                  >
-                    {DEFAULT_PLAN.cta}
-                  </Link>
-                  <Link href="#pricing" className={secondary}>
-                    See all three prices
-                  </Link>
-                </div>
-                <p className="num mt-4 font-mono text-[12px] text-ink-2">
-                  {TRIAL_LINE}
-                </p>
-              </div>
-
-              <div className="shrink-0">
-                <Streak posted={25} today={false} size={180} className="h-auto w-[140px] lg:w-[180px]" />
-                <p className="mt-5 max-w-[200px] font-mono text-[12px] leading-[1.5] text-ink-2">
-                  <span className="block text-ink">A month, unbroken</span>
-                  The number the dashboard leads with. Not followers.
-                </p>
-              </div>
+        {/* The close. Centred, because a last screen with one thing to press
+            has no second column to rag against, and on the page's one wash of
+            the accent. The month above the heading is full, which is the only
+            argument left to make. */}
+        <section style={{ background: "var(--accent-wash)" }}>
+          <div className={`${wrap} ${band} text-center`}>
+            <Streak
+              posted={25}
+              today={false}
+              size={150}
+              className="mx-auto h-auto w-[120px] lg:w-[150px]"
+            />
+            <h2 className={`mx-auto mt-10 max-w-[26ch] text-balance ${sectionHeading}`}>
+              Your board is full in 90 seconds.
+            </h2>
+            <p className="mx-auto mt-5 max-w-[56ch] text-balance text-[17px] text-ink-2">
+              Sign in with LinkedIn, paste your website, and seven posts are
+              waiting before you have paid anything.
+            </p>
+            <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Link
+                href={`/signin?plan=${DEFAULT_PLAN.slug}`}
+                className={primary}
+              >
+                {DEFAULT_PLAN.cta}
+              </Link>
+              <Link href="#pricing" className={secondary}>
+                See all three prices
+              </Link>
             </div>
+            <p className="num mt-4 font-mono text-[12px] text-ink-2">
+              {TRIAL_LINE}
+            </p>
           </div>
         </section>
       </main>

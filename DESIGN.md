@@ -179,11 +179,31 @@ the board screenshot sitting across the first seam so it joins the claim above
 it to the explanation below, and a footer with link columns. None of that is
 Notion's to own.
 
-**What the page refuses.** No tinted icon plates, no coloured panels, no
-lozenge, no centred hero, no logo wall. The five columns are rows with a mono
-index, the three audiences are three columns of type under an ink rule with a
-real card beneath, and the one screenshot on the page is the real board
-rendered by the real components.
+**The second correction: that pass went too bare.** Stripping the borrowed
+decorations also stripped the page's body, and rows of hairline type all the
+way down is not restraint, it is an unfinished page. So the structure came
+back, in forms that are ours rather than anybody's:
+
+- **The five columns are tiles again**, and the plate on each one is
+  `StepDots`: five dots, the columns behind this one in ink, this one in plum,
+  the ones ahead hairline. The plum dot walks left to right across the row of
+  tiles. It occupies the slot the coloured icon square had and says something
+  the square could not, which is where in a card's life that column sits.
+- **The three audiences are panels again**, on surface with a hairline and a
+  radius, with a real card inside. Weight from structure, not from a colour
+  field standing in for an argument.
+- **The hero's grid sits in a panel** with the two numbers the dashboard leads
+  with under it, posts published and current streak. It reads as the real
+  screen it is drawn from rather than as a motif floating in white.
+- **The close is centred** on `--accent-wash`, the page's one tinted ground,
+  with the full month above the heading. A last screen with one thing to press
+  has no second column to rag against, and one warm band at the end of a page
+  is not a palette.
+
+**What the page still refuses.** No tinted icon plates, no five-hue tile
+grid, no lozenge in the headline, no centred hero, no logo wall, no
+testimonial faces. The one screenshot on the page is the real board rendered
+by the real components.
 
 Marketing components live in `components/marketing/`. The slim `Footer` in
 `components/footer.tsx` still serves sign in and the error page; `SiteFooter`

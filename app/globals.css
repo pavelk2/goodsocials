@@ -24,6 +24,12 @@
      the same two values, so nothing new enters the palette. */
   --nav-h: 64px;
 
+  /* One wash of the accent, for the closing band and nothing else. A single
+     warm ground at the end of the page is not a palette: it is the same hue
+     the buttons and today's cell already carry, at the weight a whole band
+     can hold. DESIGN.md section 6. */
+  --accent-wash: #fcf1f5;
+
 
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.08);
   --scrim: rgba(0, 0, 0, 0.35);
@@ -48,6 +54,7 @@
     /* Black on near-black does not dim. The sheet has to separate from the
        board behind it by more than a hairline. */
     --scrim: rgba(0, 0, 0, 0.66);
+    --accent-wash: #22101a;
   }
 }
 
