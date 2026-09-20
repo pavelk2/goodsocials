@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Logo } from "./logo";
-import { DEFAULT_PLAN } from "@/lib/plans";
+import { DEFAULT_PLAN, TRIAL_DAYS } from "@/lib/plans";
 
 /**
  * Mark and links together on the left, the one control on the right.
@@ -46,11 +46,17 @@ export function SiteNav() {
           >
             Sign in
           </Link>
+          {/* The header's button starts the flow. It does not quote a price:
+              the hero states one two screens further down and the pricing
+              section states all three, and a number in a sticky bar that
+              follows the reader the whole way is a nag rather than an offer.
+              What it does say is that the first week costs nothing, which is
+              the only fact that makes pressing it easy. */}
           <Link
             href={`/signin?plan=${DEFAULT_PLAN.slug}`}
             className="btn-accent num rounded-[var(--r-btn)] px-4 py-[9px] text-[15px] font-medium"
           >
-            {DEFAULT_PLAN.price} a month
+            Start {TRIAL_DAYS} days free
           </Link>
         </div>
       </nav>

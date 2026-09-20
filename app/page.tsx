@@ -5,7 +5,13 @@ import { Streak, StreakMark, StepDots } from "@/components/marketing/streak";
 import { BoardPreview } from "@/components/board/board-preview";
 import { CardShell, CardComment } from "@/components/board/card-shell";
 import { AGENCY_SEATS } from "@/lib/legal";
-import { PLANS, DEFAULT_PLAN, TRIAL_DAYS, TRIAL_LINE } from "@/lib/plans";
+import {
+  PLANS,
+  DEFAULT_PLAN,
+  HERO_CTA,
+  TRIAL_DAYS,
+  TRIAL_LINE,
+} from "@/lib/plans";
 
 /**
  * The offer copy is verbatim from CLAUDE.md. Do not improve it, derive from it.
@@ -124,8 +130,11 @@ const PERMISSIONS = [
   "Access lasts 60 days, then you reconnect. We email you first.",
 ];
 
+/* The hero's label is a sentence, so on a phone it wraps. Balanced rather
+   than ragged, or the break lands after the price and leaves "/ month" alone
+   on the second line. */
 const primary =
-  "btn-accent num inline-block w-full rounded-[var(--r-btn)] px-6 py-[13px] text-center text-[16px] font-semibold sm:w-auto";
+  "btn-accent num inline-block w-full text-balance rounded-[var(--r-btn)] px-6 py-[13px] text-center text-[16px] font-semibold leading-[1.3] sm:w-auto";
 const secondary =
   "btn-outline inline-block w-full rounded-[var(--r-btn)] border border-hairline px-6 py-[13px] text-center text-[16px] font-semibold sm:w-auto";
 const soft =
@@ -185,7 +194,7 @@ export default function Home() {
 
           <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link href={`/signin?plan=${DEFAULT_PLAN.slug}`} className={primary}>
-              {DEFAULT_PLAN.cta}
+              {HERO_CTA}
             </Link>
             <Link href="#how" className={soft}>
               See how it works
