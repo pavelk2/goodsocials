@@ -11,10 +11,27 @@
   --accent: #a61e4d;
   --accent-ink: #ffffff;
 
+  --r-btn: 10px;
   --r-sm: 8px;
   --r-md: 14px;
   --r-lg: 20px;
   --r-xl: 28px;
+  --r-2xl: 36px;
+
+  /* The marketing surface. DESIGN.md section 6. Notion's page ground is white
+     and its section bands are the off-white, which is the inverse of the app,
+     where paper is the ground and surface is the object on it. Both stay in
+     the same two values, so nothing new enters the palette. */
+  --nav-h: 64px;
+
+  /* One wash of the accent, and the accent's own colour readable on it. It
+     grounds the closing band and fills the hero's secondary button, which are
+     the only two places a whole surface carries the hue. Still not a palette:
+     it is the same plum the buttons and today's cell already carry, at the
+     weight a surface can hold. DESIGN.md section 6. */
+  --accent-wash: #fbecf1;
+  --accent-on-wash: #a61e4d;
+
 
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.08);
   --scrim: rgba(0, 0, 0, 0.35);
@@ -39,6 +56,8 @@
     /* Black on near-black does not dim. The sheet has to separate from the
        board behind it by more than a hairline. */
     --scrim: rgba(0, 0, 0, 0.66);
+    --accent-wash: #26121a;
+    --accent-on-wash: #f2a8c0;
   }
 }
 
@@ -197,3 +216,60 @@ body:has(dialog[open]) {
     color: var(--ink);
   }
 }
+
+/* Plum means now. DESIGN.md section 6: the accent marks the live edge of time
+   and nothing else, which on this page is today's cell in every streak grid
+   and the button that starts one. The secondary beside it is .btn-outline,
+   which separates by hairline, so the page holds exactly one saturated idea. */
+.btn-accent {
+  background: var(--accent);
+  color: var(--accent-ink);
+  transition:
+    filter 180ms var(--ease),
+    transform 180ms var(--ease);
+}
+
+@media (hover: hover) {
+  .btn-accent:hover {
+    filter: brightness(1.12);
+  }
+}
+
+.btn-accent:active {
+  transform: scale(0.985);
+}
+
+/* The quieter half of the same control, the accent on the accent's own wash.
+   It appears once, beside the hero's primary. The closing band is already on
+   that wash, so its secondary is .btn-outline instead: a button cannot
+   separate from a ground it is the same colour as. */
+.btn-soft {
+  background: var(--accent-wash);
+  color: var(--accent-on-wash);
+  transition:
+    filter 180ms var(--ease),
+    transform 180ms var(--ease);
+}
+
+@media (hover: hover) {
+  .btn-soft:hover {
+    filter: brightness(0.97);
+  }
+}
+
+.btn-soft:active {
+  transform: scale(0.985);
+}
+
+
+/* Nav links. They are not underlined, so hover has to say they are links. */
+.nav-link {
+  transition: color 150ms var(--ease);
+}
+
+@media (hover: hover) {
+  .nav-link:hover {
+    color: var(--ink);
+  }
+}
+
