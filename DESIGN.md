@@ -200,10 +200,29 @@ back, in forms that are ours rather than anybody's:
   has no second column to rag against, and one warm band at the end of a page
   is not a palette.
 
+**The hero is centred, and it carries a lozenge.** Pavel picked this one back
+out of the borrowed pass, and it earns its place on two grounds. A claim this
+short reads as a statement in the middle of the window and as a column of text
+against the edge, so centring it is what the sentence wants. And the word the
+accent lands on is `daily`, which is the thing being sold, with the dot in
+front of it being today's cell at headline size. It is the only headline on
+the site that colours a word; every other one is the fading sentence, ragged
+left, so the rule the house style states is intact everywhere the hero is not.
+
+Its secondary button is `.btn-soft`, the accent on the accent's own wash. It
+appears once. The closing band already sits on that wash, so its secondary
+stays `.btn-outline`: a button cannot separate from a ground it is the same
+colour as.
+
+The dashboard panel that stood in the hero before moved out with the left rag.
+The streak system still runs the page through the section anchors, the step
+dots and the footer year, and the panel can come back below the fold if the
+hero ever needs a second object.
+
 **What the page still refuses.** No tinted icon plates, no five-hue tile
-grid, no lozenge in the headline, no centred hero, no logo wall, no
-testimonial faces. The one screenshot on the page is the real board rendered
-by the real components.
+grid, no logo wall, no testimonial faces, and no second coloured word anywhere
+below the hero. The one screenshot on the page is the real board rendered by
+the real components.
 
 Marketing components live in `components/marketing/`. The slim `Footer` in
 `components/footer.tsx` still serves sign in and the error page; `SiteFooter`

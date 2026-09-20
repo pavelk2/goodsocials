@@ -24,11 +24,13 @@
      the same two values, so nothing new enters the palette. */
   --nav-h: 64px;
 
-  /* One wash of the accent, for the closing band and nothing else. A single
-     warm ground at the end of the page is not a palette: it is the same hue
-     the buttons and today's cell already carry, at the weight a whole band
-     can hold. DESIGN.md section 6. */
-  --accent-wash: #fcf1f5;
+  /* One wash of the accent, and the accent's own colour readable on it. It
+     grounds the closing band and fills the hero's secondary button, which are
+     the only two places a whole surface carries the hue. Still not a palette:
+     it is the same plum the buttons and today's cell already carry, at the
+     weight a surface can hold. DESIGN.md section 6. */
+  --accent-wash: #fbecf1;
+  --accent-on-wash: #a61e4d;
 
 
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.08);
@@ -54,7 +56,8 @@
     /* Black on near-black does not dim. The sheet has to separate from the
        board behind it by more than a hairline. */
     --scrim: rgba(0, 0, 0, 0.66);
-    --accent-wash: #22101a;
+    --accent-wash: #26121a;
+    --accent-on-wash: #f2a8c0;
   }
 }
 
@@ -233,6 +236,28 @@ body:has(dialog[open]) {
 }
 
 .btn-accent:active {
+  transform: scale(0.985);
+}
+
+/* The quieter half of the same control, the accent on the accent's own wash.
+   It appears once, beside the hero's primary. The closing band is already on
+   that wash, so its secondary is .btn-outline instead: a button cannot
+   separate from a ground it is the same colour as. */
+.btn-soft {
+  background: var(--accent-wash);
+  color: var(--accent-on-wash);
+  transition:
+    filter 180ms var(--ease),
+    transform 180ms var(--ease);
+}
+
+@media (hover: hover) {
+  .btn-soft:hover {
+    filter: brightness(0.97);
+  }
+}
+
+.btn-soft:active {
   transform: scale(0.985);
 }
 

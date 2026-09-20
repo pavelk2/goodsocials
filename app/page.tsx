@@ -39,23 +39,16 @@ const sectionHeading =
   "text-[clamp(30px,4.2vw,46px)] font-semibold leading-[1.06] tracking-[-0.035em]";
 
 /**
- * What arrives, what it costs in time, what it costs in money, in that order.
- * Rows, because a row is label left and value right and these are three facts,
- * not three objects anybody picks up.
+ * Four facts on one line, under the buttons. This is the slot a logo wall
+ * occupies on a page that has customers to name. We do not yet, and inventing
+ * them is the one thing the house style ends the discussion on, so the row
+ * holds things that are true instead.
  */
-const HERO_FACTS = [
-  {
-    fact: "20 posts a month",
-    detail: "For followers, leads, or traffic. With an image, scheduled.",
-  },
-  {
-    fact: "Five minutes a week",
-    detail: "Approve a week of cards in one sitting.",
-  },
-  {
-    fact: "$100 a month",
-    detail: "A social media manager for your LinkedIn profile.",
-  },
+const PROOF = [
+  "20 posts a month",
+  "Five minutes a week",
+  `Up to ${AGENCY_SEATS} client boards`,
+  `${TRIAL_DAYS} days free`,
 ];
 
 /**
@@ -135,6 +128,8 @@ const primary =
   "btn-accent num inline-block w-full rounded-[var(--r-btn)] px-6 py-[13px] text-center text-[16px] font-semibold sm:w-auto";
 const secondary =
   "btn-outline inline-block w-full rounded-[var(--r-btn)] border border-hairline px-6 py-[13px] text-center text-[16px] font-semibold sm:w-auto";
+const soft =
+  "btn-soft inline-block w-full rounded-[var(--r-btn)] px-6 py-[13px] text-center text-[16px] font-semibold sm:w-auto";
 
 /** Heading left, the month so far right. Every section, same shape. */
 function SectionHead({
@@ -157,74 +152,56 @@ export default function Home() {
     <>
       <SiteNav />
       <main className="bg-surface">
-        {/* Hero. Left ragged, because the house sets type left and broken by
-            meaning. The grid on the right is the whole visual argument: this
-            is what a month looks like when you never miss. */}
-        <section className={`${wrap} pt-[90px] pb-[60px]`}>
-          <div className="flex flex-col gap-14 lg:flex-row lg:items-start lg:justify-between lg:gap-20">
-            <div className="max-w-[720px]">
-              <h1 className="text-[clamp(40px,6.4vw,76px)] font-semibold leading-[1.0] tracking-[-0.045em]">
-                <span>An AI social media manager for LinkedIn.</span>{" "}
-                <span className="font-light italic text-ink-3">
-                  No cringe, no slop.
-                </span>{" "}
-                <span className="font-light text-ink-3">
-                  You approve what is scheduled.
-                </span>
-              </h1>
-            </div>
+        {/* Hero. Centred, which is the one place the page gives up the left
+            rag: a claim this short reads as a statement in the middle of the
+            window and as a column of text against the edge. It is also the
+            only headline on the site that puts the accent on a word, and the
+            word is cadence, which is the thing being sold. Every other
+            heading is the fading sentence, ragged left. */}
+        <section className={`${wrap} pt-[90px] pb-[70px] text-center`}>
+          <h1 className="mx-auto max-w-[17ch] text-[clamp(44px,7.4vw,86px)] font-semibold leading-[1.02] tracking-[-0.045em]">
+            Post on LinkedIn{" "}
+            <span
+              className="relative inline-flex items-center rounded-full pl-[0.78em] pr-[0.34em] leading-[0.96]"
+              style={{
+                background: "var(--accent-wash)",
+                color: "var(--accent-on-wash)",
+              }}
+            >
+              {/* Out of the flex flow on purpose. An empty span as the first
+                  flex item would hand the inline-flex box its own bottom edge
+                  as a baseline and the word would sit below the line. The dot
+                  is today's cell, at headline size. */}
+              <span className="absolute left-[0.3em] top-1/2 h-[0.2em] w-[0.2em] -translate-y-1/2 rounded-full bg-current" />
+              daily
+            </span>{" "}
+            without writing any of it.
+          </h1>
 
-            {/* The dashboard, drawn at poster size. Twenty ink cells is the
-                twenty posts the rows below promise, plum is today, and the
-                hairline cells are the rest of the month, already scheduled.
-                It sits in a panel because it is a real screen, not a motif:
-                the two numbers under it are the two the dashboard leads with,
-                and neither of them is followers. */}
-            <div className="w-full shrink-0 rounded-[var(--r-xl)] border border-hairline bg-surface p-7 lg:w-[336px]">
-              <p className="font-mono text-[12px] text-ink-3">This month</p>
-              <Streak
-                posted={20}
-                size={260}
-                className="mx-auto mt-5 block h-auto w-[200px] sm:w-[240px] lg:w-[260px]"
-              />
-              <dl className="mt-7 border-t border-hairline">
-                <div className="flex items-baseline justify-between gap-4 border-b border-hairline py-[13px]">
-                  <dt className="text-[15px] text-ink-2">Posts published</dt>
-                  <dd className="num font-mono text-[15px] font-medium">20</dd>
-                </div>
-                <div className="flex items-baseline justify-between gap-4 py-[13px]">
-                  <dt className="text-[15px] text-ink-2">Current streak</dt>
-                  <dd className="num font-mono text-[15px] font-medium text-accent">
-                    20 days
-                  </dd>
-                </div>
-              </dl>
-            </div>
-          </div>
+          <p className="mx-auto mt-7 max-w-[56ch] text-balance text-[clamp(17px,1.5vw,21px)] leading-[1.45] text-ink-2">
+            An agent writes the posts. You approve them on a board. It publishes
+            at the time you set.
+          </p>
 
-          <ul className="mt-14 max-w-[820px]">
-            {HERO_FACTS.map((row) => (
-              <li
-                key={row.fact}
-                className="flex flex-col gap-1 border-b border-hairline py-[14px] sm:flex-row sm:items-baseline sm:justify-between sm:gap-8"
-              >
-                <span className="num font-medium">{row.fact}</span>
-                <span className="text-ink-2 sm:text-right">{row.detail}</span>
-              </li>
-            ))}
-          </ul>
-
-          <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link href={`/signin?plan=${DEFAULT_PLAN.slug}`} className={primary}>
               {DEFAULT_PLAN.cta}
             </Link>
-            <Link href="#pricing" className={secondary}>
-              Running accounts for clients
+            <Link href="#how" className={soft}>
+              See how it works
             </Link>
           </div>
           <p className="num mt-4 font-mono text-[12px] text-ink-2">
             {TRIAL_LINE}
           </p>
+
+          <ul className="mt-16 flex flex-wrap items-center justify-center gap-x-10 gap-y-3 text-[14px] text-ink-2">
+            {PROOF.map((fact) => (
+              <li key={fact} className="num">
+                {fact}
+              </li>
+            ))}
+          </ul>
         </section>
 
         {/* The board, across the seam of two grounds. */}
