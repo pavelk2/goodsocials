@@ -2,7 +2,7 @@
 
 Everything not written here comes from the house-design skill: off-white `#F4F4F4` ground, pure black `#000000` type, `#6E6E73` and `#B4B4B8` greys, `#E6E6E6` hairlines, the fading sentence for every major heading, rows instead of cards, the radius scale, one motion moment per page. Read that skill before writing styles. This file records only what is specific to GoodSocials.
 
-Four sections. The rest gets generated on Wednesday when there is something to style.
+Six sections. The rest gets generated on Wednesday when there is something to style.
 
 ---
 
@@ -16,7 +16,7 @@ Rejected LinkedIn blue for two reasons: it reads as a clone of the thing we post
 
 Where it is allowed to appear, one per screen:
 
-- Landing page: the primary button, which reads `Start for $100 a month`. The three plan buttons lower down are ink, not accent, so the rule holds on every screen.
+- Landing page: the buying controls, which section 6 widened from one element to the accent pair Notion runs. Everywhere else on that page is black or one of the two greys.
 - Board: the queue runway indicator. Nothing else on the board is colored, so a board about to run dry is the only colored thing on screen, which is correct.
 - Dashboard: the current streak number.
 - Everywhere else: black, or one of the two greys.
@@ -123,3 +123,53 @@ Browser and platform icons come from the tile: `app/icon.svg`,
 
 Rejected: the same grid packed into a raspberry, which read as fruit before it
 read as a calendar and spent the whole mark on one saturated colour.
+
+---
+
+## 6. The landing page is Notion's skeleton on our palette
+
+Pavel's call, after looking at notion.com: three quarters of that page, one
+quarter of what we had. This section records what that bought and what it cost,
+because several of the moves below are ones the house style ends the discussion
+on, and a reader who does not know they were chosen will revert them.
+
+**What came from Notion.** A sticky header with the mark left, three anchors
+centred and a filled button right. A centred hero at 86px with one word in a
+tinted lozenge. One line of subhead. Two buttons side by side, filled and
+tinted, the same hue. Bands of alternating ground instead of one continuous
+page. A five-up tile grid with a coloured glyph plate on each tile. Three large
+tinted panels where they run customer stories. A closing call to action on the
+quiet band. A footer with link columns instead of two lines of legal.
+
+**What stayed ours.** Plum, not their blue. Geist, not their grotesk. The real
+`CardShell` and the real `BoardPreview`, so the page cannot drift from the
+product. Tabular numerals on anything that counts. The price in every buying
+button. The fading sentence, kept in the two headings where the grey clause is
+genuinely the same sentence continuing, and dropped in the hero, where Notion's
+claim-then-subhead is the stronger shape.
+
+**What this overrides, on the landing page only.**
+
+- *One accent element per screen* becomes two, and they are the same control:
+  the filled button and the tinted button beside it. Nothing else on the page
+  is plum except the runway figure inside the board screenshot, which belongs
+  to the board.
+- *One word in a headline coloured for emphasis* is exactly what the lozenge
+  is. It earns it because the word is `daily`, which is the thing sold, and
+  because it appears once on the page rather than once per heading.
+- *A feature grid of identical rounded cards with a tinted icon plate* is the
+  five-column row. Five hues at low chroma, listed as `--tint-*` in
+  `app/globals.css`, inverted rather than dimmed for dark mode. They are
+  allowed on a glyph plate and on a whole panel. They are never type on paper
+  and never a button, so the accent still owns every control.
+- *Trusted-by logo strips* stays banned. The row under the hero, where Notion
+  runs customer logos, holds four true facts instead. Nothing on this page is
+  a customer we do not have.
+
+The app keeps section 3 and section 4 unchanged. The board is still dense, the
+dashboard is still rows, and a tile with a coloured plate outside `app/page.tsx`
+and `components/marketing/` is a mistake.
+
+Marketing components live in `components/marketing/`. The slim `Footer` in
+`components/footer.tsx` still serves sign in and the error page; `SiteFooter`
+is the landing page's.
