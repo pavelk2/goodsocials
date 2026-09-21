@@ -1,22 +1,17 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
-import { loadBoard } from "@/lib/board";
-import { loadAccess } from "@/lib/profiles";
+import { resolveEntry, signInHref } from "@/lib/entry";
 import { OnboardingForm } from "./onboarding-form";
 
 export const metadata = { title: "Set up your board" };
 
 export default async function OnboardingPage() {
-  const session = await auth();
-  if (!session?.memberId) redirect("/signin");
+  const entry = await resolveEntry();
 
-  const access = await loadAccess(session.memberId);
-  if (!access) redirect("/signin");
-  if (!access.active) redirect("/settings");
-
-  const view = await loadBoard(access.active.profile.id);
-  if (!view) redirect("/signin");
-  if (!view.needsOnboarding) redirect("/board");
+  if (entry.at === "signed-out") redirect(signInHref("signed-out"));
+  if (entry.at === "no-account") redirect(signInHref("no-account"));
+  if (entry.at === "no-board") redirect(signInHref("no-board"));
+  if (entry.at === "no-seat") redirect("/settings");
+  if (entry.at === "board") redirect("/board");
 
   return (
     <main className="mx-auto max-w-[760px] px-6 py-20">

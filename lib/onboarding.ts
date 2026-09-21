@@ -138,14 +138,27 @@ async function onboardProfile(
       },
     });
 
+  await ensureBoard(prof.id);
+}
+
+/**
+ * The board row and the three placeholder principles a profile cannot render
+ * without. Sign in writes both, so a profile missing them is a sign in that
+ * half finished, and the repair is two inserts rather than another trip
+ * through LinkedIn. Idempotent, which is why lib/entry.ts can call it on the
+ * way to the board.
+ */
+export async function ensureBoard(profileId: string): Promise<void> {
+  const db = getDb();
+
   await db
     .insert(boardTable)
-    .values({ profileId: prof.id })
+    .values({ profileId })
     .onConflictDoNothing({ target: boardTable.profileId });
 
   await db
     .insert(brandPrinciple)
-    .values(PLACEHOLDER_PRINCIPLES.map((p) => ({ profileId: prof.id, ...p })))
+    .values(PLACEHOLDER_PRINCIPLES.map((p) => ({ profileId, ...p })))
     .onConflictDoNothing();
 }
 
