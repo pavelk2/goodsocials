@@ -8,6 +8,13 @@
  */
 export const OPERATOR = "GoodSocials, operated from Amsterdam, Netherlands";
 export const CONTACT = "privacy@goodsocials.co";
+/**
+ * The address on every footer. A role address, not a person's: the footer is
+ * the first thing a stranger reads, and the operator's own name belongs in the
+ * company register rather than on the page. Must forward to a human before
+ * launch, same as CONTACT.
+ */
+export const SUPPORT = "hello@goodsocials.co";
 export const LAST_UPDATED = "14 September 2026";
 
 /** Seats on the agency and consultancy plans. The prices live in lib/plans.ts. */

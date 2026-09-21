@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Logo } from "./logo";
 import { Streak } from "./streak";
-import { AGENCY_SEATS } from "@/lib/legal";
+import { AGENCY_SEATS, SUPPORT } from "@/lib/legal";
 import { DEFAULT_PLAN } from "@/lib/plans";
 
 /**
@@ -45,7 +45,7 @@ const COLUMNS = [
       { href: `/signin?plan=${DEFAULT_PLAN.slug}`, label: "Start a board" },
       { href: "/signin", label: "Sign in" },
       { href: "#pricing", label: `Run up to ${AGENCY_SEATS} clients` },
-      { href: "mailto:pavel@goodsocials.co", label: "pavel@goodsocials.co" },
+      { href: `mailto:${SUPPORT}`, label: SUPPORT },
     ],
   },
   {
@@ -87,7 +87,7 @@ export function SiteFooter() {
               GoodSocials
             </div>
             <p className="mt-5 text-[15px] leading-[1.5] text-ink-2">
-              Built and run by Pavel in Amsterdam. One price on the page,{" "}
+              Built and run in Amsterdam. One price on the page,{" "}
               <span className="num">{DEFAULT_PLAN.priceLine}</span>, cancel from
               the settings screen.
             </p>
