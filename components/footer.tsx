@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SUPPORT } from "@/lib/legal";
 
 /** The legal pages one click away on every screen. */
 export function Footer() {
@@ -7,8 +8,8 @@ export function Footer() {
       <p>
         GoodSocials is built and run in Amsterdam, the Netherlands. Questions go
         to{" "}
-        <a className="underline" href="mailto:pavel@goodsocials.co">
-          pavel@goodsocials.co
+        <a className="underline" href={`mailto:${SUPPORT}`}>
+          {SUPPORT}
         </a>
         .
       </p>

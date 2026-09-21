@@ -41,6 +41,7 @@ const EXPECTED_TABLES = [
   "linkedin_connection",
   "profile",
   "scheduled_post",
+  "theme",
 ];
 
 function row(label: string, value: string) {

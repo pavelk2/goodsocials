@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
-import { loadBoard } from "@/lib/board";
-import { loadAccess, seatName } from "@/lib/profiles";
+import { resolveEntry, signInHref } from "@/lib/entry";
+import { seatName } from "@/lib/profiles";
 import { readQuota } from "@/lib/quota";
 import { BoardColumns } from "@/components/board/board-columns";
 import { BoardHeader } from "@/components/board/board-header";
@@ -14,19 +13,17 @@ export const metadata = { title: "Board" };
 const THIN_DRAFT_COLUMN = 2;
 
 export default async function BoardPage() {
-  const session = await auth();
-  if (!session?.memberId) redirect("/signin");
+  const entry = await resolveEntry();
 
-  const access = await loadAccess(session.memberId);
-  // Signed in with no account means the sign in callback failed to write it.
-  // Sending them back through sign in is the only thing that fixes it.
-  if (!access) redirect("/signin");
-  if (!access.active) redirect("/settings");
+  // Every bounce carries what caused it, so sign in can say it in a sentence
+  // instead of looking like a login screen a signed in member keeps landing on.
+  if (entry.at === "signed-out") redirect(signInHref("signed-out"));
+  if (entry.at === "no-account") redirect(signInHref("no-account"));
+  if (entry.at === "no-board") redirect(signInHref("no-board"));
+  if (entry.at === "no-seat") redirect("/settings");
+  if (entry.at === "onboarding") redirect("/onboarding");
 
-  const view = await loadBoard(access.active.profile.id);
-  if (!view) redirect("/signin");
-  if (view.needsOnboarding) redirect("/onboarding");
-
+  const { access, seat, view } = entry;
   const quota = await readQuota(view.profile.id);
   const thin =
     view.cards.draft.length < THIN_DRAFT_COLUMN && view.cards.idea.length > 0;
@@ -36,7 +33,7 @@ export default async function BoardPage() {
       <TopUp needed={thin} />
 
       <BoardHeader
-        seat={access.seats.length > 1 ? seatName(access.active) : null}
+        seat={access.seats.length > 1 ? seatName(seat) : null}
         runwayDays={view.runwayDays}
         principles={view.principles}
         themes={view.themes}
