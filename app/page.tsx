@@ -3,6 +3,7 @@ import { SiteNav } from "@/components/marketing/site-nav";
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { Eyebrow, SectionHead } from "@/components/marketing/section-head";
 import { Streak, StepDots } from "@/components/marketing/streak";
+import { Reactions } from "@/components/marketing/reactions";
 import { BoardPreview } from "@/components/board/board-preview";
 import { CardShell, CardComment } from "@/components/board/card-shell";
 import { AGENCY_SEATS } from "@/lib/legal";
@@ -173,7 +174,8 @@ export default function Home() {
         {/* Hero. Centred, and the only headline on the site that colours a
             word. The word is daily, which is the thing being sold, and the dot
             in front of it is today's cell at headline size. */}
-        <section className={`${wrap} pt-[84px] pb-[64px] text-center`}>
+        <section className={`${wrap} relative pt-[84px] pb-[64px] text-center`}>
+          <Reactions />
           <Eyebrow>AI social media manager for LinkedIn</Eyebrow>
 
           <h1 className="mx-auto mt-8 max-w-[17ch] text-[clamp(44px,7.4vw,86px)] font-semibold leading-[1.02] tracking-[-0.045em]">
@@ -368,27 +370,38 @@ export default function Home() {
               screen.
             </SectionHead>
 
-            <ul className="mt-16 grid items-start gap-4 md:grid-cols-3">
+            {/* Stretch, not items-start: three plans are three versions of one
+                object, and a card that is a different size from the one beside
+                it reads as a different kind of thing. The badge row, the
+                feature list and the button all hold their line across the row,
+                so the prices sit on one baseline and the buttons on another. */}
+            <ul className="mt-16 grid gap-4 md:grid-cols-3">
               {PLANS.map((plan) => (
                 <li
                   key={plan.slug}
-                  className={
-                    plan.featured
-                      ? "panel flex flex-col rounded-[var(--r-xl)] p-8 md:-my-4 md:py-12"
-                      : "card-lift flex flex-col rounded-[var(--r-xl)] p-8"
-                  }
+                  className={`flex flex-col rounded-[var(--r-xl)] p-8 ${
+                    plan.featured ? "panel" : "card-lift"
+                  }`}
                 >
-                  {plan.featured && plan.badge ? (
-                    <div className="mb-6">
-                      <Eyebrow onPanel>{plan.badge}</Eyebrow>
-                    </div>
-                  ) : null}
+                  {/* The badge row exists on every card. Only one plan fills
+                      it; the others hold the space, or the two beside the
+                      featured one start a badge's height higher and the three
+                      prices stop lining up. */}
+                  <div className="mb-6">
+                    {plan.badge ? (
+                      <Eyebrow onPanel={plan.featured}>{plan.badge}</Eyebrow>
+                    ) : (
+                      <span className="eyebrow invisible" aria-hidden="true">
+                        {plan.name}
+                      </span>
+                    )}
+                  </div>
 
                   <h3 className="text-[17px] font-semibold tracking-[-0.01em]">
                     {plan.name}
                   </h3>
                   <p
-                    className="mt-2 text-[15px] leading-[1.45]"
+                    className="mt-2 min-h-[44px] text-[15px] leading-[1.45]"
                     style={{
                       color: plan.featured
                         ? "var(--panel-ink-2)"
