@@ -1,35 +1,59 @@
 /**
- * Move an account onto the agency plan before Stripe exists to do it.
+ * Put an account on a plan by hand, without Stripe.
  *
- * The seat limit is what lets a second LinkedIn profile be connected, and until
- * the Day 4 webhook sets it, every account is solo with one seat. This is the
- * operator hand crank for that one column, so the profile switcher can be used
- * on a real account this week.
+ * Stripe's webhook owns these columns in normal operation. This is the
+ * operator hand crank for the two cases it does not cover: a comped account,
+ * and a founder testing agency mode before a real subscription exists.
  *
  *   npx tsx scripts/set-plan.ts pavel@example.com agency
- *   npx tsx scripts/set-plan.ts pavel@example.com solo
+ *   npx tsx scripts/set-plan.ts pavel@example.com pro --paid
+ *   npx tsx scripts/set-plan.ts pavel@example.com pro --stop
+ *
+ * Without a flag only the plan and seat limit move, and billing is left as
+ * Stripe last set it. `--paid` writes the status the publish loop needs to
+ * post, which is what makes an account comped. `--stop` takes it away.
+ *
+ * The next webhook for a real subscription overwrites all of this, which is
+ * correct: Stripe is the source of truth and this file is a crank.
  *
  * It is not imported by app/ and it is not a substitute for the webhook.
  */
 import { eq } from "drizzle-orm";
 import { getDb } from "../db";
 import { account as accountTable } from "../db/schema";
-import { AGENCY_SEATS } from "../lib/legal";
+import { PLANS, columnForSlug, planFromSlug, type PlanSlug } from "../lib/plans";
 
-const SEATS = { solo: 1, agency: AGENCY_SEATS } as const;
+const SLUGS = PLANS.map((plan) => plan.slug);
+
+function usage(): never {
+  console.error(
+    `Usage: npx tsx scripts/set-plan.ts <account email> <${SLUGS.join("|")}> [--paid|--stop]`,
+  );
+  process.exit(1);
+}
 
 async function main() {
-  const [email, plan] = process.argv.slice(2);
+  const [email, slug, flag] = process.argv.slice(2);
 
-  if (!email || (plan !== "solo" && plan !== "agency")) {
-    console.error("Usage: npx tsx scripts/set-plan.ts <account email> <solo|agency>");
-    process.exit(1);
-  }
+  if (!email || !slug || !SLUGS.includes(slug as PlanSlug)) usage();
+  if (flag && flag !== "--paid" && flag !== "--stop") usage();
+
+  const plan = planFromSlug(slug);
+  const billing =
+    flag === "--paid"
+      ? { subscriptionStatus: "active" as const, cancelAtPeriodEnd: false }
+      : flag === "--stop"
+        ? { subscriptionStatus: "canceled" as const }
+        : {};
 
   const db = getDb();
   const updated = await db
     .update(accountTable)
-    .set({ plan, seatLimit: SEATS[plan] })
+    .set({
+      plan: columnForSlug(plan.slug),
+      seatLimit: plan.seats,
+      ...billing,
+    })
     .where(eq(accountTable.email, email))
     .returning();
 
@@ -39,7 +63,9 @@ async function main() {
   }
 
   for (const row of updated) {
-    console.log(`${row.email}: ${row.plan}, ${row.seatLimit} seats`);
+    console.log(
+      `${row.email}: ${plan.name}, ${row.seatLimit} seats, billing ${row.subscriptionStatus}`,
+    );
   }
 }
 

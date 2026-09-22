@@ -1,6 +1,6 @@
 # Setup, the parts Claude cannot do
 
-Three things need a logged-in browser session. Everything downstream of them is
+Four things need a logged-in browser session. Everything downstream of them is
 written and waiting.
 
 ## 1. LinkedIn app
@@ -147,3 +147,46 @@ re-authorization: same rows, fresh token, status back to active.
 
 The `/api/admin/migrate` and `/api/linkedin/*` routes are Day 1 scaffolding and
 get deleted once this is signed off.
+
+## 5. Stripe
+
+Everything on Stripe's side is created and live: three products, three monthly
+prices in USD, the billing portal configuration, and the webhook endpoint at
+`https://goodsocials.co/api/stripe/webhook`. The price ids and the webhook
+signing secret are set on Vercel.
+
+One value is missing, and it is the one that cannot be created through an API.
+Stripe has no endpoint for minting API keys.
+
+1. https://dashboard.stripe.com/apikeys
+2. Create a **restricted key** named `goodsocials-app`, and give it write on
+   Customers, Checkout Sessions, Billing Portal Sessions, Subscriptions, and
+   read on Products and Prices. A full secret key works and gives away more
+   than the app needs.
+3. Set it on Vercel for Production and Preview:
+   ```
+   STRIPE_SECRET_KEY
+   ```
+4. Redeploy. Until it is set, the billing row on `/settings` says billing is
+   not configured and no checkout opens.
+
+Two things to know about the account as it stands.
+
+**Everything is in live mode.** The Stripe connection Claude was given reaches
+the live account only, so the products, prices, portal and webhook are the real
+ones. Test mode has none of them. To rehearse a checkout without a real card,
+create the same three prices in test mode, register a test webhook endpoint,
+and swap the four `STRIPE_*` variables on a preview deployment.
+
+**The webhook is registered against `goodsocials.co` only.** A preview
+deployment receives no Stripe events, so a plan change made against a preview
+never lands on the account. Test billing on production, or run
+`stripe listen --forward-to` against a tunnel.
+
+## 6. Still open
+
+Stripe Tax is off, so no VAT is calculated or collected. Prices are marked tax
+exclusive, which is the setting that lets tax be added on top later without new
+prices. Checkout does collect a VAT number, so invoices to EU companies carry
+one. Turning Stripe Tax on is a dashboard change plus `automatic_tax` on the
+Checkout session in `lib/billing.ts`.

@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { getDb } from "@/db";
 import { account as accountTable, profile as profileTable } from "@/db/schema";
-import { planFromSlug, type Plan } from "@/lib/plans";
+import { planForColumn, type Plan } from "@/lib/plans";
 
 /**
  * Who is signed in, for the app header and nothing else.
@@ -49,6 +49,6 @@ export async function loadViewer(): Promise<Viewer | null> {
     name: row.name ?? row.accountEmail ?? "Your account",
     email: row.email ?? row.accountEmail,
     avatarUrl: row.avatarUrl,
-    plan: planFromSlug(row.plan === "agency" ? "agency" : "pro"),
+    plan: planForColumn(row.plan),
   };
 }

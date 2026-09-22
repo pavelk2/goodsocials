@@ -341,3 +341,35 @@ Orange failed AA under white text at 3.6:1 and the primary button is white text 
 **The mark is the streak grid.**
 Rejected: the same grid packed into a raspberry.
 The fruit read as fruit before it read as a calendar, and it spent the whole mark on one saturated colour.
+
+---
+
+## Decided on Day 6, wiring the money
+
+**Stripe hosts both money screens: Checkout to start, the billing portal for everything after.**
+Rejected: our own plan switcher, card form and cancel flow.
+Upgrading, downgrading, dunning and cancellation are four flows with edge cases we would find in production, and the portal is a dashboard configuration rather than a codebase.
+
+**The Stripe webhook is the only writer of the billing columns.**
+Rejected: writing the plan from the checkout success redirect.
+A success URL is a string anybody can type, and a screen that inferred "they must be active, they just paid" would disagree with Stripe the first time a card failed, silently.
+
+**`past_due` keeps publishing.**
+Rejected: stopping the queue on the first declined charge.
+Stripe retries for about three weeks and most of those retries succeed, so stopping would silence twelve client feeds over an expired card, and Stripe moves the subscription to `canceled` or `unpaid` when the retries run out, which does stop it here.
+
+**A stopped subscription pauses the queue, it does not fail it.**
+Rejected: letting scheduled posts exhaust their five attempts.
+Nothing is wrong with those posts, so they keep their times and their attempt counts and go out the day a plan starts again, which is the same decision Day 4 made for a dead LinkedIn token.
+
+**A downgrade takes the seats but never a connected profile.**
+Rejected: disconnecting profiles past the new seat limit.
+Deleting a seat takes a client's whole board with it over a billing change, and the seat check already refuses the next connection.
+
+**The 7 free days are set on the Checkout session, not on the price.**
+Rejected: `trial_period_days` on the Stripe price.
+Changing the free days is then one edit in `lib/plans.ts` rather than three new prices and an environment variable swap.
+
+**A downgrade is scheduled for the end of the period, an upgrade is immediate.**
+Rejected: prorating both ways on the spot.
+An immediate downgrade hands back money for a month already half used and drops the seats under an agency mid-week, and Stripe's portal does the scheduling for us.

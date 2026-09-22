@@ -80,7 +80,7 @@ Log token and image spend per account so cost per customer is visible in PostHog
 - Tailwind plus shadcn/ui. Component primitives we restyle to the house tokens rather than accept as shipped.
 - dnd-kit for the board. Keyboard-accessible drag, which the house style requires.
 - Vercel Cron. LinkedIn has no scheduling endpoint, so the publish loop is ours.
-- Stripe Checkout. Two prices, no custom billing UI.
+- Stripe Checkout for starting a subscription and the Stripe billing portal for everything after it. No billing UI of our own: changing plan, updating a card and cancelling are three flows we do not have to get right, and no card ever reaches our servers. The portal is configured in the Stripe dashboard, not in this repo.
 - Loops for transactional email. Day 50 re-authorization warning and receipts.
 - PostHog. Funnel to the launch gate, plus per-account cost.
 - Anthropic API for text generation, called directly. Structured output and adaptive thinking are first party features an OpenAI-compatible gateway does not carry, so text never goes through one.
@@ -101,7 +101,7 @@ Log token and image spend per account so cost per customer is visible in PostHog
 
 ## Data model
 
-- `account` The paying entity. Holds the Stripe customer, plan (`solo` or `agency`), and profile seat limit (1 or 12).
+- `account` The paying entity. Holds the Stripe customer and subscription, plan (`solo`, `agency` or `consultancy`), profile seat limit, `subscription_status`, `current_period_end`, `trial_ends_at` and `cancel_at_period_end`. Everything from `stripe_subscription_id` down is written by the Stripe webhook and by nothing else, so what a screen believes about a subscription is what Stripe last said about it. `solo` is the column's name for the plan the page calls Pro; `lib/plans.ts` holds the only translation between the two.
 - `profile` One LinkedIn person we post as. Belongs to an account. An agency account has up to 12. Owns its own board, principles, quota, and connection.
 - `linkedin_connection` Per profile. Encrypted access token, LinkedIn member URN, granted scopes, `connected_at`, `expires_at`, `status` (`active`, `expiring`, `dead`).
 - `token_expiry` Not a table. Derived from `linkedin_connection.expires_at`. Day 50 sends email, day 55 shows a banner, day 60 marks the connection `dead` and pauses scheduling instead of failing post by post.
@@ -138,8 +138,9 @@ No values in this file, ever.
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob, holds images until LinkedIn upload |
 | `STRIPE_SECRET_KEY` | Checkout sessions and subscription reads |
 | `STRIPE_WEBHOOK_SECRET` | Verifies Stripe webhook signatures |
-| `STRIPE_PRICE_SOLO` | Price id for 100 USD per profile per month |
-| `STRIPE_PRICE_AGENCY` | Price id for 1000 USD for up to 12 profiles |
+| `STRIPE_PRICE_PRO` | Price id for 100 USD per profile per month |
+| `STRIPE_PRICE_AGENCY` | Price id for 1000 USD for up to 10 profiles |
+| `STRIPE_PRICE_CONSULTANCY` | Price id for 2000 USD, 10 profiles and a weekly call |
 | `LOOPS_API_KEY` | Transactional email |
 | `NEXT_PUBLIC_POSTHOG_KEY` | Client analytics |
 | `NEXT_PUBLIC_POSTHOG_HOST` | PostHog ingest host |
@@ -178,11 +179,19 @@ append `?k=` and `LINKEDIN_DEBUG_SECRET`, which is a separate secret so the
 cron's own never lands in a URL or a browser history. The response is the run:
 what was due, what published, what paused and why.
 
-Agency mode needs more than one seat, and until the Stripe webhook sets the
-plan the seat limit is 1 for everyone:
+The Stripe webhook owns the plan, the seat limit and the subscription status.
+For a comped account, or for testing agency mode without a subscription, there
+is a hand crank. `--paid` is what makes the publish loop post for an account
+that has never checked out:
 ```
-npx tsx scripts/set-plan.ts <account email> agency
+npx tsx scripts/set-plan.ts <account email> agency --paid
+npx tsx scripts/set-plan.ts <account email> pro --stop
 ```
+
+Stripe sends its events to `/api/stripe/webhook`, signed with
+`STRIPE_WEBHOOK_SECRET`. The endpoint is registered against `goodsocials.co`
+only, so a preview deployment never receives one: test billing on production or
+with `stripe listen` against a tunnel.
 
 ## Conventions
 
@@ -195,6 +204,8 @@ npx tsx scripts/set-plan.ts <account email> agency
 **LinkedIn tokens at rest.** AES-256-GCM with `TOKEN_ENCRYPTION_KEY`, a fresh random IV per record, the IV and auth tag stored alongside the ciphertext. Encrypt and decrypt only in `lib/linkedin/crypto.ts`. No other file reads the raw token, no token is logged, and no token crosses into client-side code.
 
 **Rate limits.** Every LinkedIn call goes through `lib/linkedin/client.ts`, which counts calls per member per day. The cron refuses to exceed 150.
+
+**Billing.** Every call to Stripe goes through `lib/stripe/client.ts`. The billing columns on `account` have one writer, `applySubscription` in `lib/billing.ts`, called by the webhook and by nothing else. Whether an account may publish has one reader, `canPublish`, which the settings row, the board banner and the publish cron all ask, so a cancelled account cannot look stopped on one screen and keep posting to a client's feed. `past_due` still publishes: Stripe retries a failed card for about three weeks and most of those retries succeed.
 
 ## Git
 

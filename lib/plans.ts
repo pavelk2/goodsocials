@@ -22,6 +22,10 @@ export type Plan = {
   line: string;
   /** Button label. The price is in the button, always. */
   cta: string;
+  /** LinkedIn profiles this plan can connect. The seat limit on the account. */
+  seats: number;
+  /** The environment variable holding this plan's Stripe price id. */
+  priceEnv: string;
 };
 
 export const PLANS: Plan[] = [
@@ -32,6 +36,8 @@ export const PLANS: Plan[] = [
     priceLine: "$100 a month",
     line: "One LinkedIn profile.",
     cta: "Start for $100 a month",
+    seats: 1,
+    priceEnv: "STRIPE_PRICE_PRO",
   },
   {
     slug: "agency",
@@ -40,6 +46,8 @@ export const PLANS: Plan[] = [
     priceLine: "$1,000 a month",
     line: `Up to ${AGENCY_SEATS} profiles, one board per client.`,
     cta: "Start for $1,000 a month",
+    seats: AGENCY_SEATS,
+    priceEnv: "STRIPE_PRICE_AGENCY",
   },
   {
     slug: "consultancy",
@@ -48,6 +56,8 @@ export const PLANS: Plan[] = [
     priceLine: "$2,000 a month",
     line: `Up to ${AGENCY_SEATS} profiles, and a call with the founder every week.`,
     cta: "Start for $2,000 a month",
+    seats: AGENCY_SEATS,
+    priceEnv: "STRIPE_PRICE_CONSULTANCY",
   },
 ];
 
@@ -85,3 +95,45 @@ const BY_SLUG = Object.fromEntries(PLANS.map((plan) => [plan.slug, plan]));
 export const PRICE_SOLO = BY_SLUG.pro.priceLine;
 export const PRICE_AGENCY = BY_SLUG.agency.priceLine;
 export const PRICE_CONSULTANCY = BY_SLUG.consultancy.priceLine;
+
+/**
+ * The plan column on `account` and the slug on this page are not spelled the
+ * same. The column said `solo` before the plan was named Pro, and renaming a
+ * live enum value so two spellings agree is a migration with nothing to show
+ * for it. These two functions are the only place that difference exists, and
+ * nothing else in the repo compares a plan column to a string.
+ */
+export type PlanColumn = "solo" | "agency" | "consultancy";
+
+export function slugForColumn(value: PlanColumn): PlanSlug {
+  return value === "solo" ? "pro" : value;
+}
+
+export function columnForSlug(slug: PlanSlug): PlanColumn {
+  return slug === "pro" ? "solo" : slug;
+}
+
+/** The plan an account is on, named the way the page names it. */
+export function planForColumn(value: PlanColumn): Plan {
+  return planFromSlug(slugForColumn(value));
+}
+
+/**
+ * The Stripe price this plan checks out at. Missing rather than throwing,
+ * because a price id absent from the environment is a deployment that is not
+ * finished, and the caller says so in a sentence instead of a stack trace.
+ */
+export function priceIdFor(slug: PlanSlug): string | null {
+  return process.env[planFromSlug(slug).priceEnv] || null;
+}
+
+/**
+ * Which plan a Stripe subscription is on, read from its price id. This is the
+ * direction the webhook needs: Stripe says what the customer is paying for and
+ * we decide what that means here, so a plan switched in the billing portal
+ * lands on the account without a second source of truth.
+ */
+export function planForPriceId(priceId: string | null | undefined): Plan | null {
+  if (!priceId) return null;
+  return PLANS.find((plan) => priceIdFor(plan.slug) === priceId) ?? null;
+}

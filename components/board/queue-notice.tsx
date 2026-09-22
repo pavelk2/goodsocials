@@ -11,10 +11,17 @@ import { daysUntilExpiry } from "@/lib/token-expiry";
  * nobody should have to go looking for it.
  */
 export function QueueNotice({
+  billing,
   connection,
   queueError,
   ownProfile,
 }: {
+  /**
+   * Why billing has stopped the queue, from lib/billing.ts, or null while the
+   * account is paying. First, because a cancelled subscription is the reason
+   * for everything below it and reconnecting LinkedIn would not restart a post.
+   */
+  billing: string | null;
   connection: { status: "active" | "expiring" | "dead"; expiresAt: Date } | null;
   queueError: string | null;
   /**
@@ -24,7 +31,7 @@ export function QueueNotice({
    */
   ownProfile: boolean;
 }) {
-  const line = noticeFor(connection, queueError, ownProfile);
+  const line = noticeFor(billing, connection, queueError, ownProfile);
   if (!line) return null;
 
   return (
@@ -47,10 +54,18 @@ export function QueueNotice({
 type Notice = { text: string; action?: { href: string; label: string } };
 
 function noticeFor(
+  billing: string | null,
   connection: { status: "active" | "expiring" | "dead"; expiresAt: Date } | null,
   queueError: string | null,
   ownProfile: boolean,
 ): Notice | null {
+  // Billing outranks the token. Sending somebody to sign in again when the
+  // subscription is what stopped the queue costs them a reconnect and changes
+  // nothing, and they find out from the client whose feed stayed quiet.
+  if (billing) {
+    return { text: billing, action: { href: "/settings", label: "Billing" } };
+  }
+
   // Our own sign in page, not the Auth.js route. It names the four scopes and
   // says what we never do, which is the page that got the domain unflagged.
   // A seat that is not the member's own has no sign in of its own, so it
