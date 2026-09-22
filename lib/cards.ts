@@ -14,7 +14,8 @@ import { generateDraft } from "@/lib/agent/drafts";
 import { generateImage } from "@/lib/agent/images";
 import { reviseCardBody } from "@/lib/agent/revise";
 import type { Goal } from "@/lib/agent/ideas";
-import { nextSlot } from "@/lib/schedule";
+import { boardZone, checkDay, nextSlot } from "@/lib/schedule";
+import { formatDayAndTime, publishSlot, type DayKey } from "@/lib/time";
 
 /**
  * Three actions, no fourth. Approve advances the card one column, Revise
@@ -156,7 +157,12 @@ export async function approveCard(
     // protect our image bill would stop the thing the customer pays for, and a
     // post without an image still publishes.
     if (!result.ok && result.reason === "cap") {
-      const slot = await schedule(card.id, profile.id, board.targetCadence);
+      const slot = await schedule(
+        card.id,
+        profile.id,
+        board.targetCadence,
+        boardZone(board.timezone),
+      );
       await log(card.id, "approve", actor.memberId);
       return { ok: true, message: `${result.error} Scheduled for ${slot} without one.` };
     }
@@ -181,7 +187,12 @@ export async function approveCard(
   }
 
   if (card.state === "image") {
-    const slot = await schedule(card.id, profile.id, board.targetCadence);
+    const slot = await schedule(
+      card.id,
+      profile.id,
+      board.targetCadence,
+      boardZone(board.timezone),
+    );
     await log(card.id, "approve", actor.memberId);
     return { ok: true, message: `Publishing ${slot}.` };
   }
@@ -198,8 +209,27 @@ async function schedule(
   cardId: string,
   profileId: string,
   targetCadence: number,
+  zone: string,
 ): Promise<string> {
-  const publishAt = await nextSlot({ profileId, targetCadence });
+  const publishAt = await nextSlot({ profileId, targetCadence, zone });
+  return place(cardId, profileId, publishAt, zone);
+}
+
+/**
+ * Writes one publish intent and moves the card to Scheduled. Every route into
+ * the queue goes through here: the Approve button, a drag across the board, and
+ * a drop onto a day in the calendar all have to leave the same two rows behind.
+ *
+ * Attempts and the last error are cleared, because a row arriving here is a
+ * fresh intent. A post that burned its five attempts and was then moved to
+ * another day is being asked again, not resumed.
+ */
+async function place(
+  cardId: string,
+  profileId: string,
+  publishAt: Date,
+  zone: string,
+): Promise<string> {
   const db = getDb();
 
   await db
@@ -215,12 +245,54 @@ async function schedule(
     .set({ state: "scheduled", scheduledAt: publishAt, updatedAt: new Date() })
     .where(eq(cardTable.id, cardId));
 
-  return new Intl.DateTimeFormat("en-GB", {
-    weekday: "long",
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "UTC",
-  }).format(publishAt);
+  return formatDayAndTime(publishAt, zone);
+}
+
+/**
+ * Puts a card on a day the user picked, which is the one thing the board's five
+ * columns cannot express. Dropping a card from Ready to schedule onto a day is
+ * the same decision as approving it, so it runs the same write and writes the
+ * same log row. Dropping a card that is already scheduled onto another day is a
+ * move, and a move is none of approve, revise or reject, so it logs nothing.
+ *
+ * Only those two states. An idea or a draft dropped on a day would have to
+ * write a post and buy a picture inside a drag, which is a surprise that costs
+ * money, so the calendar refuses and says which column to use.
+ */
+export async function scheduleCardOn(
+  actor: Actor,
+  cardId: string,
+  day: DayKey,
+): Promise<CardResult> {
+  const loaded = await load(actor, cardId);
+  if (!loaded) return { ok: false, error: "That card is not on your board." };
+
+  const { card, board, profile } = loaded;
+
+  if (card.state === "posted") {
+    return { ok: false, error: "That one is already published." };
+  }
+  if (card.state !== "image" && card.state !== "scheduled") {
+    return {
+      ok: false,
+      error: "Only a post with a picture can take a day. Approve it first.",
+    };
+  }
+
+  const zone = boardZone(board.timezone);
+  const check = await checkDay({
+    profileId: profile.id,
+    cardId: card.id,
+    day,
+    zone,
+  });
+  if (!check.ok) return { ok: false, error: check.error };
+
+  const wasWaiting = card.state === "image";
+  const slot = await place(card.id, profile.id, publishSlot(day, zone), zone);
+  if (wasWaiting) await log(card.id, "approve", actor.memberId);
+
+  return { ok: true, message: `Publishing ${slot}.` };
 }
 
 /**

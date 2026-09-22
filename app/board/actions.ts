@@ -1,18 +1,24 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eq, and } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { auth } from "@/auth";
 import { getDb } from "@/db";
-import { brandPrinciple, theme as themeTable } from "@/db/schema";
+import {
+  board as boardTable,
+  brandPrinciple,
+  theme as themeTable,
+} from "@/db/schema";
 import {
   approveCard,
   moveCard,
   rejectCard,
   reviseCard,
+  scheduleCardOn,
   topUpDrafts,
   type CardResult,
 } from "@/lib/cards";
+import { isDayKey, isZone } from "@/lib/time";
 import { resolveActor, type Actor } from "@/lib/profiles";
 import { COLUMNS, type Column } from "@/lib/board";
 
@@ -75,6 +81,57 @@ export async function move(
   const result = await moveCard(who, cardId, target as Column);
   if (result.ok) revalidatePath("/board");
   return result;
+}
+
+/**
+ * Puts a post on a day, which is the calendar's one write. The day is a
+ * `YYYY-MM-DD` in the profile's own zone rather than an instant, because the
+ * user dropped a card on a square on a grid and the hour is the product's to
+ * decide. Everything about whether that day can take a post is checked in
+ * lib/schedule.ts, on the server, where the queue lives.
+ */
+export async function scheduleOn(
+  cardId: string,
+  day: string,
+): Promise<CardResult> {
+  const who = await actor();
+  if (!who) return { ok: false, error: "Sign in first." };
+  if (!isDayKey(day)) return { ok: false, error: "That is not a day." };
+
+  const result = await scheduleCardOn(who, cardId, day);
+  if (result.ok) revalidatePath("/board");
+  return result;
+}
+
+/**
+ * The zone the browser reported, written once. Never an overwrite: the first
+ * answer stands until somebody changes it in settings, so an agency operator
+ * opening a client's board from an airport does not move that client's posting
+ * hour to wherever they landed.
+ */
+export async function saveDetectedTimezone(
+  zone: string,
+): Promise<{ ok: boolean }> {
+  const who = await actor();
+  if (!who) return { ok: false };
+  if (!isZone(zone)) return { ok: false };
+
+  const written = await getDb()
+    .update(boardTable)
+    .set({ timezone: zone })
+    .where(
+      and(
+        eq(boardTable.profileId, who.profileId),
+        isNull(boardTable.timezone),
+      ),
+    )
+    .returning({ id: boardTable.id });
+
+  if (written.length > 0) {
+    revalidatePath("/board");
+    revalidatePath("/settings");
+  }
+  return { ok: true };
 }
 
 /** Called once by the board when the Draft column is thin. See lib/cards.ts. */

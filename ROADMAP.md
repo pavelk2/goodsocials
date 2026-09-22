@@ -74,6 +74,18 @@ What is deliberately not in this pass, in the order it is worth building.
 - [ ] **Frameworks as LinkedIn documents.** The carousel format, which is what a saveable reference post should be. `POST /rest/documents?action=initializeUpload`, `PUT` the binary, then the document URN in the post body. The same three call shape as images and unverified against the live API, plus a PDF renderer we do not have. Check it the way the image path was checked: one real document on one real feed before anything is built around it.
 - [ ] **Receipts without typing.** Stripe, PostHog or a spreadsheet connected once, so the number the card asks for arrives on its own. The `needs` line is the manual version of this, and it is the version that ships first because it works without an integration and it proves whether anyone answers.
 
+## Day 6: the calendar and local time
+
+Built and green on typecheck and lint. The container has no database, so the
+month model and the zone arithmetic were checked against fixtures and the
+screens were rendered from a throwaway route with mock cards. Everything below
+is checked properly on the preview deploy.
+
+- [x] **The board has a second reading.** `/board?view=calendar` draws the same cards by the day they go out: posted, scheduled, today, open weekdays, weekends drawn back and not counted as gaps. A segmented control in the header switches between them, and both are real links, so a month can be sent to whoever approves it. Unobserved: the switch against a real board.
+- [x] **A post can be given a day.** Dragging a card from Ready to schedule onto an open day schedules it there rather than at the next free slot, and dragging a scheduled post to another day moves it. Dropping one back on the rail takes it out of the queue. A day in the past or a day that already has a post is refused with the reason on screen. Unobserved: the drag end to end, mouse and keyboard, on the preview.
+- [x] **Every profile posts at 09:00 in its own zone.** `board.timezone` holds an IANA name, taken from the browser at onboarding and once more on first board load if it is still missing, editable in settings, and every slot the scheduler claims is 09:00 there. The board, the card dialog and the calendar all read times through it. Unobserved: a cron run publishing against a non-UTC zone.
+- [ ] **Backfill the zone for boards created before this.** They carry null until somebody opens the board, which is the only moment the browser can be asked. Until then they schedule at 09:00 UTC, which is what they were already doing.
+
 ## Pre-launch
 
 - [ ] **PostHog events named and firing.** The funnel from sign-in to first publish is visible as one funnel, and cost per account (tokens plus images) is a queryable property.
