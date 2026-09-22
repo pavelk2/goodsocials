@@ -342,6 +342,72 @@ Orange failed AA under white text at 3.6:1 and the primary button is white text 
 Rejected: the same grid packed into a raspberry.
 The fruit read as fruit before it read as a calendar, and it spent the whole mark on one saturated colour.
 
+## Decided building the calendar
+
+**The calendar is a second reading of the board, not a second surface.**
+Rejected: a `/calendar` route, and a modal opened from the runway indicator.
+A route makes the calendar a thing that can drift from the board, and a second
+page is one more surface in a product whose whole argument is that five columns
+and three actions are enough. A modal keeps the board intact but puts the month
+one click deep, and the month is where somebody decides what to move, which is
+work rather than a glance. `?view=calendar` is the same page, the same loaded
+cards and the same components, and the url still names what is on screen.
+
+**One post per day per profile, enforced rather than described.**
+Rejected: several posts on a day, spaced by hours.
+Spacing was already whole days: `spacingDays` is 7 divided by the cadence,
+rounded, with a floor of 1, so the automatic scheduler has never put two posts
+on one day. The calendar makes that visible for the first time, and a grid that
+silently stacked a second post in a cell would be showing something the queue
+does not do. `checkDay` in `lib/schedule.ts` refuses the drop and says why.
+
+**A drop is Approve with the day chosen by hand, and only from two states.**
+Rejected: letting an idea or a draft be dropped on a day.
+Dragging an idea onto next Tuesday would have to write a post and buy a picture
+inside the drag, which is a surprise that costs money. The calendar takes a card
+from Ready to schedule, which already has both, or moves one that is already
+scheduled. Anything else is refused with the column to use instead.
+
+**Rescheduling clears the attempt count.**
+A paused row keeps its attempts because nothing about that post was wrong. A row
+a person deliberately moved to another day is a fresh intent, so it goes back to
+zero attempts with no stored error. Otherwise a post that burned its five
+attempts on a dead token would be unmovable after the token was renewed.
+
+## Decided giving every profile its own time zone
+
+**09:00 is local, and the zone lives on `board`.**
+Rejected: 09:00 UTC for everybody, which is what shipped on Day 4.
+UTC was written down as a Day 4 shortcut with per-profile local time named as
+the follow-up, and the calendar is what made it untenable: a grid that draws a
+day boundary has to know whose day it is, and 09:00 UTC is the night before in
+California. The zone is on `board` rather than `profile` because it is a
+scheduling setting, one decision with cadence and goal, and the board is already
+one row per profile.
+
+**The browser is asked, the person is not.**
+Rejected: a third question in onboarding.
+Onboarding is a URL and a goal, and the launch gate sentence has no room for a
+third field. `Intl.DateTimeFormat().resolvedOptions().timeZone` is sent with the
+intake call, and a board that somehow still has no zone asks once on first load.
+Detection never overwrites: an agency operator opening a client's board from
+another country must not move that client's posting hour, so only settings
+writes over a stored zone.
+
+**Days are strings, instants are produced at the edges.**
+`lib/time.ts` does calendar arithmetic on `YYYY-MM-DD` keys and turns a key plus
+an hour plus a zone into an instant in one function. Adding a day to an instant
+is wrong twice a year. Adding a day to a key never is, which is what keeps a
+slot at 09:00 across a clock change, verified either side of both European
+transitions and on a half-hour and a quarter-hour zone.
+
+**No date library.**
+Rejected: date-fns-tz, Luxon, Temporal polyfill.
+The whole requirement is two functions, offset-at-an-instant and
+instant-for-a-wall-time, and `Intl.DateTimeFormat.formatToParts` gives both.
+CLAUDE.md says no dependency without the reason in the commit message, and
+"the standard library already does this" is not a reason to add one.
+
 ---
 
 ## Day 6

@@ -227,3 +227,47 @@ the real components.
 Marketing components live in `components/marketing/`. The slim `Footer` in
 `components/footer.tsx` still serves sign in and the error page; `SiteFooter`
 is the landing page's.
+
+---
+
+## 7. The calendar is the second reading of the board, not a second screen
+
+Same url, same cards, one query parameter. `/board` is the five columns and
+`/board?view=calendar` is the month. The switch is two real links, so a week
+somebody is looking at can be sent to the person who has to approve it.
+
+The columns answer how far along a post is. They cannot be made to answer
+whether next Thursday has one: a Scheduled column with four cards in it looks
+identical whether those four days run consecutively or are spread over a
+fortnight. That is the whole reason the view exists, and it is why the header
+sentence names a day rather than a count.
+
+**Cell states, and what each one is drawn as.**
+
+```
+posted      --surface fill, no border, a filled ink dot
+scheduled   dashed --ink-3 border, a hollow dot
+today       --accent border on --accent-wash, the day number in --accent-on-wash
+open        dotted --hairline border, "Nothing here"
+weekend     no border, dimmed number, "Weekend"
+outside     the number alone, dimmed
+past        the number alone, no border, nothing droppable
+```
+
+A weekend is drawn back rather than outlined, and it is not counted in the open
+days, because an empty Saturday is a choice and an empty Tuesday is a gap. A
+calendar that flagged both would cry wolf every week.
+
+**The accent, still once.** Today's cell is the live edge of time, which is what
+section 6 says the plum is for, so the runway indicator leaves the header in
+this view. The month line says which day the queue runs dry, which is the same
+fact with somewhere to point. One saturated idea per screen holds.
+
+**The rail is the Image column under the name it has here.** Same card
+component, same three actions, so section 4 still allows exactly one card in the
+product. `Schedule it` picks the next free day; a drag picks the day.
+
+**Seven columns do not fit a phone.** The grid scrolls sideways inside its own
+container, the way the board already scrolls one column at a time, and the rail
+stacks under it. Squeezing seven cells into 390px would leave none of them wide
+enough for a line of a post.

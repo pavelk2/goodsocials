@@ -104,6 +104,18 @@ What is deliberately not in this pass.
 - [ ] **A card that says which source answered it.** The board shows `needs` when a card is waiting on the author. It does not yet show "this number came from Stripe on Tuesday", which is what makes a user trust the figure enough to approve without checking.
 - [ ] **A per-source error email.** A broken source is visible on the integrations screen and nowhere else. It belongs in the same day 50 machinery as a dying LinkedIn token, because the failure is the same shape: silent, and discovered late.
 
+## Day 6: the calendar and local time
+
+Built and green on typecheck and lint. The container has no database, so the
+month model and the zone arithmetic were checked against fixtures and the
+screens were rendered from a throwaway route with mock cards. Everything below
+is checked properly on the preview deploy.
+
+- [x] **The board has a second reading.** `/board?view=calendar` draws the same cards by the day they go out: posted, scheduled, today, open weekdays, weekends drawn back and not counted as gaps. A segmented control in the header switches between them, and both are real links, so a month can be sent to whoever approves it. Unobserved: the switch against a real board.
+- [x] **A post can be given a day.** Dragging a card from Ready to schedule onto an open day schedules it there rather than at the next free slot, and dragging a scheduled post to another day moves it. Dropping one back on the rail takes it out of the queue. A day in the past or a day that already has a post is refused with the reason on screen. Unobserved: the drag end to end, mouse and keyboard, on the preview.
+- [x] **Every profile posts at 09:00 in its own zone.** `board.timezone` holds an IANA name, taken from the browser at onboarding and once more on first board load if it is still missing, editable in settings, and every slot the scheduler claims is 09:00 there. The board, the card dialog and the calendar all read times through it. Unobserved: a cron run publishing against a non-UTC zone.
+- [ ] **Backfill the zone for boards created before this.** They carry null until somebody opens the board, which is the only moment the browser can be asked. Until then they schedule at 09:00 UTC, which is what they were already doing.
+
 ## Pre-launch
 
 - [ ] **PostHog events named and firing.** The funnel from sign-in to first publish is visible as one funnel, and cost per account (tokens plus images) is a queryable property.

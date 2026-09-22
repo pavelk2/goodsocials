@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { AppHeader } from "@/components/app-header";
 
 /**
  * The board carries a `@modal` slot so Settings can be intercepted over it.
@@ -15,6 +16,7 @@ export default function BoardLayout({
 }) {
   return (
     <>
+      <AppHeader />
       {children}
       {modal}
     </>

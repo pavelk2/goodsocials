@@ -7,11 +7,12 @@ import { board as boardTable } from "@/db/schema";
 import { loadAccess, seatName } from "@/lib/profiles";
 import { readQuota } from "@/lib/quota";
 import { listSources } from "@/lib/integrations/sources";
-import { spacingDays } from "@/lib/schedule";
+import { boardZone, spacingDays } from "@/lib/schedule";
+import { PUBLISH_HOUR, allZones, offsetLabel } from "@/lib/time";
 import { connectionLine, needsReconnect } from "@/lib/token-expiry";
 import { AGENCY_SEATS } from "@/lib/legal";
 import { PRICE_AGENCY, PRICE_SOLO, planFromSlug } from "@/lib/plans";
-import { saveCadence, saveGoal } from "@/app/settings/actions";
+import { saveCadence, saveGoal, saveTimezone } from "@/app/settings/actions";
 import { ChoiceRow } from "@/components/settings/choice-row";
 import { ProfilePicker, type SeatRow } from "@/components/settings/profile-picker";
 
@@ -76,6 +77,15 @@ export async function SettingsBody({ linked }: { linked?: string }) {
   const gap = spacingDays(brd.targetCadence);
   const connectedSources = sources.filter((s) => s.connected !== null).length;
 
+  // The whole IANA list from the runtime rather than a curated one, because a
+  // curated list is a list somebody's city is missing from. A native select
+  // already knows how to be typed into, which DESIGN.md calls the feature.
+  const zone = boardZone(brd.timezone);
+  const zoneOptions = allZones().map((name) => ({ value: name, label: name }));
+  if (!zoneOptions.some((option) => option.value === zone)) {
+    zoneOptions.unshift({ value: zone, label: zone });
+  }
+
   const seats: SeatRow[] = access.seats.map((seat) => ({
     id: seat.profile.id,
     name: seatName(seat),
@@ -123,9 +133,17 @@ export async function SettingsBody({ linked }: { linked?: string }) {
             options={CADENCE_OPTIONS}
             save={saveCadence}
           />
+          <ChoiceRow
+            label="Time zone"
+            value={zone}
+            options={zoneOptions}
+            save={saveTimezone}
+          />
           <Row
             label="Posting time"
-            value={`${gap === 1 ? "One a day" : `One every ${gap} days`} at 09:00 UTC`}
+            value={`${gap === 1 ? "One a day" : `One every ${gap} days`} at ${String(
+              PUBLISH_HOUR,
+            ).padStart(2, "0")}:00, ${offsetLabel(zone)}`}
           />
           <Row
             label="Images this month"

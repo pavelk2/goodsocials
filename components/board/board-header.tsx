@@ -38,11 +38,14 @@ const SECONDARY = `btn-outline ${SHAPE} border border-hairline bg-surface text-i
 export function BoardHeader({
   seat,
   runwayDays,
+  view,
   principles,
   themes,
 }: {
   seat: string | null;
   runwayDays: number;
+  /** Which reading of the same cards is on screen. */
+  view: "board" | "calendar";
   principles: { voice: string; visual: string; format: string };
   themes: ThemeRow[];
 }) {
@@ -50,7 +53,10 @@ export function BoardHeader({
 
   return (
     <div className="mb-8">
-      <header className="flex items-center justify-between gap-6">
+      {/* Wraps rather than overflows. The controls are four wide now that the
+          board has two readings, which is more than a phone fits on one line,
+          and a header that scrolls sideways takes the page with it. */}
+      <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         <h1 className="text-[28px] font-semibold tracking-[-0.03em]">
           Board
           {/* An agency runs one of these per client. Whose board this is has
@@ -62,14 +68,22 @@ export function BoardHeader({
           ) : null}
         </h1>
 
-        <div className="flex items-center gap-3">
-          {/* The only colored thing on this screen, and it should be. */}
-          <p className="mr-1 text-[13px] text-ink-2">
-            Runway{" "}
-            <span className="num font-medium text-accent">
-              {runwayDays} {runwayDays === 1 ? "day" : "days"}
-            </span>
-          </p>
+        <div className="flex flex-wrap items-center gap-3">
+          {/* The only colored thing on this screen, and it should be. The
+              calendar drops it: there the live edge of time is today's cell,
+              the month line says which day the queue runs dry rather than how
+              many are left, and one screen carries one saturated idea. */}
+          {view === "board" ? (
+            <p className="mr-1 text-[13px] text-ink-2">
+              Runway{" "}
+              <span className="num font-medium text-accent">
+                {runwayDays} {runwayDays === 1 ? "day" : "days"}
+              </span>
+            </p>
+          ) : null}
+
+          <ViewSwitch view={view} />
+
           <button
             type="button"
             onClick={() => setOpen(true)}
@@ -100,6 +114,39 @@ export function BoardHeader({
           </div>
         </Sheet>
       ) : null}
+    </div>
+  );
+}
+
+/**
+ * Two readings of one board, not two pages. A real link each, because the view
+ * is in the url: a calendar somebody is looking at can be sent to the person
+ * who has to approve the week.
+ */
+function ViewSwitch({ view }: { view: "board" | "calendar" }) {
+  const shape =
+    "rounded-[7px] px-[13px] py-[5px] text-[13px] font-medium transition-colors";
+
+  return (
+    <div className="flex rounded-[9px] border border-hairline bg-surface p-[2px]">
+      <Link
+        href="/board"
+        aria-current={view === "board" ? "page" : undefined}
+        className={`${shape} ${
+          view === "board" ? "bg-ink text-paper" : "nav-link text-ink-2"
+        }`}
+      >
+        Board
+      </Link>
+      <Link
+        href="/board?view=calendar"
+        aria-current={view === "calendar" ? "page" : undefined}
+        className={`${shape} ${
+          view === "calendar" ? "bg-ink text-paper" : "nav-link text-ink-2"
+        }`}
+      >
+        Calendar
+      </Link>
     </div>
   );
 }

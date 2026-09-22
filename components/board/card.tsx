@@ -26,6 +26,7 @@ export function Card({
   needs,
   imageUrl,
   scheduledAt,
+  timeZone,
 }: {
   id: string;
   state: Column;
@@ -34,6 +35,7 @@ export function Card({
   needs?: string | null;
   imageUrl?: string | null;
   scheduledAt?: Date | null;
+  timeZone?: string;
 }) {
   const [reading, setReading] = useState(false);
 
@@ -42,7 +44,10 @@ export function Card({
   // keyboard instructions, which is how a card moves without a mouse.
   const { setNodeRef, attributes, listeners, isDragging } = useDraggable({
     id,
-    data: { state },
+    // The board finds the card it is dragging by id in the column it came
+    // from. The calendar cannot: a card can leave the rail or a day cell, so
+    // what it needs to draw in the air travels with the drag instead.
+    data: { state, body, label, imageUrl },
   });
 
   return (
@@ -53,6 +58,7 @@ export function Card({
       imageUrl={imageUrl}
       onOpen={() => setReading(true)}
       scheduledAt={scheduledAt}
+      timeZone={timeZone}
       innerRef={setNodeRef}
       style={isDragging ? { opacity: 0.4 } : undefined}
       handleProps={{ ...attributes, ...listeners }}
@@ -70,6 +76,7 @@ export function Card({
           needs={needs}
           imageUrl={imageUrl}
           scheduledAt={scheduledAt}
+          timeZone={timeZone}
           onClose={() => setReading(false)}
         />
       ) : null}
