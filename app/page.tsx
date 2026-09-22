@@ -372,9 +372,9 @@ export default function Home() {
 
             {/* Stretch, not items-start: three plans are three versions of one
                 object, and a card that is a different size from the one beside
-                it reads as a different kind of thing. The badge row, the
-                feature list and the button all hold their line across the row,
-                so the prices sit on one baseline and the buttons on another. */}
+                it reads as a different kind of thing. The plan's one line and
+                the feature list both hold their height across the row, so the
+                prices sit on one baseline and the buttons on another. */}
             <ul className="mt-16 grid gap-4 md:grid-cols-3">
               {PLANS.map((plan) => (
                 <li
@@ -383,20 +383,11 @@ export default function Home() {
                     plan.featured ? "panel" : "card-lift"
                   }`}
                 >
-                  {/* The badge row exists on every card. Only one plan fills
-                      it; the others hold the space, or the two beside the
-                      featured one start a badge's height higher and the three
-                      prices stop lining up. */}
-                  <div className="mb-6">
-                    {plan.badge ? (
-                      <Eyebrow onPanel={plan.featured}>{plan.badge}</Eyebrow>
-                    ) : (
-                      <span className="eyebrow invisible" aria-hidden="true">
-                        {plan.name}
-                      </span>
-                    )}
-                  </div>
-
+                  {/* No badge on the recommended plan. It cost a whole row
+                      on every card, since the other two had to hold the space
+                      to keep the prices on one baseline, and the ink ground,
+                      the glow and the white button already say which plan the
+                      page is pointing at. */}
                   <h3 className="text-[17px] font-semibold tracking-[-0.01em]">
                     {plan.name}
                   </h3>

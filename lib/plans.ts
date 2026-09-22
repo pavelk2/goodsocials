@@ -32,11 +32,6 @@ export type Plan = {
    * Exactly one plan carries this.
    */
   featured?: boolean;
-  /**
-   * What the badge on the featured card says. Not "most popular": we do not
-   * have the number and the page does not print numbers it does not have.
-   */
-  badge?: string;
   /** Button label. The price is in the button, always. */
   cta: string;
 };
@@ -56,7 +51,6 @@ export const PLANS: Plan[] = [
       "Publishes on your schedule, checked every 15 minutes",
     ],
     featured: true,
-    badge: "Start here",
     cta: "Start for $100 a month",
   },
   {
