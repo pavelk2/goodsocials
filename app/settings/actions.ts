@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { getDb } from "@/db";
 import { board as boardTable } from "@/db/schema";
 import { loadAccess, setActiveProfile, type Access } from "@/lib/profiles";
+import { isZone } from "@/lib/time";
 
 export type SaveResult = { ok: true } | { ok: false; error: string };
 
@@ -75,6 +76,30 @@ export async function saveCadence(value: string): Promise<SaveResult> {
   await getDb()
     .update(boardTable)
     .set({ targetCadence: cadence })
+    .where(eq(boardTable.profileId, acc.active.profile.id));
+
+  revalidatePath("/board");
+  revalidatePath("/settings");
+  return { ok: true };
+}
+
+/**
+ * The zone every slot is 09:00 in. Changing it is a deliberate answer to a
+ * question the browser guessed at, so unlike the detection on the board this
+ * one overwrites.
+ *
+ * Posts already queued keep their instants, for the same reason changing
+ * cadence leaves them alone: moving somebody's scheduled week is a decision
+ * they did not make on this row. The calendar is where a post is moved.
+ */
+export async function saveTimezone(zone: string): Promise<SaveResult> {
+  const acc = await access();
+  if (!acc?.active) return { ok: false, error: "Sign in first." };
+  if (!isZone(zone)) return { ok: false, error: "That is not a time zone." };
+
+  await getDb()
+    .update(boardTable)
+    .set({ timezone: zone })
     .where(eq(boardTable.profileId, acc.active.profile.id));
 
   revalidatePath("/board");

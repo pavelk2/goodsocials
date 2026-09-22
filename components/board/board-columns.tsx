@@ -50,9 +50,12 @@ function bodyOf(card: BoardCard, state: Column): string {
 export function BoardColumns({
   cards,
   themes,
+  timeZone,
 }: {
   cards: Record<Column, BoardCard[]>;
   themes: BoardTheme[];
+  /** The profile's own zone, so every time on the board is their 09:00. */
+  timeZone: string;
 }) {
   // Titles by id, once for the whole board rather than a lookup per card.
   const themeTitle = new Map(themes.map((t) => [t.id, t.title]));
@@ -139,6 +142,7 @@ export function BoardColumns({
                 needs={state === "idea" ? card.needs : null}
                 imageUrl={card.imageUrl}
                 scheduledAt={card.scheduledAt}
+                timeZone={timeZone}
               />
             ))}
           </Dropzone>
@@ -152,6 +156,7 @@ export function BoardColumns({
             label={labelOf(dragging)}
             imageUrl={dragging.imageUrl}
             scheduledAt={dragging.scheduledAt}
+            timeZone={timeZone}
             floating
           />
         ) : null}

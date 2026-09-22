@@ -1,30 +1,44 @@
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull, ne } from "drizzle-orm";
 import { getDb } from "@/db";
 import { scheduledPost } from "@/db/schema";
+import {
+  PUBLISH_HOUR,
+  addDays,
+  dayKey,
+  isZone,
+  publishSlot,
+  todayKey,
+  type DayKey,
+} from "@/lib/time";
 
 /**
- * LinkedIn has no scheduling endpoint, so the queue is ours. A slot is 09:00
- * UTC on some future day, which is a morning in Europe and the night before in
- * California. Per profile local time is a Day 4 problem and it is written down
- * as one; picking a single hour now means the cron has one thing to read.
+ * LinkedIn has no scheduling endpoint, so the queue is ours. A slot is 09:00 on
+ * some future day in the profile's own zone, which is stored on the board and
+ * asked for once at onboarding. It used to be 09:00 UTC for everybody, which
+ * was a morning in Europe and the night before in California.
  *
  * Spacing is 7 divided by the target cadence, rounded to whole days, so a
  * cadence of 5 posts a week lands daily and a cadence of 3 lands every other
  * day. Rounding up to daily at 5 is deliberate: the offer says close to daily.
+ *
+ * Everything here works in calendar days rather than in milliseconds. A day
+ * after a clock change is still 09:00, and only lib/time.ts turns a day into
+ * an instant.
  */
 
-const PUBLISH_HOUR_UTC = 9;
+export { PUBLISH_HOUR };
 
-function slotOn(day: Date): Date {
-  const slot = new Date(day);
-  slot.setUTCHours(PUBLISH_HOUR_UTC, 0, 0, 0);
-  return slot;
-}
+/** Until somebody tells us otherwise. The board asks the browser on first load. */
+export const FALLBACK_ZONE = "UTC";
 
-function addDays(date: Date, days: number): Date {
-  const next = new Date(date);
-  next.setUTCDate(next.getUTCDate() + days);
-  return next;
+/**
+ * The zone to schedule in, from whatever the board has stored. Validated on the
+ * way out as well as on the way in, because a zone that Intl stopped
+ * recognising would otherwise throw inside the cron rather than on the screen
+ * where somebody chose it.
+ */
+export function boardZone(timezone: string | null | undefined): string {
+  return timezone && isZone(timezone) ? timezone : FALLBACK_ZONE;
 }
 
 export function spacingDays(targetCadence: number): number {
@@ -40,6 +54,7 @@ export function spacingDays(targetCadence: number): number {
 export async function nextSlot(opts: {
   profileId: string;
   targetCadence: number;
+  zone: string;
   now?: Date;
 }): Promise<Date> {
   const now = opts.now ?? new Date();
@@ -58,8 +73,60 @@ export async function nextSlot(opts: {
     .limit(1);
 
   // Nothing queued, or the queue has run out: start tomorrow morning.
-  const earliest = slotOn(addDays(now, 1));
+  const earliestKey = addDays(todayKey(opts.zone, now), 1);
+  const earliest = publishSlot(earliestKey, opts.zone);
   if (!last || last.publishAt < earliest) return earliest;
 
-  return slotOn(addDays(last.publishAt, gap));
+  return publishSlot(addDays(dayKey(last.publishAt, opts.zone), gap), opts.zone);
+}
+
+/**
+ * Whether a day can still take a post, and why not when it cannot.
+ *
+ * Two rules, both of which the automatic scheduler already obeys and neither of
+ * which was visible until the calendar drew them. A slot in the past cannot be
+ * published into, and a day already carrying a post is taken: spacing is in
+ * whole days, so one post a day is the shape of the whole queue rather than a
+ * limit invented for this screen.
+ */
+export type DayCheck = { ok: true } | { ok: false; error: string };
+
+export async function checkDay(opts: {
+  profileId: string;
+  cardId: string;
+  day: DayKey;
+  zone: string;
+  now?: Date;
+}): Promise<DayCheck> {
+  const now = opts.now ?? new Date();
+  const slot = publishSlot(opts.day, opts.zone);
+
+  if (Number.isNaN(slot.getTime())) {
+    return { ok: false, error: "That is not a day." };
+  }
+  if (slot.getTime() <= now.getTime()) {
+    return { ok: false, error: "That time has gone. Pick a later day." };
+  }
+
+  // Everything queued for this profile except the card being placed, so moving
+  // a post onto the day it already sits on is not a collision with itself.
+  const taken = await getDb()
+    .select({ publishAt: scheduledPost.publishAt })
+    .from(scheduledPost)
+    .where(
+      and(
+        eq(scheduledPost.profileId, opts.profileId),
+        isNull(scheduledPost.publishedAt),
+        ne(scheduledPost.cardId, opts.cardId),
+      ),
+    );
+
+  const clash = taken.some(
+    (row) => dayKey(row.publishAt, opts.zone) === opts.day,
+  );
+  if (clash) {
+    return { ok: false, error: "There is already a post on that day." };
+  }
+
+  return { ok: true };
 }

@@ -133,6 +133,17 @@ export const board = pgTable("board", {
   siteUrl: text("site_url"),
   /** Posts per week. Close to daily is 5. Drives the runway calculation. */
   targetCadence: integer("target_cadence").notNull().default(5),
+  /**
+   * IANA zone this profile posts in, for example `Europe/Amsterdam`. Every slot
+   * is 09:00 here, not 09:00 UTC, so the cron's instants are computed from this
+   * and the calendar reads every day boundary through it.
+   *
+   * On the board rather than the profile because it is a scheduling setting,
+   * and cadence, goal and posting time are one decision a user makes once.
+   * Nullable rather than defaulted: null means nobody has told us yet, which is
+   * what lets the board ask the browser once instead of assuming UTC forever.
+   */
+  timezone: text("timezone"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
