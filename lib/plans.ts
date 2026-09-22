@@ -1,4 +1,4 @@
-import { AGENCY_SEATS } from "@/lib/legal";
+import { AGENCY_SEATS, IMAGE_CAP_PER_MONTH } from "@/lib/legal";
 
 /**
  * The three prices, in one place, with the flow each one starts.
@@ -18,8 +18,25 @@ export type Plan = {
   price: string;
   /** Price and period, for a sentence. */
   priceLine: string;
-  /** What you get, one line. */
+  /** What you get, one line. Used wherever a card has room for a sentence. */
   line: string;
+  /**
+   * What you get, itemised. Every line is a fact the product already enforces
+   * in code, because the plan card is the one place on the page where an
+   * invented capability turns into a refund. No line here without a constant,
+   * a table or a cron behind it.
+   */
+  features: string[];
+  /**
+   * The one plan the page recommends. Drawn on ink, with the label below.
+   * Exactly one plan carries this.
+   */
+  featured?: boolean;
+  /**
+   * What the badge on the featured card says. Not "most popular": we do not
+   * have the number and the page does not print numbers it does not have.
+   */
+  badge?: string;
   /** Button label. The price is in the button, always. */
   cta: string;
 };
@@ -31,6 +48,15 @@ export const PLANS: Plan[] = [
     price: "$100",
     priceLine: "$100 a month",
     line: "One LinkedIn profile.",
+    features: [
+      "One LinkedIn profile",
+      "Four themes, so week four does not read like week one",
+      "Three brand principles that learn from every revision",
+      `Up to ${IMAGE_CAP_PER_MONTH} generated images a month`,
+      "Publishes on your schedule, checked every 15 minutes",
+    ],
+    featured: true,
+    badge: "Start here",
     cta: "Start for $100 a month",
   },
   {
@@ -39,6 +65,12 @@ export const PLANS: Plan[] = [
     price: "$1,000",
     priceLine: "$1,000 a month",
     line: `Up to ${AGENCY_SEATS} profiles, one board per client.`,
+    features: [
+      `Everything in Pro, up to ${AGENCY_SEATS} profiles`,
+      "One board, themes and principles per client",
+      "Each client authorises their own profile, you never hold a password",
+      "We email you before a client's access runs out",
+    ],
     cta: "Start for $1,000 a month",
   },
   {
@@ -47,6 +79,12 @@ export const PLANS: Plan[] = [
     price: "$2,000",
     priceLine: "$2,000 a month",
     line: `Up to ${AGENCY_SEATS} profiles, and a call with the founder every week.`,
+    features: [
+      "Everything in Agency",
+      "A call with the founder every week",
+      "We write the first set of themes with you",
+      "A direct line when a client board needs a decision",
+    ],
     cta: "Start for $2,000 a month",
   },
 ];

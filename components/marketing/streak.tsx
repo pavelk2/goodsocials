@@ -24,6 +24,8 @@ export function Streak({
   today = true,
   size,
   className,
+  ink = "var(--ink)",
+  empty = "var(--hairline)",
 }: {
   /** Days a post went out, drawn in ink. Anything over 25 is a full grid. */
   posted: number;
@@ -32,6 +34,10 @@ export function Streak({
   /** Rendered width in px. The grid is square. */
   size: number;
   className?: string;
+  /** The colour of a day that posted. Overridden only inside an ink panel. */
+  ink?: string;
+  /** The colour of a day still ahead. Same. */
+  empty?: string;
 }) {
   const filled = Math.max(0, Math.min(posted, CELLS.length));
   const todayAt = today && filled < CELLS.length ? filled : -1;
@@ -51,35 +57,11 @@ export function Streak({
           cy={cell.y}
           r="9"
           fill={
-            i < filled
-              ? "var(--ink)"
-              : i === todayAt
-                ? "var(--accent)"
-                : "var(--hairline)"
+            i < filled ? ink : i === todayAt ? "var(--accent)" : empty
           }
         />
       ))}
     </svg>
-  );
-}
-
-/**
- * A section's anchor: the grid at the count that section has reached, with the
- * count spelled out beside it. This replaces the eyebrow label, the icon, and
- * the tinted plate, all three of which the house style bans and all three of
- * which the first pass at this page shipped anyway.
- */
-export function StreakMark({ posted }: { posted: number }) {
-  return (
-    <div className="flex shrink-0 items-center gap-4">
-      <Streak posted={posted} size={56} />
-      <p className="font-mono text-[12px] leading-[1.4] text-ink-3">
-        <span className="num block text-ink-2">
-          {posted} {posted === 1 ? "post" : "posts"}
-        </span>
-        <span className="block">this month</span>
-      </p>
-    </div>
   );
 }
 

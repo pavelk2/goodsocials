@@ -7,12 +7,12 @@ import { DEFAULT_PLAN } from "@/lib/plans";
 /**
  * The sign-off is a year of the mark: twelve grids, one per month, filled to
  * the cadence this product exists to produce and empty for the months that
- * have not happened yet. It is the page's argument in one line of drawing,
- * and it is the only thing on the page that shows more than one month.
+ * have not happened yet. It is the page's argument in one line of drawing, and
+ * it is the only place on the site that shows more than one month.
  *
- * The line beside the brand names an author, a place and a price, which is the
- * ninth position of the house style and the reason a visitor believes there is
- * somebody behind this.
+ * Under it, the shape the reference uses: mark and links on one row, the
+ * secondary set below a hairline. Three stacked columns of links is a footer
+ * for a site with three products; we have one page with six anchors on it.
  */
 const MONTHS = [
   "Jan",
@@ -29,32 +29,20 @@ const MONTHS = [
   "Dec",
 ];
 
-const COLUMNS = [
-  {
-    heading: "The product",
-    links: [
-      { href: "#how", label: "How it works" },
-      { href: "#who", label: "Who it is for" },
-      { href: "#pricing", label: "Pricing" },
-      { href: "#permissions", label: "What we ask LinkedIn for" },
-    ],
-  },
-  {
-    heading: "Start",
-    links: [
-      { href: `/signin?plan=${DEFAULT_PLAN.slug}`, label: "Start a board" },
-      { href: "/signin", label: "Sign in" },
-      { href: "#pricing", label: `Run up to ${AGENCY_SEATS} clients` },
-      { href: `mailto:${SUPPORT}`, label: SUPPORT },
-    ],
-  },
-  {
-    heading: "Legal",
-    links: [
-      { href: "/privacy", label: "Privacy" },
-      { href: "/terms", label: "Terms" },
-    ],
-  },
+const LINKS = [
+  { href: "#how", label: "How it works" },
+  { href: "#who", label: "Who it is for" },
+  { href: "#pricing", label: "Pricing" },
+  { href: "#permissions", label: "LinkedIn" },
+  { href: "/signin", label: "Sign in" },
+];
+
+const SECONDARY = [
+  { href: `/signin?plan=${DEFAULT_PLAN.slug}`, label: "Start a board" },
+  { href: "#pricing", label: `Run up to ${AGENCY_SEATS} clients` },
+  { href: `mailto:${SUPPORT}`, label: SUPPORT },
+  { href: "/privacy", label: "Privacy" },
+  { href: "/terms", label: "Terms" },
 ];
 
 export function SiteFooter() {
@@ -80,44 +68,49 @@ export function SiteFooter() {
           ))}
         </div>
 
-        <div className="mt-[60px] flex flex-col gap-[60px] border-t border-hairline pt-[60px] lg:flex-row lg:justify-between lg:gap-20">
-          <div className="max-w-[300px]">
-            <div className="flex items-center gap-[10px] text-[17px] font-semibold tracking-[-0.02em]">
-              <Logo />
-              GoodSocials
-            </div>
-            <p className="mt-5 text-[15px] leading-[1.5] text-ink-2">
-              Built and run in Amsterdam. One price on the page,{" "}
-              <span className="num">{DEFAULT_PLAN.priceLine}</span>, cancel from
-              the settings screen.
-            </p>
-          </div>
+        <div className="mt-[60px] flex flex-col gap-8 border-t border-hairline pt-[40px] lg:flex-row lg:items-center lg:justify-between lg:gap-12">
+          <Link
+            href="/"
+            className="flex shrink-0 items-center gap-[10px] text-[17px] font-semibold tracking-[-0.02em]"
+          >
+            <Logo />
+            GoodSocials
+          </Link>
 
-          <div className="grid grow grid-cols-2 gap-10 sm:grid-cols-3 lg:max-w-[600px]">
-            {COLUMNS.map((column) => (
-              <div key={column.heading}>
-                <h2 className="text-[15px] font-semibold tracking-[-0.01em]">
-                  {column.heading}
-                </h2>
-                <ul className="mt-4 flex flex-col gap-3 text-[15px] text-ink-2">
-                  {column.links.map((link) => (
-                    <li key={link.label}>
-                      <Link href={link.href} className="nav-link">
-                        {link.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+          <ul className="flex flex-wrap items-center gap-x-8 gap-y-3 text-[15px] text-ink-2">
+            {LINKS.map((link) => (
+              <li key={link.label}>
+                <Link href={link.href} className="nav-link">
+                  {link.label}
+                </Link>
+              </li>
             ))}
-          </div>
-        </div>
+          </ul>
 
-        <div className="mt-[60px] flex flex-col gap-2 border-t border-hairline pt-6 font-mono text-[12px] text-ink-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="num">
+          <p className="num shrink-0 font-mono text-[12px] text-ink-3">
             &copy; {now.getUTCFullYear()} GoodSocials, Amsterdam
           </p>
-          <p>Not affiliated with LinkedIn. We post as you, with your permission.</p>
+        </div>
+
+        <div className="mt-10 border-t border-hairline pt-8">
+          <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-ink-3">
+            More
+          </p>
+          <ul className="mt-5 flex flex-wrap gap-x-10 gap-y-3 text-[15px] text-ink-2">
+            {SECONDARY.map((link) => (
+              <li key={link.label}>
+                <Link href={link.href} className="nav-link">
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-8 max-w-[70ch] text-[13px] leading-[1.5] text-ink-3">
+            Built and run in Amsterdam. One price on the page,{" "}
+            <span className="num">{DEFAULT_PLAN.priceLine}</span>, cancel from
+            the settings screen. Not affiliated with LinkedIn. We post as you,
+            with your permission.
+          </p>
         </div>
       </div>
     </footer>
