@@ -52,77 +52,85 @@ export default async function SignInPage({
 
   return (
     <>
-      <main className="mx-auto max-w-[440px] px-6 py-24">
-        <h1 className="text-[32px] font-semibold leading-[1.1] tracking-[-0.03em]">
-          {blocked ? "Finish connecting." : "Connect your LinkedIn profile."}
-        </h1>
-        <p className="mt-3 text-ink-2">
-          {blocked
-            ? BLOCK_LINE[blocked]
-            : "GoodSocials writes the posts, you approve them, we publish at the time you set."}
-        </p>
-
-        <div className="mt-10 flex items-baseline justify-between gap-6 border-y border-hairline py-[14px]">
-          <span>
-            <span className="font-medium">{plan.name}</span>{" "}
-            <span className="text-ink-2">{plan.line}</span>
-          </span>
-          <Link className="shrink-0 text-ink-2 underline" href="/#pricing">
-            Change
-          </Link>
-        </div>
-
-        <form
-          className="mt-8"
-          action={async () => {
-            "use server";
-            const store = await cookies();
-            store.set(PLAN_COOKIE, plan.slug, {
-              httpOnly: true,
-              sameSite: "lax",
-              secure: true,
-              path: "/",
-              maxAge: 60 * 60 * 24 * 30,
-            });
-            await signIn("linkedin", { redirectTo: "/board" });
-          }}
-        >
-          <button
-            type="submit"
-            className="btn-ink w-full rounded-[14px] bg-ink px-6 py-[14px] text-[17px] font-semibold text-paper"
-          >
-            {blocked ? "Connect again" : "Continue with LinkedIn"}
-          </button>
-          <p className="num mt-3 text-center text-[13px] text-ink-2">
-            {TRIAL_LINE} Then {plan.priceLine}.
+      {/* One lifted card on the warm ground, the same object the landing page
+          is built out of. DESIGN.md section 7. */}
+      <main className="mx-auto max-w-[480px] px-6 py-20">
+        <div className="card-lift rounded-[var(--r-xl)] p-8 sm:p-10">
+          <h1 className="text-[32px] font-semibold leading-[1.1] tracking-[-0.03em]">
+            {blocked ? "Finish connecting." : "Connect your LinkedIn profile."}
+          </h1>
+          <p className="mt-3 text-ink-2">
+            {blocked
+              ? BLOCK_LINE[blocked]
+              : "GoodSocials writes the posts, you approve them, we publish at the time you set."}
           </p>
-        </form>
 
-        {blocked ? (
-          // The only way out of a session that cannot open a board. Without it
-          // the member is holding a cookie they have no control over.
+          <div className="mt-10 flex items-baseline justify-between gap-6 border-y border-hairline py-[14px]">
+            <span>
+              <span className="font-medium">{plan.name}</span>{" "}
+              <span className="text-ink-2">{plan.line}</span>
+            </span>
+            <Link className="shrink-0 text-ink-2 underline" href="/#pricing">
+              Change
+            </Link>
+          </div>
+
           <form
-            className="mt-6 text-center"
+            className="mt-8"
             action={async () => {
               "use server";
-              await signOut({ redirectTo: "/signin" });
+              const store = await cookies();
+              store.set(PLAN_COOKIE, plan.slug, {
+                httpOnly: true,
+                sameSite: "lax",
+                secure: true,
+                path: "/",
+                maxAge: 60 * 60 * 24 * 30,
+              });
+              await signIn("linkedin", { redirectTo: "/board" });
             }}
           >
-            <button type="submit" className="text-[13px] text-ink-2 underline">
-              Sign out and start again
+            <button
+              type="submit"
+              className="pill btn-ink w-full bg-ink px-6 py-[14px] text-[17px] text-paper"
+            >
+              {blocked ? "Connect again" : "Continue with LinkedIn"}
             </button>
+            <p className="num mt-3 text-center text-[13px] text-ink-2">
+              {TRIAL_LINE} Then {plan.priceLine}.
+            </p>
           </form>
-        ) : null}
 
-        <ul className="mt-12 text-[13px] text-ink-2">
-          <li className="border-t border-hairline py-[12px]">
-            LinkedIn asks you to allow your name and email, and posting as you.
-          </li>
-          <li className="border-y border-hairline py-[12px]">
-            We never see your password, and nothing publishes without your
-            approval.
-          </li>
-        </ul>
+          {blocked ? (
+            // The only way out of a session that cannot open a board. Without it
+            // the member is holding a cookie they have no control over.
+            <form
+              className="mt-6 text-center"
+              action={async () => {
+                "use server";
+                await signOut({ redirectTo: "/signin" });
+              }}
+            >
+              <button
+                type="submit"
+                className="text-[13px] text-ink-2 underline"
+              >
+                Sign out and start again
+              </button>
+            </form>
+          ) : null}
+
+          <ul className="mt-12 text-[13px] text-ink-2">
+            <li className="border-t border-hairline py-[12px]">
+              LinkedIn asks you to allow your name and email, and posting as
+              you.
+            </li>
+            <li className="border-y border-hairline py-[12px]">
+              We never see your password, and nothing publishes without your
+              approval.
+            </li>
+          </ul>
+        </div>
       </main>
       <Footer />
     </>

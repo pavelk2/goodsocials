@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { SiteNav } from "@/components/marketing/site-nav";
 import { SiteFooter } from "@/components/marketing/site-footer";
-import { Streak, StreakMark, StepDots } from "@/components/marketing/streak";
+import { Eyebrow, SectionHead } from "@/components/marketing/section-head";
+import { Streak, StepDots } from "@/components/marketing/streak";
+import { Reactions } from "@/components/marketing/reactions";
 import { BoardPreview } from "@/components/board/board-preview";
 import { CardShell, CardComment } from "@/components/board/card-shell";
 import { AGENCY_SEATS } from "@/lib/legal";
@@ -16,33 +18,27 @@ import {
 /**
  * The offer copy is verbatim from CLAUDE.md. Do not improve it, derive from it.
  *
- * DESIGN.md section 6. The first pass at this page took Notion's decorations,
- * which is why it read as somebody else's page with our colours in it. This
- * one takes the page's structure from the thing we already own: the streak
- * grid, twenty-five cells, one per day, drawn at three scales.
+ * DESIGN.md section 6 has the full history. Short version: pass one was
+ * notion.com with our hex codes in it, pass two stripped every borrowed part
+ * and left an unfinished page, and this one takes its shapes from the
+ * reference Pavel picked while keeping the material that is ours.
  *
- * - Hero: the grid at poster size, a month at the cadence we sell.
- * - Every section: the same grid at the count that section has reached, so
- *   reading down the page is watching a month fill. It is the section's whole
- *   ornament. No eyebrow, no icon, no tinted plate.
- * - Footer: twelve of them, a year.
+ * What the reference gives us: one warm ground the whole way down instead of
+ * alternating bands, pill controls, a centred eyebrow and claim above every
+ * section, white cards lifted off the paper, one ink panel for the plan we
+ * recommend and one to close on.
  *
- * Nothing else on this page is drawn. Type, hairlines, the two greys, and one
- * real screenshot of the real board carry the rest, which is the house style
- * doing what it was always going to do once the borrowed parts came out.
- *
- * Plum appears on today's cell and on the button that starts one, and nowhere
- * else. Numbers, counts and dates are Geist Mono, which ships in the repo and
- * was not being used for anything.
+ * What stays ours: plum, and only on the live edge of time. The streak grid,
+ * which is the dashboard metric drawn at logo size and the only thing on this
+ * page that is drawn at all. Geist Mono on every count, price and date. And a
+ * board preview that is the real component rendering an example board rather
+ * than a picture of one.
  */
 
 const wrap = "mx-auto w-full max-w-[1160px] px-6";
 
-/** 30px is the mark's dot pitch, so the page's rhythm is the mark's. */
-const band = "py-[120px]";
-
-const sectionHeading =
-  "text-[clamp(30px,4.2vw,46px)] font-semibold leading-[1.06] tracking-[-0.035em]";
+/** The band between two section heads. */
+const band = "py-[110px]";
 
 /**
  * Four facts on one line, under the buttons. This is the slot a logo wall
@@ -58,9 +54,10 @@ const PROOF = [
 ];
 
 /**
- * The five columns as rows with a mono index. The board is the dense surface
- * and the page around it is the airy one, so the page describes the board in
- * the calmest form there is rather than restaging it as five tiles.
+ * The five columns as five tiles. The plate on each one is StepDots: the
+ * columns behind this one in ink, this one in plum, the ones ahead hairline.
+ * It occupies the slot a coloured icon square would and says something the
+ * square could not, which is where in a card's life that column sits.
  */
 const COLUMNS = [
   {
@@ -92,9 +89,8 @@ const PRINCIPLES = [
 ];
 
 /**
- * Three audiences as three columns of type under a hairline. Not the tinted
- * panels the first pass shipped: a flat colour field behind a paragraph is
- * decoration standing in for an argument, and the argument is the card.
+ * Three audiences as three cards, each holding a real card from a real board.
+ * Weight from structure, not from a colour field standing in for an argument.
  */
 const AUDIENCES = [
   {
@@ -124,35 +120,49 @@ const AUDIENCES = [
 ];
 
 const PERMISSIONS = [
-  "We never see your LinkedIn password. LinkedIn handles sign in.",
-  "We never read your inbox, your connections, or your feed.",
-  "We never post anything you have not approved.",
-  "Access lasts 60 days, then you reconnect. We email you first.",
+  {
+    head: "We never see your password",
+    line: "LinkedIn handles sign in. You approve the connection on their site and we get a token, never a credential.",
+  },
+  {
+    head: "We never read your feed",
+    line: "Not your inbox, not your connections, not who looked at your profile. The app asks for permission to post and nothing else.",
+  },
+  {
+    head: "We never post what you have not approved",
+    line: "A card publishes because you moved it to Scheduled. Nothing leaves the board any other way.",
+  },
+  {
+    head: "Access lasts 60 days",
+    line: "LinkedIn gives out no refresh token, so you reconnect every 60 days. We email you on day 50 and pause the queue rather than fail post by post.",
+  },
 ];
 
-/* The hero's label is a sentence, so on a phone it wraps. Balanced rather
-   than ragged, or the break lands after the price and leaves "/ month" alone
-   on the second line. */
-const primary =
-  "btn-accent num inline-block w-full text-balance rounded-[var(--r-btn)] px-6 py-[13px] text-center text-[16px] font-semibold leading-[1.3] sm:w-auto";
-const secondary =
-  "btn-outline inline-block w-full rounded-[var(--r-btn)] border border-hairline px-6 py-[13px] text-center text-[16px] font-semibold sm:w-auto";
-const soft =
-  "btn-soft inline-block w-full rounded-[var(--r-btn)] px-6 py-[13px] text-center text-[16px] font-semibold sm:w-auto";
+const heroPrimary =
+  "pill btn-accent num inline-block w-full text-balance px-7 py-[14px] text-center text-[16px] leading-[1.3] sm:w-auto";
+const heroSecondary =
+  "pill btn-outline inline-block w-full border border-hairline bg-surface px-7 py-[14px] text-center text-[16px] sm:w-auto";
 
-/** Heading left, the month so far right. Every section, same shape. */
-function SectionHead({
-  posted,
-  children,
-}: {
-  posted: number;
-  children: React.ReactNode;
-}) {
+/** The one mark in a feature list. Plum is spent on time, so this is ink. */
+function Check() {
   return (
-    <div className="flex flex-col gap-8 border-t border-hairline pt-8 sm:flex-row sm:items-start sm:justify-between sm:gap-16">
-      {children}
-      <StreakMark posted={posted} />
-    </div>
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 18 18"
+      aria-hidden="true"
+      className="mt-[3px] shrink-0"
+    >
+      <circle cx="9" cy="9" r="9" fill="currentColor" opacity="0.08" />
+      <path
+        d="M5.4 9.2l2.3 2.3 4.9-4.9"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
@@ -160,28 +170,21 @@ export default function Home() {
   return (
     <>
       <SiteNav />
-      <main className="bg-surface">
-        {/* Hero. Centred, which is the one place the page gives up the left
-            rag: a claim this short reads as a statement in the middle of the
-            window and as a column of text against the edge. It is also the
-            only headline on the site that puts the accent on a word, and the
-            word is cadence, which is the thing being sold. Every other
-            heading is the fading sentence, ragged left. */}
-        <section className={`${wrap} pt-[90px] pb-[70px] text-center`}>
-          <h1 className="mx-auto max-w-[17ch] text-[clamp(44px,7.4vw,86px)] font-semibold leading-[1.02] tracking-[-0.045em]">
+      <main className="bg-paper">
+        {/* Hero. Centred, and the only headline on the site that colours a
+            word. The word is daily, which is the thing being sold, and the dot
+            in front of it is today's cell at headline size. */}
+        <section className={`${wrap} relative pt-[84px] pb-[64px] text-center`}>
+          <Reactions />
+          <Eyebrow>AI social media manager for LinkedIn</Eyebrow>
+
+          <h1 className="mx-auto mt-8 max-w-[17ch] text-[clamp(44px,7.4vw,86px)] font-semibold leading-[1.02] tracking-[-0.045em]">
             Post on LinkedIn{" "}
-            <span
-              className="relative inline-flex items-center rounded-full pl-[0.78em] pr-[0.34em] leading-[0.96]"
-              style={{
-                background: "var(--accent-wash)",
-                color: "var(--accent-on-wash)",
-              }}
-            >
-              {/* Out of the flex flow on purpose. An empty span as the first
-                  flex item would hand the inline-flex box its own bottom edge
-                  as a baseline and the word would sit below the line. The dot
-                  is today's cell, at headline size. */}
-              <span className="absolute left-[0.3em] top-1/2 h-[0.2em] w-[0.2em] -translate-y-1/2 rounded-full bg-current" />
+            {/* No dot in front of the word. Two passes tried one, as today's
+                cell at headline size, and at this scale the word-space is wide
+                enough that it always lands mid-gap and reads as a middot
+                separating two words. The plum is the whole signal. */}
+            <span className="whitespace-nowrap" style={{ color: "var(--accent-text)" }}>
               daily
             </span>{" "}
             without writing any of it.
@@ -193,10 +196,13 @@ export default function Home() {
           </p>
 
           <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link href={`/signin?plan=${DEFAULT_PLAN.slug}`} className={primary}>
+            <Link
+              href={`/signin?plan=${DEFAULT_PLAN.slug}`}
+              className={heroPrimary}
+            >
               {HERO_CTA}
             </Link>
-            <Link href="#how" className={soft}>
+            <Link href="#how" className={heroSecondary}>
               See how it works
             </Link>
           </div>
@@ -204,7 +210,7 @@ export default function Home() {
             {TRIAL_LINE}
           </p>
 
-          <ul className="mt-16 flex flex-wrap items-center justify-center gap-x-10 gap-y-3 text-[14px] text-ink-2">
+          <ul className="mt-14 flex flex-wrap items-center justify-center gap-x-10 gap-y-3 text-[14px] text-ink-2">
             {PROOF.map((fact) => (
               <li key={fact} className="num">
                 {fact}
@@ -213,37 +219,38 @@ export default function Home() {
           </ul>
         </section>
 
-        {/* The board, across the seam of two grounds. */}
-        <div
-          style={{
-            background:
-              "linear-gradient(to bottom, var(--surface) 0 50%, var(--paper) 50% 100%)",
-          }}
-        >
-          <div className={wrap}>
+        {/* The board, in the one panel on the page that carries a wash. The
+            reference floats its product shot on a soft gradient; ours is the
+            accent at the only weight a whole surface can hold it, so the panel
+            is still plum rather than a second hue. */}
+        <div className={wrap}>
+          <div
+            className="overflow-hidden rounded-[var(--r-2xl)] px-4 py-10 sm:px-10 sm:py-14"
+            style={{
+              background:
+                "linear-gradient(170deg, var(--accent-wash) 0%, var(--paper) 62%)",
+            }}
+          >
             <BoardPreview />
           </div>
         </div>
 
-        <section id="how" className="scroll-mt-[var(--nav-h)] bg-paper">
+        <section id="how" className="scroll-mt-[calc(var(--nav-h)+40px)]">
           <div className={`${wrap} ${band}`}>
-            <SectionHead posted={1}>
-              <div className="max-w-[640px]">
-                <h2 className={sectionHeading}>
-                  <span>Five columns. Three actions.</span>{" "}
-                  <span className="text-ink-3">
-                    Approve, revise, reject. There is no fourth one and no
-                    editor to get lost in.
-                  </span>
-                </h2>
-              </div>
+            <SectionHead
+              eyebrow="The board"
+              title="Five columns. Three actions."
+            >
+              Approve, revise, reject. There is no fourth one and no editor to
+              get lost in. A card crosses the board and comes back with the
+              address it was published at.
             </SectionHead>
 
-            <ul className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <ul className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
               {COLUMNS.map((column, i) => (
                 <li
                   key={column.name}
-                  className="rounded-[var(--r-lg)] border border-hairline bg-surface p-6"
+                  className="card-lift rounded-[var(--r-lg)] p-6"
                 >
                   <StepDots index={i} total={COLUMNS.length} />
                   <h3 className="mt-5 text-[17px] font-semibold tracking-[-0.01em]">
@@ -260,43 +267,39 @@ export default function Home() {
 
         {/* The differentiator. The still on the right is the loop in one frame:
             the comment, then the principle it moved. */}
-        <section className="bg-surface">
-          <div className={`${wrap} ${band}`}>
-            <SectionHead posted={4}>
-              <div className="max-w-[640px]">
-                <h2 className={sectionHeading}>
-                  <span>Tell it once.</span>{" "}
-                  <span className="text-ink-3">
-                    A comment on one card changes the principle above it, so
-                    every card after it already knows.
-                  </span>
-                </h2>
-              </div>
+        <section>
+          <div className={`${wrap} ${band} pt-0`}>
+            <SectionHead eyebrow="Corrections stick" title="Tell it once.">
+              A comment on one card changes the principle above it, so every
+              card after it already knows. Three principles hold everything you
+              have ever corrected, and you can edit them by hand any time.
             </SectionHead>
 
-            <div className="mt-14 grid gap-14 lg:grid-cols-[1fr_1fr] lg:items-start lg:gap-20">
-              <div>
-                <p className="max-w-[54ch] text-[17px] text-ink-2">
-                  Every tool writes posts. The part that matters is what happens
-                  after you say no. Three principles hold everything you have
-                  ever corrected, and you can edit them by hand any time.
+            <div className="mt-16 grid gap-6 lg:grid-cols-2 lg:items-stretch">
+              <div className="card-lift flex flex-col rounded-[var(--r-xl)] p-7 sm:p-9">
+                <p className="font-mono text-[12px] text-ink-3">
+                  Your three principles
                 </p>
-                <ul className="mt-10">
+                <ul className="mt-5 grow">
                   {PRINCIPLES.map((principle) => (
                     <li
                       key={principle.kind}
-                      className="flex flex-col gap-1 border-b border-hairline py-[14px] sm:flex-row sm:items-baseline sm:justify-between sm:gap-8"
+                      className="flex flex-col gap-1 border-b border-hairline py-[16px] first:pt-0 last:border-b-0 sm:flex-row sm:items-baseline sm:justify-between sm:gap-8"
                     >
                       <span className="font-medium">{principle.kind}</span>
-                      <span className="text-ink-2 sm:text-right">
+                      <span className="text-[15px] text-ink-2 sm:text-right">
                         {principle.line}
                       </span>
                     </li>
                   ))}
                 </ul>
+                <p className="mt-8 text-[15px] leading-[1.5] text-ink-2">
+                  Every tool writes posts. The part that matters is what happens
+                  after you say no.
+                </p>
               </div>
 
-              <div className="rounded-[var(--r-xl)] bg-paper p-5 sm:p-7">
+              <div className="card-lift rounded-[var(--r-xl)] bg-paper p-5 sm:p-7">
                 <p className="font-mono text-[12px] text-ink-3">A card in Draft</p>
                 <div className="mt-3">
                   <CardShell
@@ -309,7 +312,7 @@ export default function Home() {
 
                 <div className="mt-6 flex items-baseline justify-between gap-4 font-mono text-[12px]">
                   <p className="text-ink-3">Voice, one second later</p>
-                  <p className="text-accent">Updated</p>
+                  <p className="text-accent-text">Updated</p>
                 </div>
                 <p className="mt-2 rounded-[var(--r-md)] border border-hairline bg-surface px-4 py-[14px] text-[15px] leading-[1.45]">
                   Reports, does not sell. Short sentences, plain words. Open on
@@ -324,24 +327,21 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="who" className="scroll-mt-[var(--nav-h)] bg-paper">
-          <div className={`${wrap} ${band}`}>
-            <SectionHead posted={11}>
-              <div className="max-w-[640px]">
-                <h2 className={sectionHeading}>
-                  <span>Built for people who have to post,</span>{" "}
-                  <span className="text-ink-3">
-                    not for people who want to write.
-                  </span>
-                </h2>
-              </div>
+        <section id="who" className="scroll-mt-[calc(var(--nav-h)+40px)]">
+          <div className={`${wrap} ${band} pt-0`}>
+            <SectionHead
+              eyebrow="Who it is for"
+              title="Built for people who have to post, not for people who want to write."
+            >
+              Three jobs where being known for something is part of the work,
+              and writing about it never makes the top of the list.
             </SectionHead>
 
-            <ul className="mt-14 grid gap-4 lg:grid-cols-3">
+            <ul className="mt-16 grid gap-4 lg:grid-cols-3">
               {AUDIENCES.map((audience) => (
                 <li
                   key={audience.who}
-                  className="flex flex-col rounded-[var(--r-xl)] border border-hairline bg-surface p-7"
+                  className="card-lift flex flex-col rounded-[var(--r-xl)] p-7"
                 >
                   <p className="font-medium">{audience.who}</p>
                   <p className="mt-3 grow text-[15px] leading-[1.5] text-ink-2">
@@ -359,49 +359,102 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="pricing" className="scroll-mt-[var(--nav-h)] bg-surface">
-          <div className={`${wrap} ${band}`}>
-            <SectionHead posted={18}>
-              <div className="max-w-[640px]">
-                <h2 className={sectionHeading}>
-                  <span>A ghostwriter costs $1,500 to $3,000 a month.</span>{" "}
-                  <span className="text-ink-3">
-                    Three prices, all of them on this page, each free for the
-                    first {TRIAL_DAYS} days.
-                  </span>
-                </h2>
-              </div>
+        <section id="pricing" className="scroll-mt-[calc(var(--nav-h)+40px)]">
+          <div className={`${wrap} ${band} pt-0`}>
+            <SectionHead
+              eyebrow="Pricing"
+              title="A ghostwriter costs $1,500 to $3,000 a month."
+            >
+              Three prices, all of them on this page, each free for the first{" "}
+              {TRIAL_DAYS} days. No setup fee, and you cancel from the settings
+              screen.
             </SectionHead>
 
-            <ul className="mt-14 grid gap-4 md:grid-cols-3">
-              {PLANS.map((plan, i) => (
+            {/* Stretch, not items-start: three plans are three versions of one
+                object, and a card that is a different size from the one beside
+                it reads as a different kind of thing. The plan's one line and
+                the feature list both hold their height across the row, so the
+                prices sit on one baseline and the buttons on another. */}
+            <ul className="mt-16 grid gap-4 md:grid-cols-3">
+              {PLANS.map((plan) => (
                 <li
                   key={plan.slug}
-                  className="flex flex-col rounded-[var(--r-lg)] border border-hairline bg-surface p-7"
+                  className={`flex flex-col rounded-[var(--r-xl)] p-8 ${
+                    plan.featured ? "panel" : "card-lift"
+                  }`}
                 >
-                  <h3 className="text-[15px] font-semibold tracking-[-0.01em]">
+                  {/* No badge on the recommended plan. It cost a whole row
+                      on every card, since the other two had to hold the space
+                      to keep the prices on one baseline, and the ink ground,
+                      the glow and the white button already say which plan the
+                      page is pointing at. */}
+                  <h3 className="text-[17px] font-semibold tracking-[-0.01em]">
                     {plan.name}
                   </h3>
-                  <p className="num mt-6 text-[40px] font-semibold leading-none tracking-[-0.04em]">
-                    {plan.price}
-                  </p>
-                  <p className="mt-2 font-mono text-[12px] text-ink-3">
-                    a month
-                  </p>
-                  <p className="mt-6 grow border-t border-hairline pt-6 text-[15px] leading-[1.45] text-ink-2">
+                  <p
+                    className="mt-2 min-h-[44px] text-[15px] leading-[1.45]"
+                    style={{
+                      color: plan.featured
+                        ? "var(--panel-ink-2)"
+                        : "var(--ink-2)",
+                    }}
+                  >
                     {plan.line}
                   </p>
+
+                  <p className="num mt-7 flex items-baseline gap-2">
+                    <span className="text-[46px] font-semibold leading-none tracking-[-0.04em]">
+                      {plan.price}
+                    </span>
+                    <span
+                      className="font-mono text-[13px]"
+                      style={{
+                        color: plan.featured
+                          ? "var(--panel-ink-2)"
+                          : "var(--ink-3)",
+                      }}
+                    >
+                      a month
+                    </span>
+                  </p>
+
+                  <ul
+                    className="mt-8 grow space-y-3 border-t pt-8 text-[15px] leading-[1.45]"
+                    style={{
+                      borderColor: plan.featured
+                        ? "var(--panel-hairline)"
+                        : "var(--hairline)",
+                      color: plan.featured
+                        ? "var(--panel-ink-2)"
+                        : "var(--ink-2)",
+                    }}
+                  >
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex gap-3">
+                        <Check />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
                   <Link
                     href={`/signin?plan=${plan.slug}`}
-                    className={`num mt-8 block rounded-[var(--r-btn)] border px-5 py-3 text-center text-[15px] font-semibold ${
-                      i === 0
-                        ? "btn-accent border-transparent"
-                        : "btn-outline border-hairline"
+                    className={`pill num mt-9 block px-5 py-[13px] text-center text-[15px] ${
+                      plan.featured
+                        ? "btn-paper"
+                        : "btn-outline border border-hairline bg-surface"
                     }`}
                   >
                     {plan.cta}
                   </Link>
-                  <p className="num mt-3 text-center font-mono text-[12px] text-ink-3">
+                  <p
+                    className="num mt-3 text-center font-mono text-[12px]"
+                    style={{
+                      color: plan.featured
+                        ? "var(--panel-ink-2)"
+                        : "var(--ink-3)",
+                    }}
+                  >
                     {TRIAL_LINE}
                   </p>
                 </li>
@@ -410,65 +463,101 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="permissions" className="scroll-mt-[var(--nav-h)] bg-paper">
-          <div className={`${wrap} ${band}`}>
-            <SectionHead posted={22}>
-              <div className="max-w-[640px]">
-                <h2 className={sectionHeading}>
-                  <span>What we ask LinkedIn for.</span>{" "}
-                  <span className="text-ink-3">
-                    Your name and email, and permission to post as you.
-                  </span>
-                </h2>
-              </div>
+        <section id="permissions" className="scroll-mt-[calc(var(--nav-h)+40px)]">
+          <div className={`${wrap} ${band} pt-0`}>
+            <SectionHead
+              eyebrow="What we ask LinkedIn for"
+              title="Your name and email, and permission to post as you."
+            >
+              Four scopes, granted once, and you can see them on your LinkedIn
+              settings page at any time. Here is what each one does not let us
+              do.
             </SectionHead>
 
-            <ul className="mt-14 max-w-[720px]">
-              {PERMISSIONS.map((line) => (
+            <ul className="mt-16 grid gap-4 md:grid-cols-2">
+              {PERMISSIONS.map((permission) => (
                 <li
-                  key={line}
-                  className="border-b border-hairline py-[14px] text-ink-2"
+                  key={permission.head}
+                  className="card-lift flex gap-4 rounded-[var(--r-lg)] p-6"
                 >
-                  {line}
+                  <Check />
+                  <div>
+                    <h3 className="text-[16px] font-semibold tracking-[-0.01em]">
+                      {permission.head}
+                    </h3>
+                    <p className="mt-2 text-[15px] leading-[1.5] text-ink-2">
+                      {permission.line}
+                    </p>
+                  </div>
                 </li>
               ))}
             </ul>
           </div>
         </section>
 
-        {/* The close. Centred, because a last screen with one thing to press
-            has no second column to rag against, and on the page's one wash of
-            the accent. The month above the heading is full, which is the only
-            argument left to make. */}
-        <section style={{ background: "var(--accent-wash)" }}>
-          <div className={`${wrap} ${band} text-center`}>
-            <Streak
-              posted={25}
-              today={false}
-              size={150}
-              className="mx-auto h-auto w-[120px] lg:w-[150px]"
-            />
-            <h2 className={`mx-auto mt-10 max-w-[26ch] text-balance ${sectionHeading}`}>
+        {/* The close. One ink panel with the accent glowing off its corner, and
+            a full month of the mark inside it. A last screen with one thing to
+            press has no second column to rag against. */}
+        <section className={`${wrap} pb-[110px]`}>
+          <div className="panel rounded-[var(--r-2xl)] px-6 py-[100px] text-center">
+            <Eyebrow live onPanel>
+              Ready when you are
+            </Eyebrow>
+
+            <h2 className="mx-auto mt-8 max-w-[22ch] text-balance text-[clamp(34px,5vw,58px)] font-semibold leading-[1.04] tracking-[-0.04em]">
               Your board is full in 90 seconds.
             </h2>
-            <p className="mx-auto mt-5 max-w-[56ch] text-balance text-[17px] text-ink-2">
+            <p
+              className="mx-auto mt-6 max-w-[54ch] text-balance text-[17px] leading-[1.5]"
+              style={{ color: "var(--panel-ink-2)" }}
+            >
               Sign in with LinkedIn, paste your website, and seven posts are
               waiting before you have paid anything.
             </p>
+
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
                 href={`/signin?plan=${DEFAULT_PLAN.slug}`}
-                className={primary}
+                className="pill btn-paper num inline-block w-full px-7 py-[14px] text-center text-[16px] sm:w-auto"
               >
                 {DEFAULT_PLAN.cta}
               </Link>
-              <Link href="#pricing" className={secondary}>
+              <Link
+                href="#pricing"
+                className="pill btn-outline inline-block w-full border px-7 py-[14px] text-center text-[16px] sm:w-auto"
+                style={{
+                  borderColor: "var(--panel-hairline)",
+                  color: "var(--panel-ink)",
+                }}
+              >
                 See all three prices
               </Link>
             </div>
-            <p className="num mt-4 font-mono text-[12px] text-ink-2">
+            <p
+              className="num mt-4 font-mono text-[12px]"
+              style={{ color: "var(--panel-ink-2)" }}
+            >
               {TRIAL_LINE}
             </p>
+
+            {/* A full month, drawn on ink. The cells the page has been filling
+                the whole way down, finished. */}
+            <div className="mt-16">
+              <Streak
+                posted={25}
+                today={false}
+                size={110}
+                className="mx-auto h-auto w-[92px] opacity-90 lg:w-[110px]"
+                ink="var(--panel-ink)"
+                empty="var(--panel-hairline)"
+              />
+              <p
+                className="mt-5 font-mono text-[12px]"
+                style={{ color: "var(--panel-ink-2)" }}
+              >
+                One cell per day. A month at the cadence we sell.
+              </p>
+            </div>
           </div>
         </section>
       </main>
