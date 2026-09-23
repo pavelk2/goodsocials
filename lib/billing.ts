@@ -4,6 +4,7 @@ import { getDb } from "@/db";
 import { account as accountTable } from "@/db/schema";
 import {
   TRIAL_DAYS,
+  TRIAL_LINE,
   columnForSlug,
   planForColumn,
   planForPriceId,
@@ -49,9 +50,19 @@ const PUBLISHING: readonly BillingStatus[] = [
   "past_due",
 ] as const;
 
-/** Never reached checkout, so there is nothing to manage in the portal. */
-export function hasBilling(account: Pick<Account, "stripeCustomerId">): boolean {
-  return Boolean(account.stripeCustomerId);
+/**
+ * True while there is a subscription for the portal to show.
+ *
+ * A customer id is not enough. Somebody who opened checkout and closed it has
+ * one, and the portal would show them invoices, a card form and no way to
+ * subscribe, which is a dead end reached by pressing the obvious button. The
+ * subscription id is nulled when a subscription ends, so this is also what
+ * sends a cancelled account back to the prices rather than into the portal.
+ */
+export function canManageBilling(
+  account: Pick<Account, "stripeCustomerId" | "stripeSubscriptionId">,
+): boolean {
+  return Boolean(account.stripeCustomerId && account.stripeSubscriptionId);
 }
 
 export function canPublish(
@@ -102,7 +113,9 @@ export function billingLine(account: Account, now = new Date()): string {
 
   switch (account.subscriptionStatus) {
     case "none":
-      return `No plan yet. ${TRIAL_DAYS} days free, then ${plan.priceLine}.`;
+      // No price here. The button beside this row carries it, and it carries
+      // the plan the visitor picked on the way in, which this row cannot know.
+      return `No plan yet. ${TRIAL_LINE}`;
     case "trialing": {
       const ends = account.trialEndsAt ?? account.currentPeriodEnd;
       const left = ends ? daysUntil(ends, now) : null;
@@ -164,10 +177,15 @@ export async function ensureCustomer(
   if (account.stripeCustomerId) return { ok: true, value: account.stripeCustomerId };
 
   const created = await callStripe("customers.create", (stripe) =>
-    stripe.customers.create({
-      email: account.email ?? undefined,
-      metadata: { accountId: account.id, ownerMemberId: account.ownerMemberId },
-    }),
+    stripe.customers.create(
+      {
+        email: account.email ?? undefined,
+        metadata: { accountId: account.id, ownerMemberId: account.ownerMemberId },
+      },
+      // Two clicks on the same button would otherwise leave an orphan customer
+      // holding the card, and the webhook would find the account by the other.
+      { idempotencyKey: `customer:${account.id}` },
+    ),
   );
   if (!created.ok) return created;
 
@@ -300,9 +318,11 @@ export async function applySubscription(
       subscriptionStatus: status,
       plan: columnForSlug(plan.slug),
       // The seat limit follows the plan, so a downgrade from agency takes the
-      // seats with it. Profiles already connected stay connected: taking one
-      // away would take a client's board with it, and the seat check in
-      // lib/profiles.ts already refuses the next one.
+      // seats with it, and an ended subscription takes all but one. Profiles
+      // already connected stay connected: taking one away would take a
+      // client's board with it, and the seat check in lib/profiles.ts already
+      // refuses the next one. The plan column is left where it was, so the
+      // button that restarts a cancelled agency offers agency.
       seatLimit: ended ? 1 : plan.seats,
       currentPeriodEnd: periodEnd(subscription),
       trialEndsAt: subscription.trial_end

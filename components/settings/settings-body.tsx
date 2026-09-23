@@ -4,7 +4,13 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getDb } from "@/db";
 import { board as boardTable } from "@/db/schema";
-import { billingLine, canPublish, hasBilling, planOf } from "@/lib/billing";
+import {
+  billingLine,
+  canManageBilling,
+  canPublish,
+  planOf,
+  type Account,
+} from "@/lib/billing";
 import { loadAccess, seatName } from "@/lib/profiles";
 import { readQuota } from "@/lib/quota";
 import { spacingDays } from "@/lib/schedule";
@@ -177,9 +183,15 @@ export async function SettingsBody({
           <Row
             label="Plan"
             value={
-              multi
-                ? `${plan.name}, ${account.seatLimit} profiles, ${plan.priceLine}`
-                : `${plan.name}, one profile, ${plan.priceLine}`
+              // What this account is entitled to right now, which for a
+              // cancelled one is nothing. Naming the plan they used to be on
+              // next to a price they are not paying is the kind of row
+              // somebody reads as still being charged.
+              !canPublish(account)
+                ? "None"
+                : multi
+                  ? `${plan.name}, ${account.seatLimit} profiles, ${plan.priceLine}`
+                  : `${plan.name}, one profile, ${plan.priceLine}`
             }
           />
           <BillingRow account={account} picked={picked} />
@@ -214,10 +226,10 @@ function BillingRow({
   account,
   picked,
 }: {
-  account: Parameters<typeof billingLine>[0];
+  account: Account;
   picked: Plan;
 }) {
-  const managing = hasBilling(account);
+  const managing = canManageBilling(account);
 
   return (
     <li className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-b border-hairline py-[14px]">

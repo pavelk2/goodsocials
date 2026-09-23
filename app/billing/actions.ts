@@ -3,7 +3,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { openPortal, startCheckout } from "@/lib/billing";
+import { canManageBilling, openPortal, startCheckout } from "@/lib/billing";
 import { loadAccess } from "@/lib/profiles";
 import { planFromSlug, type PlanSlug } from "@/lib/plans";
 
@@ -43,7 +43,9 @@ export async function startPlanCheckout(slug: PlanSlug): Promise<void> {
 export async function manageBilling(): Promise<void> {
   const account = await signedInAccount();
   if (!account) redirect("/signin");
-  if (!account.stripeCustomerId) redirect("/#pricing");
+  // Nothing to manage means nothing to open. The prices are the right answer
+  // for somebody who never subscribed and for somebody who cancelled.
+  if (!canManageBilling(account)) redirect("/#pricing");
 
   const result = await openPortal({ account, origin: await origin() });
   if (!result.ok) redirect(failed(result.error));
