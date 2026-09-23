@@ -326,3 +326,65 @@ product. `Schedule it` picks the next free day; a drag picks the day.
 container, the way the board already scrolls one column at a time, and the rail
 stacks under it. Squeezing seven cells into 390px would leave none of them wide
 enough for a line of a post.
+
+---
+
+## 8. One screen of footage, then the page
+
+Pavel picked `ai.meta.com/muse` and asked for its shape: a full screen of video
+that carries the claim, and under it a plain page that explains the product.
+This is that, with the material from section 7 unchanged below the fold.
+
+**What the hero holds now.** The mark at 74px, the label, the claim, the two
+buttons, the trial line and one arrow. Nothing else. The sub-paragraph and the
+row of four facts moved down to the screen under it, because a hero that
+explains is a hero that has stopped being one, and a reader who is still
+deciding what this is should meet one sentence rather than six.
+
+**The footage.** An aerial of a few dozen surfers paddling out, scattered across
+flat water. It is stock, which section 5 of the house style would normally end
+the discussion on, and it earns the exception on one ground: from above, the
+frame is the mark. Figures spaced across a plain field, some filled and some
+not, is the streak grid in a photograph, and it is the only footage on the page
+that could be. It is also what we sell drawn literally, which is a lot of
+people doing the same thing on the same day.
+
+**The scrim is two layers.** A flat wash at 40 percent that holds white type
+anywhere on the frame, and a gradient heaviest at the top and the bottom edge,
+which is where the bar and the arrow have to survive whatever the water is
+doing. Type over video is the one place on this site where contrast is not a
+token lookup, so both numbers are tuned against the real frame rather than
+derived.
+
+**The colours are pinned, not tokenised.** The ground under the hero is dark in
+both system themes, so paper and ink cannot be used there. White is white, the
+plum on `daily` is `--accent-panel` for the same reason the ink panel uses it,
+and the primary button keeps `--accent` because plum still means now and
+starting a board is still the most now thing on the page.
+
+**The bar has no ground until the hero is behind it.** A paper fill across the
+top of a full-screen frame cuts it in half and turns a screen of video into a
+banner. `SiteNav` takes `overlay`, draws itself transparent with white type and
+the inverted mark, and crosses to the bar the rest of the site has once the
+reader is 120px from the bottom of the hero.
+
+**Weight.** 7.2MB of video and an 86KB poster in `public/hero/`, the 1366 wide
+encode rather than the 2048 one. Behind a 40 percent scrim on water there is
+nothing in the larger file a reader can see, and it is twice the bytes. The
+poster is the video's own first frame, so a reader on a slow connection gets a
+photograph rather than a black rectangle, and the video starts on the same
+frame it was showing. `prefers-reduced-motion` pauses it at that frame, which
+is the only honest way to switch a video off, and it is why `HeroVideo` is a
+client component.
+
+**The reactions moved.** They were three white chips around the old centred
+hero. On footage a white chip is a sticker, so they sit in the empty right half
+of the opening claim, which is the shape they were drawn for anyway.
+
+The file is from Pixabay under their content licence, which needs no
+attribution, and it lives in the repo rather than on their CDN so the hero does
+not depend on somebody else's uptime.
+
+**What the page still refuses.** Everything section 6 and section 7 list. The
+video does not stand in for the product: the real board is still the first
+thing under it, rendered by the real components.
