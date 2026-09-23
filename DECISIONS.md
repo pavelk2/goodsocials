@@ -431,3 +431,48 @@ A receipt is believed because it is specific and theirs, so a rounded real numbe
 **Read integrations are a solo-tier feature, and agency mode gets an intake link instead.**
 Rejected: asking agencies to collect their clients' API keys.
 An agency managing 12 executives has no access to their Stripe and should not be asking for it, so the agency version of this is a page the client fills in that writes the same rows.
+
+---
+
+## Day 7: history, and a day you can pick without a mouse
+
+**A member's LinkedIn history comes from their archive, not from the API.**
+Rejected: requesting `r_member_social`, scraping the profile page.
+Reading a person's own posts needs `r_member_social`, which LinkedIn closed to
+new applications, so there is no version of this that an approval unblocks. The
+profile page is behind a login wall and scraping it would put the product on the
+wrong side of LinkedIn's terms for a reference feature. The archive every member
+can download in a few minutes carries the date, the permalink and the text,
+which is all the calendar draws. It costs the user one upload, once.
+
+**The browser parses the file, the server stores a capped slice of it.**
+Rejected: uploading Shares.csv to a route handler.
+A server action body is capped at 1MB and a ten year archive is several, so the
+upload would fail on exactly the accounts worth importing. The parser is pure
+and lives in `lib/history.ts`, the database side is `lib/history-store.ts`, and
+the split exists because a client component cannot import anything that imports
+the database. Three hundred posts per profile: the calendar reads all of them on
+every board load, and a decade of somebody's archive is not reference, it is a
+second database.
+
+**Imported posts are a table, not a flag on `card`.**
+Rejected: `card.state = 'archived'`, `card.origin = 'linkedin'`.
+A row here has no state, no actions, no image, no schedule and no publish path.
+Putting it on `card` would mean every board query, the cron's queue read and the
+runway calculation each grow a clause they must never forget, and forgetting one
+publishes somebody's 2019 post to their feed. A separate table cannot be
+published by accident because nothing in the publish path can see it.
+
+**Our own post owns the day, the archive never draws twice.**
+A day this board published into hides the imported row for that day. The archive
+a user exports next year will contain the posts GoodSocials sent, so without
+this rule every published post would eventually appear beside itself.
+
+**An open day says what it does.**
+Rejected: a hover-only affordance, a tooltip.
+The grid had one way to choose a day and it was a drag, which is invisible,
+untouchable by keyboard without finding the handle first, and awkward on a
+phone. `Schedule here` is a button in the cell that opens the approved posts and
+writes the same slot the drop writes, so there is one server call and two ways
+to reach it. Hiding it until hover would have kept the discoverability problem
+that made it worth building.
