@@ -224,6 +224,61 @@ grid, no logo wall, no testimonial faces, and no second coloured word anywhere
 below the hero. The one screenshot on the page is the real board rendered by
 the real components.
 
+---
+
+## 7. The third pass: shapes from the reference, material from us
+
+Pavel picked a reference page and asked for the site to move towards it. Pass
+two had gone the other way: it ragged every heading left, hung a streak grid
+off each one in place of a label, alternated two grounds band by band, and put
+10px radii on everything. Read straight through, six sections opened with the
+same object and none of them said what they were about.
+
+What the reference gives the page, and what each thing is actually for:
+
+- **One ground the whole way down.** Warm paper, `#f7f6f3`, with white cards
+  lifted off it by `--lift`. Alternating bands were making the page argue with
+  itself about where a section starts; a card on a warm ground does that job
+  without a band.
+- **Pill controls.** `.pill`, on the marketing pages only. The app keeps its
+  10px `--r-btn`, because a control inside a dense board is not the same object
+  as a call to action on a page.
+- **A centred eyebrow, claim and explanation above every section.**
+  `SectionHead` in `components/marketing/section-head.tsx`. The eyebrow says
+  what the section is, which is the job the streak grid was failing at.
+- **Two ink panels.** The plan the page recommends and the close, both `.panel`:
+  near-black with one plum glow off the corner. That glow is the accent at the
+  only weight a whole surface can carry it.
+- **Checks in a list.** `Check` in `app/page.tsx`, drawn in ink. Plum is spent
+  on time, so a feature list does not get any.
+
+What did not move:
+
+- **Plum still means now.** Today's cell, the queue runway, and the button that
+  starts a board. Not a feature check, not a section label, not a second word
+  in a headline.
+- **The streak grid is still the only drawn thing on the page.** It lost the
+  section-anchor job and kept the two it is honest at: the five columns as
+  `StepDots`, and a full month on the close over the line that says what a cell
+  is. The footer still draws a year of it.
+- **Geist Mono still carries every count, price period and date.**
+- **The board preview is still the real component** rendering an example board,
+  now floating on a plum wash rather than across a seam between two grounds.
+- **No logo wall, no testimonial faces, no invented numbers.** The featured plan
+  says `Start here`, not `Most popular`: we do not have that number, and the
+  page does not print numbers it does not have.
+
+Two things the pass fixed on the way through:
+
+- **The headline dot is gone.** Two passes drew today's cell in front of the
+  word `daily`. At headline size the word-space is wide enough that the dot
+  always lands mid-gap and reads as a middot separating two words. The plum on
+  the word is the whole signal.
+- **`--accent-text`.** The plum as type is 2.3:1 against the dark ground, which
+  fails at any size. Dark mode lightens it to `#f2799f` for type while the
+  filled buttons keep `--accent`. `--accent-panel` is that same lighter plum in
+  both modes, because the ink panel is ink in both.
+
 Marketing components live in `components/marketing/`. The slim `Footer` in
 `components/footer.tsx` still serves sign in and the error page; `SiteFooter`
 is the landing page's.

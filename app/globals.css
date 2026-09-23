@@ -2,7 +2,7 @@
 
 /* House design tokens. See DESIGN.md for what is specific to GoodSocials. */
 :root {
-  --paper: #f4f4f4;
+  --paper: #f7f6f3;
   --surface: #ffffff;
   --ink: #000000;
   --ink-2: #6e6e73;
@@ -10,8 +10,13 @@
   --hairline: #e6e6e6;
   --accent: #a61e4d;
   --accent-ink: #ffffff;
+  /* The accent as type rather than as a fill. On paper the plum is the plum.
+     On the dark ground it is 2.3:1 against near-black, which fails at any
+     size, so dark mode lightens it and the filled buttons keep --accent. */
+  --accent-text: #a61e4d;
 
   --r-btn: 10px;
+  --r-pill: 999px;
   --r-sm: 8px;
   --r-md: 14px;
   --r-lg: 20px;
@@ -34,6 +39,30 @@
 
 
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.08);
+
+  /* The marketing lift. A card on the board never has a shadow, because the
+     board is dense and a shadow per card is noise. A card on the landing page
+     is one object on a wide warm ground, and the shadow is what makes the
+     ground read as paper rather than as a grey rectangle. DESIGN.md section 6.
+     It is half the weight of --shadow, which stays reserved for a card that is
+     genuinely in the air. */
+  --lift: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.05);
+
+  /* The dark panel, used twice: the closing call to action and the highlighted
+     plan. Ink ground with one plum glow off the corner, which is the accent at
+     the only weight a whole surface can carry it. */
+  --panel: #0c0c0d;
+  --panel-ink: #ffffff;
+  /* The panel is ink in both modes, so the plum on it is the lighter one in
+     both modes. Same reason as --accent-text. */
+  --accent-panel: #f2799f;
+  --panel-ink-2: #a1a1a6;
+  --panel-hairline: rgba(255, 255, 255, 0.14);
+  --panel-glow: radial-gradient(
+    120% 100% at 15% 0%,
+    rgba(166, 30, 77, 0.38) 0%,
+    rgba(166, 30, 77, 0) 62%
+  );
   --scrim: rgba(0, 0, 0, 0.35);
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
 
@@ -49,6 +78,7 @@
   :root {
     --paper: #0a0a0a;
     --surface: #1c1c1e;
+    --lift: 0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.35);
     --ink: #ffffff;
     --ink-2: #98989d;
     --ink-3: #545458;
@@ -56,8 +86,13 @@
     /* Black on near-black does not dim. The sheet has to separate from the
        board behind it by more than a hairline. */
     --scrim: rgba(0, 0, 0, 0.66);
+    /* The panel advances in dark mode instead of receding. At #151517 it sat
+       between paper and surface, so the plan the page recommends was a shade
+       darker than the two beside it and read as disabled rather than chosen. */
+    --panel: #212124;
     --accent-wash: #26121a;
     --accent-on-wash: #f2a8c0;
+    --accent-text: #f2799f;
   }
 }
 
@@ -70,6 +105,7 @@
   --color-hairline: var(--hairline);
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
+  --color-accent-text: var(--accent-text);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -273,3 +309,102 @@ body:has(dialog[open]) {
   }
 }
 
+
+/* ---------------------------------------------------------------------------
+   The marketing surface, second pass. DESIGN.md section 6.
+
+   The page keeps its own material (plum, the streak grid, Geist Mono on every
+   number) and takes its shapes from the reference Pavel picked: pill controls,
+   a centred eyebrow above every section head, white cards lifted off a warm
+   ground, and one ink panel to close on. The app keeps its 10px controls; only
+   the pages a stranger reads before signing in use the pill.
+   ------------------------------------------------------------------------ */
+
+/* Every control on the marketing pages is this shape. One class so the radius,
+   the weight and the press live in one place instead of on nine call sites. */
+.pill {
+  border-radius: var(--r-pill);
+  font-weight: 600;
+  transition:
+    filter 180ms var(--ease),
+    opacity 180ms var(--ease),
+    border-color 180ms var(--ease),
+    background 180ms var(--ease),
+    transform 180ms var(--ease);
+}
+
+.pill:active {
+  transform: scale(0.985);
+}
+
+/* The label above a section head. A hairline pill on the section's own ground,
+   holding two or three words that say what this part of the page is. It is the
+   eyebrow the first pass banned and the second pass replaced with a streak
+   grid; the grid was doing a label's job and losing its meaning in the
+   process, so the label is a label again and the grid went back to counting
+   days. */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  border-radius: var(--r-pill);
+  padding: 7px 16px;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+/* A white card on the warm ground. The hairline stays: at 4% the shadow alone
+   leaves an edge that disappears on a bright screen. */
+.card-lift {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--lift);
+}
+
+/* The ink panel. Two places: the plan the page recommends, and the close. */
+.panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--panel);
+  color: var(--panel-ink);
+}
+
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--panel-glow);
+}
+
+/* The one control that sits on ink. White fill, because a plum button on a
+   plum glow is a button that disappears. */
+.btn-paper {
+  background: var(--panel-ink);
+  color: var(--panel);
+  transition:
+    opacity 180ms var(--ease),
+    transform 180ms var(--ease);
+}
+
+@media (hover: hover) {
+  .btn-paper:hover {
+    opacity: 0.88;
+  }
+}
+
+.btn-paper:active {
+  transform: scale(0.985);
+}
+
+/* The live dot in an eyebrow on ink. Plum means now, and nothing on this page
+   is more now than a board that is ready to start. */
+.dot-live {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--r-pill);
+  background: var(--accent-panel);
+}
