@@ -328,3 +328,52 @@ export const linkedinCallBudget = pgTable(
   },
   (t) => [uniqueIndex("linkedin_call_member_day_unique").on(t.memberId, t.day)],
 );
+
+/**
+ * A post this person published on LinkedIn before GoodSocials existed, kept so
+ * the calendar can show what the feed already looked like.
+ *
+ * Imported from the member's own LinkedIn data export, never read from the
+ * API: retrieving a member's posts needs r_member_social, which is a closed
+ * permission LinkedIn is not granting. See CLAUDE.md.
+ *
+ * Reference only. Nothing here is a card, has a state, or can be published:
+ * these rows are read by the calendar and by nothing else, which is why they
+ * are a table of their own rather than a flag on `card`.
+ */
+export const pastPost = pgTable(
+  "past_post",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profile.id, { onDelete: "cascade" }),
+    /** When it went out, as the export reports it. */
+    postedAt: timestamp("posted_at", { withTimezone: true }).notNull(),
+    text: text("text").notNull(),
+    /** The permalink from the export, so a cell can open the real post. */
+    url: text("url"),
+    /**
+     * What makes two imports of the same archive one set of rows: the
+     * permalink when the export carries one, the day and the opening words
+     * when it does not. Re-importing is how a user adds the posts they have
+     * published since, so it has to be free of duplicates.
+     */
+    sourceKey: text("source_key").notNull(),
+    importedAt: timestamp("imported_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("past_post_profile_day_idx").on(t.profileId, t.postedAt),
+    uniqueIndex("past_post_source_unique").on(t.profileId, t.sourceKey),
+  ],
+);
+
+/**
+ * How many past posts one profile keeps. The calendar reads them all on every
+ * board load, and a decade of a prolific poster's archive is not reference,
+ * it is a second database. The most recent ones are the ones that say what
+ * this person sounds like now.
+ */
+export const PAST_POST_LIMIT = 300;

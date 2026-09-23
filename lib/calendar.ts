@@ -32,10 +32,38 @@ export type DayPost = {
   state: Extract<Column, "scheduled" | "posted">;
 };
 
+/**
+ * A post this person published before GoodSocials, imported from their
+ * LinkedIn archive. Reference, never work: it has no card, no state and no
+ * actions, and the calendar draws it back so it cannot be mistaken for one.
+ */
+export type HistoryPost = {
+  id: string;
+  text: string;
+  url: string | null;
+  at: Date;
+  /** How many more went out the same day, which a busy week produces. */
+  more: number;
+};
+
+/** What lib/history-store.ts returns, named here so this file stays free of the database. */
+export type PastPostRow = {
+  id: string;
+  text: string;
+  url: string | null;
+  postedAt: Date;
+};
+
 export type CalendarDay = {
   key: DayKey;
   /** The number in the corner. */
   number: number;
+  /**
+   * "Thu, 24 Sept", written here rather than in the component for the reason
+   * dryAfter is: Node and the browser ship different ICU data and the same
+   * options give two strings either side of hydration.
+   */
+  label: string;
   /** False for the days either side that fill the first and last weeks. */
   inMonth: boolean;
   weekend: boolean;
@@ -43,6 +71,8 @@ export type CalendarDay = {
   /** This day's slot has gone, so nothing can be dropped on it. */
   past: boolean;
   post: DayPost | null;
+  /** Only on days this board did not fill itself. Our own post wins the cell. */
+  history: HistoryPost | null;
 };
 
 export type CalendarMonth = {
@@ -55,6 +85,8 @@ export type CalendarMonth = {
   /** Inside this month only, which is what the heading line counts. */
   posted: number;
   scheduled: number;
+  /** Imported posts falling in this month, which the header names when it has any. */
+  history: number;
   /**
    * Weekdays in this month with no post, in the future, that could take one.
    * Weekends are not counted: an empty Saturday is a choice, not a gap.
@@ -112,6 +144,8 @@ export function isMonthKey(value: string): boolean {
 export function buildMonth(opts: {
   cards: Record<Column, BoardCard[]>;
   themes: { id: string; title: string }[];
+  /** What was already on LinkedIn before this board existed. Newest first. */
+  history?: PastPostRow[];
   zone: string;
   /** `YYYY-MM`. Defaults to the month it is now, where the profile lives. */
   month?: string;
@@ -141,6 +175,26 @@ export function buildMonth(opts: {
     }
   }
 
+  // Imported posts are indexed the same way, one cell each. A day that carried
+  // three of them shows the first and says so, rather than growing a cell the
+  // rest of the grid has to match.
+  const historyByDay = new Map<DayKey, HistoryPost>();
+  for (const row of opts.history ?? []) {
+    const key = dayKey(row.postedAt, zone);
+    const held = historyByDay.get(key);
+    if (held) {
+      held.more += 1;
+      continue;
+    }
+    historyByDay.set(key, {
+      id: row.id,
+      text: row.text,
+      url: row.url,
+      at: row.postedAt,
+      more: 0,
+    });
+  }
+
   const first = firstOfMonth(month);
   const start = addDays(first, -weekdayIndex(first));
   const lastOfMonth = addDays(firstOfMonth(shiftMonth(month, 1)), -1);
@@ -151,6 +205,7 @@ export function buildMonth(opts: {
   let posted = 0;
   let scheduled = 0;
   let open = 0;
+  let history = 0;
 
   for (let key = start; key <= end; key = addDays(key, 1)) {
     const inMonth = key.slice(0, 7) === month;
@@ -160,6 +215,11 @@ export function buildMonth(opts: {
       key < today ||
       (key === today && publishSlot(key, zone).getTime() <= now.getTime());
 
+    // Our own post owns the cell. A day we published into is a day the
+    // archive also holds, and drawing both would double the same post.
+    const before = post ? null : (historyByDay.get(key) ?? null);
+
+    if (inMonth && before) history += 1 + before.more;
     if (inMonth && post?.state === "posted") posted += 1;
     if (inMonth && post?.state === "scheduled") scheduled += 1;
     if (inMonth && !post && !weekend && !past) open += 1;
@@ -167,11 +227,13 @@ export function buildMonth(opts: {
     week.push({
       key,
       number: dayOfMonth(key),
+      label: formatDay(key, zone),
       inMonth,
       weekend,
       today: key === today,
       past,
       post,
+      history: inMonth ? before : null,
     });
 
     if (week.length === WEEK) {
@@ -189,6 +251,7 @@ export function buildMonth(opts: {
     posted,
     scheduled,
     open,
+    history,
     dryAfter: dryKey ? formatDay(dryKey, zone) : null,
   };
 }

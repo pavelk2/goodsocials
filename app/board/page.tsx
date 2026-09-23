@@ -4,6 +4,7 @@ import { seatName } from "@/lib/profiles";
 import { readQuota } from "@/lib/quota";
 import { boardZone } from "@/lib/schedule";
 import { buildMonth } from "@/lib/calendar";
+import { readPastPosts } from "@/lib/history-store";
 import { BoardCalendar } from "@/components/board/board-calendar";
 import { BoardColumns } from "@/components/board/board-columns";
 import { BoardHeader } from "@/components/board/board-header";
@@ -38,6 +39,8 @@ export default async function BoardPage({
   const zone = boardZone(view.board.timezone);
 
   const quota = await readQuota(view.profile.id);
+  // Only the calendar draws these, and the columns are the common view.
+  const history = mode === "calendar" ? await readPastPosts(view.profile.id) : [];
   const thin =
     view.cards.draft.length < THIN_DRAFT_COLUMN && view.cards.idea.length > 0;
 
@@ -67,6 +70,7 @@ export default async function BoardPage({
           month={buildMonth({
             cards: view.cards,
             themes: view.themes,
+            history,
             zone,
             month: params.m,
           })}

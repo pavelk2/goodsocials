@@ -43,6 +43,13 @@
       "when": 1790070153583,
       "tag": "0005_perpetual_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790149684263,
+      "tag": "0006_cynical_joseph",
+      "breakpoints": true
     }
   ]
 }
