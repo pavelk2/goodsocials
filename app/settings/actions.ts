@@ -7,6 +7,16 @@ import { getDb } from "@/db";
 import { board as boardTable } from "@/db/schema";
 import { loadAccess, setActiveProfile, type Access } from "@/lib/profiles";
 import { isZone } from "@/lib/time";
+import {
+  IMPORT_CHUNK,
+  PAST_POST_MAX_TEXT,
+  type PastPostInput,
+} from "@/lib/history";
+import {
+  clearPastPosts,
+  savePastPosts,
+  trimPastPosts,
+} from "@/lib/history-store";
 
 export type SaveResult = { ok: true } | { ok: false; error: string };
 
@@ -102,6 +112,68 @@ export async function saveTimezone(zone: string): Promise<SaveResult> {
     .set({ timezone: zone })
     .where(eq(boardTable.profileId, acc.active.profile.id));
 
+  revalidatePath("/board");
+  revalidatePath("/settings");
+  return { ok: true };
+}
+
+/**
+ * Posts this profile published before GoodSocials, read out of the member's
+ * own LinkedIn archive. There is no API for it: retrieving a member's posts
+ * needs r_member_social, which LinkedIn closed to new applications.
+ *
+ * The browser parses the file and sends it in chunks, so nothing here ever
+ * sees a ten year archive and no request approaches the 1MB a server action
+ * accepts. Everything that arrives is treated as untrusted: it came from a
+ * file a user chose, and the shape of that file is LinkedIn's to change.
+ */
+export type ImportResult =
+  | { ok: true; added: number }
+  | { ok: false; error: string };
+
+export async function importHistory(rows: PastPostInput[]): Promise<ImportResult> {
+  const acc = await access();
+  if (!acc?.active) return { ok: false, error: "Sign in first." };
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return { ok: false, error: "That file held no posts." };
+  }
+  if (rows.length > IMPORT_CHUNK) {
+    return { ok: false, error: "Too many posts in one request." };
+  }
+
+  const clean: PastPostInput[] = [];
+  for (const row of rows) {
+    const text = typeof row?.text === "string" ? row.text.trim() : "";
+    const when = typeof row?.postedAt === "string" ? new Date(row.postedAt) : null;
+    if (!text || !when || Number.isNaN(when.getTime())) continue;
+    if (when.getTime() > Date.now() + 86_400_000) continue;
+
+    const url = typeof row.url === "string" && row.url.startsWith("https://")
+      ? row.url.slice(0, 500)
+      : null;
+    clean.push({
+      postedAt: when.toISOString(),
+      text: text.slice(0, PAST_POST_MAX_TEXT),
+      url,
+    });
+  }
+
+  if (clean.length === 0) return { ok: false, error: "None of those rows were posts." };
+
+  const { added } = await savePastPosts(acc.active.profile.id, clean);
+  await trimPastPosts(acc.active.profile.id);
+
+  revalidatePath("/board");
+  revalidatePath("/settings");
+  return { ok: true, added };
+}
+
+/** Takes the imported history off the calendar. The archive file still has it. */
+export async function clearHistory(): Promise<SaveResult> {
+  const acc = await access();
+  if (!acc?.active) return { ok: false, error: "Sign in first." };
+
+  await clearPastPosts(acc.active.profile.id);
   revalidatePath("/board");
   revalidatePath("/settings");
   return { ok: true };

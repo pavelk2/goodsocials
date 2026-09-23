@@ -16,12 +16,18 @@ import {
 } from "@dnd-kit/core";
 import { move, scheduleOn } from "@/app/board/actions";
 import type { BoardCard, BoardTheme } from "@/lib/board";
-import type { CalendarDay, CalendarMonth, DayPost } from "@/lib/calendar";
+import type {
+  CalendarDay,
+  CalendarMonth,
+  DayPost,
+  HistoryPost,
+} from "@/lib/calendar";
 import { cardLabel } from "@/lib/post-kind";
 import { formatTime, publishSlot } from "@/lib/time";
 import { Card } from "./card";
 import { CardModal } from "./card-modal";
 import { CardShell } from "./card-shell";
+import { DayPicker } from "./day-picker";
 
 /**
  * The same cards as the five columns, arranged by the day they go out.
@@ -39,6 +45,16 @@ import { CardShell } from "./card-shell";
  * day is the same decision as pressing Schedule it, except the day is the
  * user's rather than the next free slot. Dragging a scheduled post back onto
  * the rail takes it out of the queue and leaves the picture alone.
+ *
+ * A drag is the fast way and never the only way. Every day that can take a
+ * post says so in words and opens a list of the approved ones, because a
+ * capability with no affordance is a capability nobody finds: an empty
+ * Thursday looked identical whether or not it would accept a card, and a
+ * keyboard user had to locate a drag handle to learn the difference.
+ *
+ * Days this profile posted on before GoodSocials are drawn back, in --ink-3
+ * with no border. They are imported from the member's LinkedIn archive and
+ * exist to be read, so the eye goes to the cells that still need a decision.
  */
 
 const DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -96,8 +112,24 @@ export function BoardCalendar({
     imageUrl: string | null;
   } | null>(null);
   const [reading, setReading] = useState<DayPost | null>(null);
+  /** The day whose Schedule here was pressed, waiting on which post. */
+  const [picking, setPicking] = useState<CalendarDay | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+
+  /**
+   * The calendar's one write, from the drop and from the picker alike. A
+   * refusal leaves the optimistic placement to be undone by the next render
+   * from the server, which is the truth about where the post is.
+   */
+  function place(cardId: string, day: string) {
+    setError(null);
+    startTransition(async () => {
+      placeOptimistic({ cardId, to: day });
+      const result = await scheduleOn(cardId, day);
+      if (!result.ok) setError(result.error);
+    });
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -134,19 +166,19 @@ export function BoardCalendar({
     }
 
     if (!over.startsWith(DAY_PREFIX)) return;
-    const day = over.slice(DAY_PREFIX.length);
-
-    startTransition(async () => {
-      placeOptimistic({ cardId, to: day });
-      const result = await scheduleOn(cardId, day);
-      // A refusal leaves the optimistic placement to be undone by the next
-      // render from the server, which is the truth about where the post is.
-      if (!result.ok) setError(result.error);
-    });
+    place(cardId, over.slice(DAY_PREFIX.length));
   }
 
   return (
-    <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+    <DndContext
+      // Without this dnd-kit numbers its own aria ids from a module counter,
+      // which the server keeps incrementing between requests, and every card
+      // hydrates with an aria-describedby that does not match.
+      id="board-calendar"
+      sensors={sensors}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+    >
       {error ? (
         <p className="mb-4 text-[13px] text-ink" role="alert">
           {error}
@@ -176,7 +208,9 @@ export function BoardCalendar({
                     key={day.key}
                     day={day}
                     timeZone={timeZone}
+                    ready={model.rail.length}
                     onRead={setReading}
+                    onSchedule={setPicking}
                   />
                 ))}
               </div>
@@ -199,6 +233,15 @@ export function BoardCalendar({
           </div>
         ) : null}
       </DragOverlay>
+
+      {picking ? (
+        <DayPicker
+          dayLabel={picking.label}
+          cards={model.rail}
+          onPick={(cardId) => place(cardId, picking.key)}
+          onClose={() => setPicking(null)}
+        />
+      ) : null}
 
       {reading ? (
         <CardModal
@@ -231,6 +274,12 @@ function MonthHeader({ month }: { month: CalendarMonth }) {
         <span className="num text-ink">{month.posted} posted</span>,{" "}
         <span className="num text-ink">{month.scheduled} scheduled</span>,{" "}
         <span className="num">{month.open} open</span>
+        {month.history > 0 ? (
+          <>
+            {", "}
+            <span className="num">{month.history} earlier</span>
+          </>
+        ) : null}
         {month.dryAfter ? (
           <>
             {". "}Queue dry after{" "}
@@ -267,11 +316,16 @@ function MonthHeader({ month }: { month: CalendarMonth }) {
 function DayBox({
   day,
   timeZone,
+  ready,
   onRead,
+  onSchedule,
 }: {
   day: CalendarDay;
   timeZone: string;
+  /** How many posts are waiting in the rail. Nothing to pick, nothing to offer. */
+  ready: number;
   onRead: (post: DayPost) => void;
+  onSchedule: (day: CalendarDay) => void;
 }) {
   const open = !day.post && !day.past && day.inMonth;
   const { setNodeRef, isOver } = useDroppable({
@@ -296,7 +350,7 @@ function DayBox({
   return (
     <div
       ref={setNodeRef}
-      className={`min-h-[124px] overflow-hidden rounded-[14px] border p-[10px] ${border} ${
+      className={`group min-h-[124px] overflow-hidden rounded-[14px] border p-[10px] ${border} ${
         day.post?.state === "posted" ? "bg-surface" : ""
       } ${day.today ? "bg-[var(--accent-wash)]" : ""}`}
     >
@@ -314,11 +368,89 @@ function DayBox({
 
       {day.post ? (
         <PostChip post={day.post} timeZone={timeZone} onRead={onRead} />
+      ) : day.history ? (
+        <HistoryChip post={day.history} />
       ) : !day.inMonth ? null : day.weekend ? (
-        <p className="mt-2 text-[12px] text-ink-3/60">Weekend</p>
-      ) : day.past ? null : (
+        <>
+          <p className="mt-2 text-[12px] text-ink-3/60">Weekend</p>
+          {/* An empty Saturday is a choice, so the offer waits to be looked
+              for. The cell still takes a drop, as it always did. */}
+          {open && ready > 0 ? (
+            <ScheduleHere
+              day={day}
+              onSchedule={onSchedule}
+              className="opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100"
+            />
+          ) : null}
+        </>
+      ) : day.past ? null : open && ready > 0 ? (
+        <ScheduleHere day={day} onSchedule={onSchedule} />
+      ) : (
         <p className="mt-2 text-[12px] text-ink-3">Nothing here</p>
       )}
+    </div>
+  );
+}
+
+/**
+ * What an empty day says now. The word the user is looking for is "schedule",
+ * on the day they want it, and it opens the same list a drop would have
+ * chosen from. Kept to the ink palette: today's cell is this screen's one
+ * saturated thing, per DESIGN.md section 6.
+ */
+function ScheduleHere({
+  day,
+  onSchedule,
+  className = "",
+}: {
+  day: CalendarDay;
+  onSchedule: (day: CalendarDay) => void;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSchedule(day)}
+      aria-label={`Schedule a post for ${day.label}`}
+      className={`mt-2 text-left text-[12px] text-ink-2 underline underline-offset-2 hover:text-ink ${className}`}
+    >
+      Schedule here
+    </button>
+  );
+}
+
+/**
+ * A post this person published before this board existed, imported from their
+ * LinkedIn archive. Read-only by nature: there is no card behind it, no state
+ * to move it to, and LinkedIn does not let us edit or delete it from here.
+ * Drawn in --ink-3 with no border so a month of history reads as background
+ * against the two cells that still want a decision.
+ */
+function HistoryChip({ post }: { post: HistoryPost }) {
+  return (
+    <div className="mt-1">
+      <p className="line-clamp-3 whitespace-pre-line text-[13px] leading-[1.35] text-ink-2">
+        {post.text}
+      </p>
+      <p className="num mt-[7px] flex items-center gap-[6px] text-[12px] text-ink-3">
+        <span
+          aria-hidden="true"
+          className="inline-block h-[7px] w-[7px] rounded-full bg-hairline"
+        />
+        {post.url ? (
+          <a
+            href={post.url}
+            target="_blank"
+            rel="noreferrer"
+            className="underline underline-offset-2 hover:text-ink-2"
+          >
+            On LinkedIn
+          </a>
+        ) : (
+          <span>On LinkedIn</span>
+        )}
+        {post.more > 0 ? <span>+{post.more}</span> : null}
+      </p>
     </div>
   );
 }
@@ -399,6 +531,7 @@ function Rail({
           {cards.length}
         </span>
       </header>
+
       <div
         ref={setNodeRef}
         className={`flex min-h-[160px] flex-col gap-2 rounded-[20px] border p-2 ${
@@ -423,9 +556,12 @@ function Rail({
           ))
         )}
       </div>
+      {/* Said once, here, rather than repeated in every empty cell. All three
+          routes are the same write, so a user who reads this line never has to
+          discover the drag to choose a day. */}
       <p className="mt-[10px] px-1 text-[12px] leading-[1.5] text-ink-3">
-        Drag one onto an open day, or press Schedule it and the next free day is
-        picked for you.
+        Schedule it takes the next free day. To choose the day, press Schedule
+        here on it, or drag a card onto it.
       </p>
     </section>
   );

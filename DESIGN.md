@@ -303,8 +303,9 @@ sentence names a day rather than a count.
 posted      --surface fill, no border, a filled ink dot
 scheduled   dashed --ink-3 border, a hollow dot
 today       --accent border on --accent-wash, the day number in --accent-on-wash
-open        dotted --hairline border, "Nothing here"
-weekend     no border, dimmed number, "Weekend"
+open        dotted --hairline border, "Schedule here", or "Nothing here"
+weekend     no border, dimmed number, "Weekend", the offer on hover
+history     no border, the post in --ink-3, a --hairline dot, "On LinkedIn"
 outside     the number alone, dimmed
 past        the number alone, no border, nothing droppable
 ```
@@ -321,6 +322,22 @@ fact with somewhere to point. One saturated idea per screen holds.
 **The rail is the Image column under the name it has here.** Same card
 component, same three actions, so section 4 still allows exactly one card in the
 product. `Schedule it` picks the next free day; a drag picks the day.
+
+**A drag is the fast way and never the only way.** An open cell said "Nothing
+here", which names the state and hides the capability: nothing on the grid told
+anybody a day would take a card, and a keyboard user had to find a drag handle
+to learn it. An open weekday now says `Schedule here` and opens the list of
+approved posts, which is the same write the drop performs. A weekend keeps its
+word and shows the offer on hover, because an empty Saturday is still a choice.
+The rail says the rule once, above the cards, rather than repeating it in every
+cell: `Schedule it` takes the next free day, `Schedule here` takes this one.
+
+**History is background.** Posts imported from the member's LinkedIn archive
+are drawn in `--ink-3` with no border and no dot fill, under our own posts in
+every sense: a day this board published into never shows one. They cannot be
+dragged, approved or republished, and they are there so a month reads as the
+run it is rather than as the two weeks this product has existed. The month line
+counts them apart from ours, as `12 earlier`.
 
 **Seven columns do not fit a phone.** The grid scrolls sideways inside its own
 container, the way the board already scrolls one column at a time, and the rail
