@@ -1,6 +1,7 @@
 import {
   pgTable,
   pgEnum,
+  boolean,
   uuid,
   text,
   integer,
@@ -15,7 +16,34 @@ import {
  * target cadence, never stored, so it cannot drift from the board.
  */
 
-export const accountPlan = pgEnum("account_plan", ["solo", "agency"]);
+/**
+ * `solo` is the column's name for the plan the page calls Pro. It was written
+ * before the plan was named, and renaming a live enum value to make two
+ * spellings agree is a migration with nothing to show for it. lib/plans.ts
+ * holds the only translation between the two.
+ */
+export const accountPlan = pgEnum("account_plan", [
+  "solo",
+  "agency",
+  "consultancy",
+]);
+
+/**
+ * Stripe's subscription statuses, plus `none` for an account that has never
+ * reached checkout. Every value Stripe can send is here, because a status we
+ * cannot store is a subscription we stop tracking without noticing.
+ */
+export const subscriptionStatus = pgEnum("subscription_status", [
+  "none",
+  "trialing",
+  "active",
+  "past_due",
+  "canceled",
+  "incomplete",
+  "incomplete_expired",
+  "unpaid",
+  "paused",
+]);
 export const connectionStatus = pgEnum("connection_status", [
   "active",
   "expiring",
@@ -59,19 +87,45 @@ export const principleKind = pgEnum("principle_kind", [
   "format",
 ]);
 
-/** The paying entity. One Stripe customer, one plan, a seat limit of 1 or 12. */
-export const account = pgTable("account", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  /** LinkedIn member id (OIDC sub) of whoever signed up. The login identity. */
-  ownerMemberId: text("owner_member_id").notNull().unique(),
-  email: text("email"),
-  stripeCustomerId: text("stripe_customer_id"),
-  plan: accountPlan("plan").notNull().default("solo"),
-  seatLimit: integer("seat_limit").notNull().default(1),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+/**
+ * The paying entity. One Stripe customer, one plan, a seat limit of 1 or 10.
+ *
+ * Everything below stripe_customer_id is written by the Stripe webhook and by
+ * nothing else, so what the board believes about a subscription is what Stripe
+ * last said about it rather than what a screen inferred. The customer id is
+ * unique because the webhook finds the account by it: two accounts on one
+ * customer would send one person's plan change to somebody else's board.
+ */
+export const account = pgTable(
+  "account",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** LinkedIn member id (OIDC sub) of whoever signed up. The login identity. */
+    ownerMemberId: text("owner_member_id").notNull().unique(),
+    email: text("email"),
+    stripeCustomerId: text("stripe_customer_id"),
+    stripeSubscriptionId: text("stripe_subscription_id"),
+    plan: accountPlan("plan").notNull().default("solo"),
+    seatLimit: integer("seat_limit").notNull().default(1),
+    subscriptionStatus: subscriptionStatus("subscription_status")
+      .notNull()
+      .default("none"),
+    /**
+     * When the paid period runs out. Also the date a cancellation takes
+     * effect, because the portal cancels at period end rather than on the day
+     * somebody clicks it.
+     */
+    currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
+    /** Set while the free days are running, null once the first charge lands. */
+    trialEndsAt: timestamp("trial_ends_at", { withTimezone: true }),
+    /** True between clicking cancel and the period actually ending. */
+    cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [uniqueIndex("account_stripe_customer_unique").on(t.stripeCustomerId)],
+);
 
 /** One LinkedIn person we post as. An agency account has up to 12. */
 export const profile = pgTable(

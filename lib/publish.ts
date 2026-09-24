@@ -1,11 +1,13 @@
 import { and, asc, eq, isNull, lte } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
+  account as accountTable,
   card as cardTable,
   linkedinConnection,
   profile as profileTable,
   scheduledPost,
 } from "@/db/schema";
+import { billingBlock } from "@/lib/billing";
 import { openToken } from "@/lib/linkedin/crypto";
 import { uploadImage } from "@/lib/linkedin/images";
 import { personUrn, postPermalink, publishPost } from "@/lib/linkedin/posts";
@@ -31,6 +33,10 @@ import { statusFor } from "@/lib/token-expiry";
  * publishes with that picture or it does not publish yet. The one case where a
  * post goes out without one is the image cap, and that decision was made at
  * approval time, on the board, where the user saw it.
+ *
+ * Publish for an account that is not paying. Billing is checked before the
+ * token, once per profile, and a stopped account pauses rather than fails, so
+ * the queue it has built publishes the day the plan starts again.
  */
 
 const MAX_ATTEMPTS = 5;
@@ -56,6 +62,8 @@ type DueRow = {
   scheduled: typeof scheduledPost.$inferSelect;
   card: typeof cardTable.$inferSelect;
   profile: typeof profileTable.$inferSelect;
+  /** The paying entity. Read here so billing is one query, not one per post. */
+  account: typeof accountTable.$inferSelect;
 };
 
 export async function runPublishQueue(opts?: {
@@ -70,10 +78,12 @@ export async function runPublishQueue(opts?: {
       scheduled: scheduledPost,
       card: cardTable,
       profile: profileTable,
+      account: accountTable,
     })
     .from(scheduledPost)
     .innerJoin(cardTable, eq(scheduledPost.cardId, cardTable.id))
     .innerJoin(profileTable, eq(scheduledPost.profileId, profileTable.id))
+    .innerJoin(accountTable, eq(profileTable.accountId, accountTable.id))
     .where(
       and(
         isNull(scheduledPost.publishedAt),
@@ -116,6 +126,15 @@ async function publishForProfile(
 ): Promise<void> {
   const db = getDb();
   const profile = rows[0].profile;
+
+  // Billing before the token, because an account that stopped paying should
+  // not have its LinkedIn connection read at all. Paused, not failed: nothing
+  // is wrong with these posts and they go out the day a plan starts again.
+  const stopped = billingBlock(rows[0].account);
+  if (stopped) {
+    await pauseProfile(rows, stopped, run);
+    return;
+  }
 
   const [connection] = await db
     .select()

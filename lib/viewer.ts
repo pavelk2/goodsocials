@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { getDb } from "@/db";
 import { account as accountTable, profile as profileTable } from "@/db/schema";
-import { planFromSlug, type Plan } from "@/lib/plans";
+import { planForColumn, type Plan } from "@/lib/plans";
 
 /**
  * Who is signed in, for the app header and nothing else.
@@ -49,6 +49,21 @@ export async function loadViewer(): Promise<Viewer | null> {
     name: row.name ?? row.accountEmail ?? "Your account",
     email: row.email ?? row.accountEmail,
     avatarUrl: row.avatarUrl,
-    plan: planFromSlug(row.plan === "agency" ? "agency" : "pro"),
+    plan: planForColumn(row.plan),
   };
+}
+
+/**
+ * Whether this request carries a session, without touching the database.
+ *
+ * What the landing page needs and all it needs. loadViewer costs an indexed
+ * read for a name, a face and a plan, and the marketing page has no slot for
+ * any of them: the only thing it changes on is whether the reader has a board
+ * to go back to. The cookie read makes the page dynamic, so keeping the query
+ * out of it is the difference between a render and a render plus a round trip
+ * to Neon on every visit.
+ */
+export async function isSignedIn(): Promise<boolean> {
+  const session = await auth();
+  return Boolean(session?.memberId);
 }

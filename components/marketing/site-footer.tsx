@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Logo } from "./logo";
 import { Streak } from "./streak";
 import { AGENCY_SEATS, SUPPORT } from "@/lib/legal";
-import { DEFAULT_PLAN } from "@/lib/plans";
+import { BOARD_HREF, DEFAULT_PLAN } from "@/lib/plans";
 
 /**
  * The sign-off is a year of the mark: twelve grids, one per month, filled to
@@ -34,18 +34,30 @@ const LINKS = [
   { href: "#who", label: "Who it is for" },
   { href: "#pricing", label: "Pricing" },
   { href: "#permissions", label: "LinkedIn" },
-  { href: "/signin", label: "Sign in" },
 ];
 
 const SECONDARY = [
-  { href: `/signin?plan=${DEFAULT_PLAN.slug}`, label: "Start a board" },
   { href: "#pricing", label: `Run up to ${AGENCY_SEATS} clients` },
   { href: `mailto:${SUPPORT}`, label: SUPPORT },
   { href: "/privacy", label: "Privacy" },
   { href: "/terms", label: "Terms" },
 ];
 
-export function SiteFooter() {
+/**
+ * The two account links are the only rows that change with a session, so they
+ * are built here rather than sitting in the lists above. Signed out the footer
+ * offers the two doors it always had; signed in it offers the two screens
+ * behind them. The default is signed out, which is what /privacy and /terms
+ * pass by saying nothing, so those pages stay prerendered.
+ */
+export function SiteFooter({ signedIn = false }: { signedIn?: boolean }) {
+  const entry = signedIn
+    ? { href: BOARD_HREF, label: "Your board" }
+    : { href: "/signin", label: "Sign in" };
+  const secondaryEntry = signedIn
+    ? { href: "/settings", label: "Settings" }
+    : { href: `/signin?plan=${DEFAULT_PLAN.slug}`, label: "Start a board" };
+
   const now = new Date();
   const month = now.getUTCMonth();
 
@@ -78,7 +90,7 @@ export function SiteFooter() {
           </Link>
 
           <ul className="flex flex-wrap items-center gap-x-8 gap-y-3 text-[15px] text-ink-2">
-            {LINKS.map((link) => (
+            {[...LINKS, entry].map((link) => (
               <li key={link.label}>
                 <Link href={link.href} className="nav-link">
                   {link.label}
@@ -97,7 +109,7 @@ export function SiteFooter() {
             More
           </p>
           <ul className="mt-5 flex flex-wrap gap-x-10 gap-y-3 text-[15px] text-ink-2">
-            {SECONDARY.map((link) => (
+            {[secondaryEntry, ...SECONDARY].map((link) => (
               <li key={link.label}>
                 <Link href={link.href} className="nav-link">
                   {link.label}

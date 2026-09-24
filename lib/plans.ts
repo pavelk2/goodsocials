@@ -34,6 +34,19 @@ export type Plan = {
   featured?: boolean;
   /** Button label. The price is in the button, always. */
   cta: string;
+  /** LinkedIn profiles this plan can connect. The seat limit on the account. */
+  seats: number;
+  /**
+   * The Stripe price this plan checks out at, written here rather than read
+   * from the environment. Three ids in three deployments was three things to
+   * keep in step for no benefit: a price id is not a secret, and it changes
+   * about as often as the price on the page does.
+   *
+   * These are live mode. Rehearsing a checkout in test mode means swapping
+   * them for the test ids, which is a one line edit and a deploy rather than
+   * an environment variable.
+   */
+  priceId: string;
 };
 
 export const PLANS: Plan[] = [
@@ -52,6 +65,8 @@ export const PLANS: Plan[] = [
     ],
     featured: true,
     cta: "Start for $100 a month",
+    seats: 1,
+    priceId: "price_1UIQaFBxtKkTb0BvoWnfIXFJ",
   },
   {
     slug: "agency",
@@ -66,6 +81,8 @@ export const PLANS: Plan[] = [
       "We email you before a client's access runs out",
     ],
     cta: "Start for $1,000 a month",
+    seats: AGENCY_SEATS,
+    priceId: "price_1UIQaLBxtKkTb0Bv42qzgiWK",
   },
   {
     slug: "consultancy",
@@ -80,6 +97,8 @@ export const PLANS: Plan[] = [
       "A direct line when a client board needs a decision",
     ],
     cta: "Start for $2,000 a month",
+    seats: AGENCY_SEATS,
+    priceId: "price_1UIQaNBxtKkTb0BvcAbdUIhO",
   },
 ];
 
@@ -117,3 +136,60 @@ const BY_SLUG = Object.fromEntries(PLANS.map((plan) => [plan.slug, plan]));
 export const PRICE_SOLO = BY_SLUG.pro.priceLine;
 export const PRICE_AGENCY = BY_SLUG.agency.priceLine;
 export const PRICE_CONSULTANCY = BY_SLUG.consultancy.priceLine;
+
+/**
+ * The plan column on `account` and the slug on this page are not spelled the
+ * same. The column said `solo` before the plan was named Pro, and renaming a
+ * live enum value so two spellings agree is a migration with nothing to show
+ * for it. These two functions are the only place that difference exists, and
+ * nothing else in the repo compares a plan column to a string.
+ */
+export type PlanColumn = "solo" | "agency" | "consultancy";
+
+export function slugForColumn(value: PlanColumn): PlanSlug {
+  return value === "solo" ? "pro" : value;
+}
+
+export function columnForSlug(slug: PlanSlug): PlanColumn {
+  return slug === "pro" ? "solo" : slug;
+}
+
+/** The plan an account is on, named the way the page names it. */
+export function planForColumn(value: PlanColumn): Plan {
+  return planFromSlug(slugForColumn(value));
+}
+
+/** The Stripe price this plan checks out at. */
+export function priceIdFor(slug: PlanSlug): string {
+  return planFromSlug(slug).priceId;
+}
+
+/**
+ * Which plan a Stripe subscription is on, read from its price id. This is the
+ * direction the webhook needs: Stripe says what the customer is paying for and
+ * we decide what that means here, so a plan switched in the billing portal
+ * lands on the account without a second source of truth.
+ */
+export function planForPriceId(priceId: string | null | undefined): Plan | null {
+  if (!priceId) return null;
+  return PLANS.find((plan) => plan.priceId === priceId) ?? null;
+}
+
+/** Where every landing page button points once the reader has a session. */
+export const BOARD_HREF = "/board";
+
+/**
+ * What the landing page's two big buttons say once the reader has a session.
+ *
+ * The same label on both, because signed in they do the same thing: the plan
+ * is picked, the board exists, and /signin sends a member who already has a
+ * session straight to it anyway. A button that quotes a price and lands on a
+ * board is a lie the reader catches on the first click, and the landing page
+ * is the one surface a returning member arrives at by accident.
+ */
+export const SIGNED_IN_CTA = "Open your board";
+
+/** The href a plan's button carries, which is the board once there is one. */
+export function planHref(slug: PlanSlug, signedIn: boolean): string {
+  return signedIn ? BOARD_HREF : `/signin?plan=${slug}`;
+}

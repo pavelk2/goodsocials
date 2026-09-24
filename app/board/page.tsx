@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { billingBlock } from "@/lib/billing";
 import { resolveEntry, signInHref } from "@/lib/entry";
 import { seatName } from "@/lib/profiles";
 import { readQuota } from "@/lib/quota";
@@ -58,6 +59,7 @@ export default async function BoardPage({
       />
 
       <QueueNotice
+        billing={billingBlock(access.account)}
         connection={view.connection}
         queueError={view.queueError}
         ownProfile={
