@@ -157,7 +157,25 @@ export async function generateDraft(opts: {
   return finish(response.parsed_output.post, opts.goal);
 }
 
-const MARKET_BRIEF = `Build it as a map of the field. One opening sentence naming the field and that this is what customers say about the companies in it. Then one short block per company, the author's own company included, named by its name and written about in the same plain register as the others: the name, what it offers, what customers like, what they dislike, and where that was said. Where a company has no reviews, say only what it offers and nothing about opinion. Report the reviews as reviews, never as your own verdict, and never rank the companies. End on the last company, or on one sentence saying what the list shows about the field as a whole. No brackets, because nothing here needs a number from the author.`;
+const MARKET_BRIEF = `Build it as a map of the field. One opening sentence naming the field and that this is what customers say about the companies in it. Then one short block per company, the author's own company included, named by its name and written about in the same plain register as the others: the name, what it offers, what customers like, what they dislike, and where that was said. A company listed without opinions gets what it offers and nothing else. Never write that reviews are missing, thin or hard to find, and never mention searching: the list is what was read, not what was looked for. Report the reviews as reviews, never as your own verdict, and never rank the companies. End on the last company, or on one sentence saying what the list shows about the field as a whole. No brackets, because nothing here needs a number from the author.`;
+
+/**
+ * The market map when too few reviews were read to compare: what each company
+ * sells, from its own site. A post saying nobody reviewed Calendly would be
+ * false, and the reader would know it.
+ */
+const OFFERS_BRIEF = `Build it as a map of the field. One opening sentence naming the field and how many companies sell in it to these buyers. Then one short block per company, the author's own company included, named by its name and written about in the same plain register as the others: what it sells and to whom, as its own site puts it. Never say what customers think of any of them, never mention reviews, and never mention searching. Never rank the companies. End on one sentence saying where the companies differ most. No brackets, because nothing here needs a number from the author.`;
+
+/** Reviewed companies below this, and the market map compares offers instead. */
+const MIN_REVIEWED = 2;
+
+function reviewed(c: Research["companies"][number]): boolean {
+  return Boolean(c.praised || c.criticised);
+}
+
+function marketBrief(research: Research): string {
+  return research.companies.filter(reviewed).length >= MIN_REVIEWED ? MARKET_BRIEF : OFFERS_BRIEF;
+}
 
 const JOBS_BRIEF = `Build it as the jobs customers hire a product in this field to do. One opening sentence naming the field and that this is why people buy in it, as they said it themselves. Then one short block per job: the progress the customer wanted, what they used before where they said it, and where it was said. Write each job as a situation and an outcome, never as a feature, and never claim the author's product does any of them. Report what customers wrote as what customers wrote, never as your own verdict. End on the last job, or on one sentence saying which job comes up most often in what customers wrote. No brackets, because nothing here needs a number from the author.`;
 
@@ -198,19 +216,26 @@ function sampleFacts(content: SampleContent, research: Research): string | null 
       research.history.map((m) => `${m.when}. ${m.what} (${m.source})`).join("\n"),
     ].join("\n");
   }
-  const companies = research.companies.map((c) =>
+  // With enough reviews read, a company nobody reviewed is left out, the
+  // author's own excepted, because the post is about what customers said.
+  const withOpinions = research.companies.filter(reviewed).length >= MIN_REVIEWED;
+  const listed = withOpinions
+    ? research.companies.filter((c) => c.own || reviewed(c))
+    : research.companies;
+  const companies = listed.map((c) =>
     [
       `${c.name}${c.own ? " (the author's own company)" : ""}. Offers: ${c.offers}`,
-      c.praised ? `Customers like: ${c.praised}` : "",
-      c.criticised ? `Customers dislike: ${c.criticised}` : "",
-      c.source && (c.praised || c.criticised) ? `Said on: ${c.source}` : "",
-      !c.praised && !c.criticised ? "No reviews found. Say nothing about opinion." : "",
+      withOpinions && c.praised ? `Customers like: ${c.praised}` : "",
+      withOpinions && c.criticised ? `Customers dislike: ${c.criticised}` : "",
+      withOpinions && c.source && reviewed(c) ? `Said on: ${c.source}` : "",
     ]
       .filter(Boolean)
       .join("\n"),
   );
   return [
-    "The companies, as read from their sites and from public reviews. Use nothing else:",
+    withOpinions
+      ? "The companies, as read from their sites and from public reviews. Use nothing else:"
+      : "The companies, as read from their own sites. Use nothing else:",
     companies.join("\n\n"),
   ].join("\n");
 }
@@ -258,7 +283,7 @@ export async function generateSamplePost(opts: {
         content: [
           `Idea: ${sampleIdea(content, opts.research.field)}`,
           "",
-          `Shape. ${BRIEF[content]}`,
+          `Shape. ${content === "competitors" ? marketBrief(opts.research) : BRIEF[content]}`,
           "",
           facts,
           "",
