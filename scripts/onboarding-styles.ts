@@ -1,21 +1,20 @@
 /**
- * Draws the three pictures on the onboarding question "Which pictures fit
- * you?", one per option, into public/onboarding/.
+ * Draws the three pictures on the onboarding question "What visual content
+ * do you like?", one per option, into public/onboarding/.
  *
  *   OPENROUTER_API_KEY=... npx tsx scripts/onboarding-styles.ts
  *
  * Same model and tier the product uses, so the pictures are an honest preview
  * of what a post gets and not a better-looking promise. Run once, commit the
- * three files, run again only if an option's principle changes. About 0.09
+ * three files, run again only if a recipe in lib/agent/image-styles.ts
+ * changes. About 0.09
  * USD a run.
  *
  * Until it has been run the question still works: each tile shows its label.
  */
 import { mkdir, writeFile } from "node:fs/promises";
 import { IMAGE_QUESTION } from "../lib/funnel-steps";
-
-const SUBJECT =
-  "The subject is a small software company's first invoice to a new customer, shown without any readable text.";
+import { imageStyleFor } from "../lib/agent/image-styles";
 
 async function draw(prompt: string): Promise<Buffer> {
   const key = process.env.OPENROUTER_API_KEY;
@@ -41,8 +40,9 @@ async function draw(prompt: string): Promise<Buffer> {
 async function main() {
   await mkdir("public/onboarding", { recursive: true });
   for (const option of IMAGE_QUESTION.options) {
-    if (!option.preview || !option.principle) continue;
-    const prompt = `${option.principle} ${SUBJECT} No people's faces, no text, no logos.`;
+    const style = imageStyleFor(option.id);
+    if (!option.preview || !style) continue;
+    const prompt = `${style.example} ${style.recipe}`;
     const bytes = await draw(prompt);
     await writeFile(`public${option.preview}`, bytes);
     console.log(`wrote public${option.preview}`);

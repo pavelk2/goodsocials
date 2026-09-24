@@ -8,6 +8,8 @@ import {
   releaseImage,
   type QuotaState,
 } from "@/lib/quota";
+import { readFunnel } from "@/lib/funnel";
+import { imageStyleFor, type ImageStyle } from "./image-styles";
 
 /**
  * Every generated image costs money on a fixed subscription, so the order here
@@ -44,23 +46,25 @@ const PromptSchema = z.object({
   prompt: z
     .string()
     .describe(
-      "The image prompt. One paragraph, concrete nouns, stated as a scene rather than as a brief. Names the subject, the lighting, the framing and the treatment.",
+      "The image prompt. Concrete nouns, stated as a scene rather than as a brief. Names the subject, the lighting, the framing and the treatment.",
     ),
 });
 
 const PROMPT_SYSTEM = `You write one image prompt for the picture that will sit beside a LinkedIn post.
 
-You are given the post and the author's visual principle. The visual principle wins on treatment, palette, and subject matter. The post decides what the picture is of.
+You are given the post and the author's visual principle, and sometimes a house style the author picked.
 
-The picture illustrates the specific thing the post is about. A post about a pricing decision gets a picture of the thing being priced, not a stock metaphor for decisions.
+With a house style: carry its treatment into your prompt close to word for word, because the style is what makes a year of posts look like one feed. Its subject rule says what the post may decide inside the style. The visual principle holds the author's corrections, so where it disagrees with the style, the principle wins.
+
+Without a house style: the visual principle wins on treatment, palette, and subject matter, and the post decides what the picture is of. The picture illustrates the specific thing the post is about. A post about a pricing decision gets a picture of the thing being priced, not a stock metaphor for decisions.
 
 Never ask for text, words, letters, numbers, logos, charts with labels, or UI with readable copy in the image. Generators render text badly and a misspelled word on a post under a real name is worse than no picture.
 
-Never ask for people's faces. A recognisable invented face published under a real person's byline reads as a stock photo at best and a deepfake at worst.
+Never ask for a clear, frontal, fully lit face. A recognisable invented face published under a real person's byline reads as a stock photo at best and a deepfake at worst. Where a person belongs in the picture, they are turned away, in profile, or mostly in shadow.
 
 Banned because they are the visual equivalent of the words we ban: glowing blue neural networks, robot hands touching human hands, floating holograms, rocket ships, light bulbs as ideas, chess pieces, people in suits shaking hands, arrows going up and to the right.
 
-Write the prompt as a description of a photograph or a made object, not as instructions to an artist. One paragraph, no lists, no negative prompt section.`;
+Write the prompt as a description of a photograph or a made object, not as instructions to an artist. No lists, no negative prompt section. The picture is a 4:3 landscape frame, so never ask for a vertical composition.`;
 
 /**
  * The two failures are not the same failure and the board must not treat them
@@ -96,7 +100,11 @@ export async function generateImage(opts: {
   }
 
   try {
-    const prompt = await writePrompt(opts);
+    // The style lives on the funnel answer rather than in the principle, so a
+    // revise comment that rewrites the principle cannot delete the recipe.
+    const funnel = await readFunnel(opts.profileId);
+    const style = imageStyleFor(funnel?.answers.image?.choice);
+    const prompt = await writePrompt({ ...opts, style });
     const { bytes, contentType, cost } = await draw(prompt);
 
     // Randomised suffix on, so a regeneration cannot be served from a cache
@@ -181,6 +189,7 @@ async function writePrompt(opts: {
   profileId: string;
   postText: string;
   visualPrinciple: string;
+  style: ImageStyle | null;
 }): Promise<string> {
   const response = await anthropic().messages.parse({
     model: MODEL,
@@ -191,6 +200,16 @@ async function writePrompt(opts: {
       {
         role: "user",
         content: [
+          ...(opts.style
+            ? [
+                "House style:",
+                opts.style.recipe,
+                "",
+                "What the post decides inside the style:",
+                opts.style.subject,
+                "",
+              ]
+            : []),
           "Visual principle:",
           opts.visualPrinciple,
           "",
