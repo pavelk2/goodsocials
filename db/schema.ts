@@ -438,8 +438,8 @@ export const PAST_POST_LIMIT = 300;
  * round trip, which is deliberate: LinkedIn already taught this product what a
  * silently expiring token costs, and a Stripe restricted key, a GitHub
  * fine-grained token, a PostHog personal key, a Plausible key and a Notion
- * internal token all outlive the subscription. Google Calendar is the obvious
- * sixth and it is the first one that needs a refresh flow, so it waits.
+ * internal token all outlive the subscription. A source that needs a refresh
+ * flow does not join this enum without the monitor to go with it.
  */
 export const sourceKind = pgEnum("source_kind", [
   "stripe",

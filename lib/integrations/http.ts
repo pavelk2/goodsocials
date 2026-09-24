@@ -9,6 +9,24 @@
 
 const TIMEOUT_MS = 12_000;
 
+/**
+ * One retry, and only for the failures that are about the connection rather
+ * than about the request. A 500 or a dropped socket on a cron with nobody
+ * watching costs a whole day of readings, and the next attempt usually works.
+ * A 401 retried is a second wrong password, a 429 retried is a rate limit made
+ * worse, and a 404 retried is the same missing page. Those are answers, not
+ * blips, and they are returned the first time.
+ */
+const RETRY_DELAY_MS = 1_200;
+
+function worthRetrying(status: number | null): boolean {
+  return status === null || status >= 500;
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export type HttpResult<T> =
   | { ok: true; data: T }
   | { ok: false; status: number | null; error: string };
@@ -18,7 +36,7 @@ export type HttpResult<T> =
  * matters: "Stripe refused it" is useless next to "This key does not have the
  * required permissions to access subscriptions."
  */
-function messageFrom(body: unknown): string | null {
+export function messageFrom(body: unknown): string | null {
   if (typeof body === "string" && body.trim()) return body.trim().slice(0, 300);
   if (!body || typeof body !== "object") return null;
   const b = body as Record<string, unknown>;
@@ -41,6 +59,17 @@ function messageFrom(body: unknown): string | null {
 export async function request<T>(
   url: string,
   init: RequestInit = {},
+): Promise<HttpResult<T>> {
+  const first = await attempt<T>(url, init);
+  if (first.ok || !worthRetrying(first.status)) return first;
+
+  await wait(RETRY_DELAY_MS);
+  return attempt<T>(url, init);
+}
+
+async function attempt<T>(
+  url: string,
+  init: RequestInit,
 ): Promise<HttpResult<T>> {
   let response: Response;
   try {

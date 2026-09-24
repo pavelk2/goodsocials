@@ -62,6 +62,7 @@ export async function IntegrationsBody() {
                         ? ago(view.connected.lastSyncedAt)
                         : null,
                       lastError: view.connected.lastError,
+                      stale: view.stale,
                     }
                   : null
               }

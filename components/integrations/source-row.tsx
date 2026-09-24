@@ -36,6 +36,8 @@ export type Connected = {
   handle: string | null;
   lastSyncedLabel: string | null;
   lastError: string | null;
+  /** Every reading is past its shelf life, so none of them reach a draft. */
+  stale: boolean;
 };
 
 /** Six is enough to prove the connection works without becoming a report. */
@@ -111,7 +113,9 @@ export function SourceRow({
               <span className="num text-[13px] text-ink-2">
                 {readings.length === 0
                   ? "No readings yet"
-                  : `${readings.length} ${readings.length === 1 ? "reading" : "readings"}`}
+                  : connected.stale
+                    ? `${readings.length} stale`
+                    : `${readings.length} ${readings.length === 1 ? "reading" : "readings"}`}
                 {connected.lastSyncedLabel ? `, read ${connected.lastSyncedLabel}` : ""}
               </span>
               <span className="flex items-center gap-3">
@@ -153,8 +157,22 @@ export function SourceRow({
         </div>
       </div>
 
-      {/* A broken source says what happened in the row, in the words the API
-          used, rather than in a toast that has already left the screen. */}
+      {/* Two different failures, said in two different places. A source that
+          refused us says so in the API's own words. A source whose readings
+          aged out says what that costs, because the numbers are still sitting
+          on the screen underneath and otherwise look usable. */}
+      {connected?.stale ? (
+        <p
+          className="mt-3 max-w-[560px] text-[13px] leading-[1.4] text-ink"
+          role="status"
+        >
+          These readings are more than a week old, so drafts have stopped using
+          them and will ask you for the number instead. Read now, or replace the
+          key if it stopped working.
+        </p>
+      ) : null}
+
+
       {connected?.status === "broken" && connected.lastError ? (
         <p
           className="mt-3 max-w-[560px] text-[13px] leading-[1.4] text-ink"

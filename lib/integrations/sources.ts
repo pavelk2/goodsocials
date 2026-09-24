@@ -5,7 +5,7 @@ import { adapterFor } from "./adapters";
 import { CATALOG, CATALOG_LIST } from "./catalog";
 import { sealCredential } from "./credentials";
 import { syncSource } from "./sync";
-import type { FactRow } from "./facts";
+import { isStale, type FactRow } from "./facts";
 import type { SourceDefinition, SourceKind } from "./types";
 
 /**
@@ -32,9 +32,19 @@ export type SourceView = {
   definition: SourceDefinition;
   connected: ConnectedSource | null;
   facts: FactRow[];
+  /**
+   * The readings are here but too old to go into a post. Shown rather than
+   * hidden: a user whose key was revoked three weeks ago should see the
+   * numbers the source last gave us and the reason they stopped being used,
+   * not an empty row that looks like nothing was ever connected.
+   */
+  stale: boolean;
 };
 
-export async function listSources(profileId: string): Promise<SourceView[]> {
+export async function listSources(
+  profileId: string,
+  now = new Date(),
+): Promise<SourceView[]> {
   const db = getDb();
 
   const [rows, facts] = await Promise.all([
@@ -65,6 +75,7 @@ export async function listSources(profileId: string): Promise<SourceView[]> {
 
   return CATALOG_LIST.map((definition) => {
     const row = byKind.get(definition.kind);
+    const own = factsByKind.get(definition.kind) ?? [];
     return {
       definition,
       connected: row
@@ -78,7 +89,9 @@ export async function listSources(profileId: string): Promise<SourceView[]> {
             connectedAt: row.createdAt,
           }
         : null,
-      facts: factsByKind.get(definition.kind) ?? [],
+      facts: own,
+      stale:
+        own.length > 0 && own.every((f) => isStale(f.observedAt, now)),
     };
   });
 }

@@ -10,6 +10,17 @@ import type { Adapter, AdapterInput, DraftFact, ReadResult } from "../types";
  * Counts come from the search API, which reports a total without paging through
  * it. One call per count, four counts, once a day, against a limit of 30 search
  * requests a minute.
+ *
+ * All three queries were run live against a real account on 24 September 2026
+ * and all three return what they claim. The commit one came back wrong the
+ * first time: without `merge:false` it counted the merge commits GitHub writes
+ * when a pull request is squashed, which turned 60 commits into 227. A receipt
+ * post is worth nothing if its number is four times the truth, so the
+ * qualifier stays whatever else changes here.
+ *
+ * One limit worth knowing before somebody reports it as a bug: commit search
+ * reads the default branch only, so work that is still on a branch is not in
+ * the count. That is the right answer for a post about what shipped.
  */
 
 const BASE = "https://api.github.com";
@@ -87,7 +98,7 @@ export const githubAdapter: Adapter = {
     const [merged, closed, commits] = await Promise.all([
       searchCount(credential, "issues", `author:${login} type:pr is:merged merged:>=${since}`),
       searchCount(credential, "issues", `author:${login} type:issue is:closed closed:>=${since}`),
-      searchCount(credential, "commits", `author:${login} author-date:>=${since}`),
+      searchCount(credential, "commits", `author:${login} author-date:>=${since} merge:false`),
     ]);
 
     if (merged !== null) {

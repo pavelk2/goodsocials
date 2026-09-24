@@ -84,13 +84,12 @@ is unobserved is listed under each item.
 Five sources, all read-only, all authenticated with a pasted key that does not
 expire. That last part is the selection rule rather than a coincidence: LinkedIn
 already costs this product a re-authorization every 60 days plus a monitor to
-catch it dying silently, and five OAuth grants would be five more of those.
-Google Calendar has the widest coverage of the people who pay us and is the
-first source that needs a refresh flow, which is why it is the next one and not
-one of these.
+catch it dying silently, and five OAuth grants would be five more of those. A
+source that needs a refresh flow is a different piece of work and does not go
+in beside these.
 
 - [x] **Two tables and one seam.** `source` holds the connection, `fact` holds the readings, upserted on `(source_id, key)` so a sync replaces rather than accumulates. Nothing else in the product knows the five sources apart: adding one is a file in `lib/integrations/adapters/`, a line in the registry, a definition in the catalog, and a member on the enum.
-- [x] **Five adapters, no new dependency.** Stripe, GitHub, PostHog, Plausible, Notion, over raw fetch with a 12 second timeout on every call. Four of the five error envelopes were probed live with a wrong key, which found the thing that would have shipped broken: PostHog answers a bad key with 403 where Stripe answers 401, so a message built from the status code alone tells the user to fix a permission on a key they mistyped. Unobserved: every authenticated GitHub call, because the container's proxy refuses non-repository GitHub paths.
+- [x] **Five adapters, no new dependency.** Stripe, GitHub, PostHog, Plausible, Notion, over raw fetch with a 12 second timeout on every call. Four of the five error envelopes were probed live with a wrong key, which found the thing that would have shipped broken: PostHog answers a bad key with 403 where Stripe answers 401, so a message built from the status code alone tells the user to fix a permission on a key they mistyped. The three GitHub search queries were later run live against a real account, which found the second one: without `merge:false` the commit count included GitHub's own squash-merge commits and read 227 where the real figure was 60.
 - [x] **A credential is checked before it is stored.** `connectSource` reads the live API once and refuses a bad key in the sheet the user is still looking at, then runs the first sync inline, so a screen that says connected also shows numbers. Unobserved: the round trip with a real key on the preview.
 - [x] **Facts reach every prompt that writes.** Ideas, drafts and revisions all read them, and the instruction above them is the part that matters: use the figure exactly, never round one for effect, never bracket a number that is sitting in front of you. On a revise, the user's comment outranks a reading, because a comment is them telling us something the tool does not know. Unobserved: whether a receipt built on a real MRR line actually reads better than one with a bracket, which is the whole bet and only real users answer it.
 - [x] **The prompt cannot grow without a decision.** 24 readings and 2,600 characters, Notion excerpts sorted last so they are cut first. Text is 0.15 USD a post against a 100 USD subscription and it stays there.
@@ -99,7 +98,6 @@ one of these.
 
 What is deliberately not in this pass.
 
-- [ ] **Google Calendar.** The widest coverage of the people who pay us, and not a number source: 14 customer calls this month, a talk on Thursday, a launch date. It needs OAuth with a refresh token, which is the first real work here, and it is worth doing next.
 - [ ] **The agency intake link.** An agency running 12 client profiles has no access to the client's Stripe, so read integrations are a solo-tier feature as built. The agency version is a page the client fills in that writes `fact` rows on their profile, which solves the actual agency problem of chasing clients for material. Same table, no OAuth.
 - [ ] **A card that says which source answered it.** The board shows `needs` when a card is waiting on the author. It does not yet show "this number came from Stripe on Tuesday", which is what makes a user trust the figure enough to approve without checking.
 - [ ] **A per-source error email.** A broken source is visible on the integrations screen and nowhere else. It belongs in the same day 50 machinery as a dying LinkedIn token, because the failure is the same shape: silent, and discovered late.

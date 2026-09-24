@@ -45,7 +45,7 @@ function headers(credential: string): HeadersInit {
  * over 12 months, because the other arithmetic is off by 4 percent and a
  * revenue number that is off by 4 percent is worse than no revenue number.
  */
-function monthlyFactor(interval: string, intervalCount: number): number | null {
+export function monthlyFactor(interval: string, intervalCount: number): number | null {
   const per = intervalCount > 0 ? intervalCount : 1;
   switch (interval) {
     case "month":
@@ -61,13 +61,48 @@ function monthlyFactor(interval: string, intervalCount: number): number | null {
   }
 }
 
-function amountOf(price: Price): number | null {
+export function amountOf(price: Price): number | null {
   if (price.unit_amount !== null) return price.unit_amount;
   if (price.unit_amount_decimal !== null) {
     const parsed = Number(price.unit_amount_decimal);
     return Number.isFinite(parsed) ? parsed : null;
   }
   return null;
+}
+
+/**
+ * The MRR arithmetic, on its own, away from the paging. This is the number
+ * that ends up in a post with somebody's name on it, and every way it can be
+ * wrong is quiet: an annual plan counted at twelve times its worth, a weekly
+ * one at 4 instead of 52/12, two currencies added together into a figure that
+ * is not money in either of them.
+ */
+export function addUp(
+  subscriptions: Subscription[],
+  seen = "",
+): { mrrMinor: number; currency: string } {
+  let mrrMinor = 0;
+  let currency = seen;
+
+  for (const sub of subscriptions) {
+    for (const item of sub.items?.data ?? []) {
+      const price = item.price;
+      if (!price?.recurring) continue;
+      const amount = amountOf(price);
+      const factor = monthlyFactor(
+        price.recurring.interval,
+        price.recurring.interval_count,
+      );
+      if (amount === null || factor === null) continue;
+      // Mixed currencies on one account would make a single total a lie, so
+      // the first one seen wins and the rest are left out rather than added.
+      if (!currency) currency = price.currency;
+      if (price.currency !== currency) continue;
+      mrrMinor += amount * (item.quantity ?? 1) * factor;
+    }
+  }
+
+  return { mrrMinor, currency };
 }
 
 async function activeSubscriptions(
@@ -93,24 +128,10 @@ async function activeSubscriptions(
     });
     if (!result.ok) return { ok: false, error: result.error, status: result.status };
 
-    for (const sub of result.data.data) {
-      subscriptions += 1;
-      for (const item of sub.items?.data ?? []) {
-        const price = item.price;
-        if (!price?.recurring) continue;
-        const amount = amountOf(price);
-        const factor = monthlyFactor(
-          price.recurring.interval,
-          price.recurring.interval_count,
-        );
-        if (amount === null || factor === null) continue;
-        // Mixed currencies on one account would make a single total a lie, so
-        // the first one seen wins and the rest are left out rather than added.
-        if (!currency) currency = price.currency;
-        if (price.currency !== currency) continue;
-        mrrMinor += amount * (item.quantity ?? 1) * factor;
-      }
-    }
+    const page = addUp(result.data.data, currency);
+    subscriptions += result.data.data.length;
+    mrrMinor += page.mrrMinor;
+    currency = page.currency;
 
     const last = result.data.data.at(-1);
     more = result.data.has_more;

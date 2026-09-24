@@ -9,9 +9,8 @@ import { SOURCE_KINDS } from "./types";
  * Every credential here is a paste-once key with read scopes, and that is the
  * selection rule rather than a coincidence. LinkedIn already costs this product
  * a re-authorization every 60 days and a monitor to catch it silently dying.
- * Five more OAuth grants would be five more of those. Google Calendar is the
- * source with the widest coverage of the people who pay us and it is the first
- * one that needs a refresh flow, so it is next rather than now.
+ * Five more OAuth grants would be five more of those. A source that needs a
+ * refresh flow does not belong in this file.
  */
 export const CATALOG: Record<SourceKind, SourceDefinition> = {
   stripe: {

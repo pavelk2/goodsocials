@@ -6,8 +6,10 @@ import { syncDue } from "@/lib/integrations/sync";
  * Once a day at 04:00 UTC, which is early enough that the numbers are today's
  * by the time anybody approves a card and late enough that a Stripe day has
  * closed. None of these APIs charge us, so the ceiling is wall clock rather
- * than money: five sources times a handful of calls each, run one source at a
- * time so a rate limit on one account cannot be caused by us.
+ * than money, and the run is bounded on both ends: stalest sources first, four
+ * at a time, and it stops claiming new ones before the function's 300 seconds
+ * run out. `skipped` in the response is how many were due and not reached,
+ * which is the number that says this cron has outgrown one run a day.
  *
  * A refused source is not a failed run. It writes its own `last_error` and goes
  * on showing the reading it had, the way a paused scheduled_post keeps its
@@ -22,10 +24,11 @@ export async function GET(request: Request) {
   if (denied) return Response.json({ error: denied }, { status: 401 });
 
   try {
-    const reports = await syncDue();
+    const { reports, skipped } = await syncDue();
     return Response.json({
       read: reports.filter((r) => r.ok).length,
       refused: reports.filter((r) => !r.ok).length,
+      skipped,
       facts: reports.reduce((sum, r) => sum + r.facts, 0),
       sources: reports,
     });

@@ -1,4 +1,4 @@
-import { and, eq, isNull, lt, notInArray, or, sql } from "drizzle-orm";
+import { and, asc, eq, isNull, lt, notInArray, or, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { fact as factTable, source as sourceTable } from "@/db/schema";
 import { adapterFor } from "./adapters";
@@ -150,10 +150,35 @@ export async function syncProfile(
  */
 const STALE_HOURS = 20;
 
+/**
+ * How much of the function's 300 seconds the run is allowed to spend starting
+ * work. A source is several calls at up to 12 seconds each, so the margin has
+ * to cover the slowest one finishing after the last one starts. Past the
+ * deadline the run stops claiming rows and says how many it left, rather than
+ * being killed mid-source with nothing written and nothing reported.
+ */
+const RUN_BUDGET_MS = 210_000;
+
+/**
+ * Four at a time. Every row is a different profile or a different product, so
+ * no two of them hold the same credential and nothing here can cause the rate
+ * limit it is trying to avoid. Sequential was fine for one profile and is not
+ * fine for fifty: at twenty seconds a source, one at a time reads fifteen of
+ * them before the function is killed, and a source read every fourth day is
+ * past the shelf life in `lib/integrations/facts.ts` before it is read again.
+ */
+const CONCURRENCY = 4;
+
+export type DueReport = {
+  reports: SyncReport[];
+  /** Rows that were due and not reached, because the run ran out of time. */
+  skipped: number;
+};
+
 export async function syncDue(
   now = new Date(),
-  limit = 50,
-): Promise<SyncReport[]> {
+  limit = 200,
+): Promise<DueReport> {
   const cutoff = new Date(now.getTime() - STALE_HOURS * 3_600_000);
 
   const rows = await getDb()
@@ -162,9 +187,41 @@ export async function syncDue(
     .where(
       or(isNull(sourceTable.lastSyncedAt), lt(sourceTable.lastSyncedAt, cutoff)),
     )
+    // Stalest first, nulls first, so a run that cannot finish leaves behind
+    // the rows that were read most recently rather than an arbitrary set. A
+    // source cannot be starved by whatever order the table happens to return.
+    .orderBy(asc(sql`${sourceTable.lastSyncedAt} nulls first`))
     .limit(limit);
 
+  const deadline = Date.now() + RUN_BUDGET_MS;
   const reports: SyncReport[] = [];
-  for (const row of rows) reports.push(await syncSource(row, now));
-  return reports;
+  let next = 0;
+  let skipped = 0;
+
+  async function worker(): Promise<void> {
+    for (;;) {
+      if (next >= rows.length) return;
+      if (Date.now() > deadline) {
+        // Count what is left once, by the worker that finds the queue open.
+        skipped += rows.length - next;
+        next = rows.length;
+        return;
+      }
+      const row = rows[next++];
+      if (!row) return;
+      reports.push(await syncSource(row, now));
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(CONCURRENCY, rows.length) }, worker),
+  );
+
+  if (skipped > 0) {
+    console.warn(
+      `[sync] ran out of time with ${skipped} sources still due. They are the stalest rows on the next run.`,
+    );
+  }
+
+  return { reports, skipped };
 }

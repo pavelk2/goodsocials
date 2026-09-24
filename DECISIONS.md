@@ -414,11 +414,11 @@ CLAUDE.md says no dependency without the reason in the commit message, and
 
 **Read integrations before write integrations.**
 Rejected: publishing through Buffer or any other scheduler.
-Reading Stripe or a calendar makes the posts more credible, which is the thing customers leave over; publishing through somebody else adds an onboarding step, gains no quality, and takes away our ability to say whether a post went out.
+Reading Stripe or GitHub makes the posts more credible, which is the thing customers leave over; publishing through somebody else adds an onboarding step, gains no quality, and takes away our ability to say whether a post went out.
 
 **Five sources, every one a pasted key that does not expire.**
 Rejected: OAuth for any of the first five.
-LinkedIn already costs a re-authorization every 60 days and a monitor to catch it dying silently, and each OAuth grant is another instance of that failure; Google Calendar is worth the refresh flow and goes next, on its own.
+LinkedIn already costs a re-authorization every 60 days and a monitor to catch it dying silently, and each OAuth grant is another instance of that failure. A source that needs a refresh flow carries that cost and belongs in its own pass, not beside these five.
 
 **Facts are upserted on (source, key) and replaced on every sync.**
 Rejected: an append-only reading history.
@@ -431,6 +431,24 @@ A receipt is believed because it is specific and theirs, so a rounded real numbe
 **Read integrations are a solo-tier feature, and agency mode gets an intake link instead.**
 Rejected: asking agencies to collect their clients' API keys.
 An agency managing 12 executives has no access to their Stripe and should not be asking for it, so the agency version of this is a page the client fills in that writes the same rows.
+
+**No Composio, and no aggregator behind it.**
+Rejected: Composio, Nango, Paragon, and every other hosted connector layer.
+The five adapters are 60 to 120 lines each over raw `fetch`, so an aggregator
+saves us almost no code and costs us the two things this product is built on.
+It puts a third party between our customer's Stripe key and us, which is a
+sentence we would have to write on the pricing page. And it takes the error
+body away: the reason PostHog answering 403 where Stripe answers 401 did not
+ship broken is that we read the API's own message, and a proxy hands back its
+own. An aggregator earns its place when a source needs OAuth with a refresh
+flow, which is not what any of these five needs.
+
+**Google Calendar is not next, it is not planned.**
+Rejected: keeping it on the roadmap as the sixth source.
+It was the one source on the list that needs OAuth and a refresh token, so it
+carried the LinkedIn failure mode into a place the product had deliberately
+kept clear of it. Nothing about the five is shaped by it, so the line saying it
+goes next was a promise with no work behind it.
 
 ---
 

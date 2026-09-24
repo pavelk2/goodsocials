@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, gte } from "drizzle-orm";
 import { getDb } from "@/db";
 import { fact as factTable, source as sourceTable } from "@/db/schema";
 import { CATALOG } from "./catalog";
@@ -13,11 +13,38 @@ import type { SourceKind } from "./types";
  * that holds only while the prompt stays a fixed size. Five sources with a
  * Notion excerpt each could put two thousand words in front of every draft, and
  * the excerpts are the part that grows, so they sort last and get cut first.
+ *
+ * The other ceiling here is age. A sync that starts failing leaves its readings
+ * in place on purpose, so the settings screen can show what the source last
+ * said, but a number that stopped being re-read stopped being a fact. The
+ * prompt calls these readings true as of the date beside them, so a revoked
+ * Stripe key must not still be publishing August's MRR in October under
+ * somebody's own name. Past the shelf life a reading is dropped from the
+ * prompt and the draft goes back to bracketing the gap, which is the failure
+ * we already know how to show.
  */
 
 /** Hard ceilings. A source that suddenly returns forty rows cannot spend money. */
 const MAX_FACTS = 24;
 const MAX_CHARS = 2_600;
+
+/**
+ * Seven daily syncs. The cron reads anything older than 20 hours, so a healthy
+ * reading is never more than two days old and a week is unambiguously broken:
+ * long enough to sit through a provider outage over a weekend, short enough
+ * that nothing a month stale reaches a post.
+ */
+export const FACT_SHELF_LIFE_DAYS = 7;
+
+/** The oldest `observed_at` a reading can carry and still go into a prompt. */
+export function factCutoff(now = new Date()): Date {
+  return new Date(now.getTime() - FACT_SHELF_LIFE_DAYS * 86_400_000);
+}
+
+/** True when this reading is too old to put under somebody's name. */
+export function isStale(observedAt: Date, now = new Date()): boolean {
+  return observedAt.getTime() < factCutoff(now).getTime();
+}
 
 export type FactRow = {
   kind: SourceKind;
@@ -29,7 +56,15 @@ export type FactRow = {
   observedAt: Date;
 };
 
-export async function readFacts(profileId: string): Promise<FactRow[]> {
+/**
+ * The readings a prompt is allowed to see. Filtered in SQL rather than by the
+ * caller, because every generation path goes through here and one of them
+ * forgetting is a wrong number in a published post.
+ */
+export async function readFacts(
+  profileId: string,
+  now = new Date(),
+): Promise<FactRow[]> {
   const rows = await getDb()
     .select({
       kind: sourceTable.kind,
@@ -42,7 +77,12 @@ export async function readFacts(profileId: string): Promise<FactRow[]> {
     })
     .from(factTable)
     .innerJoin(sourceTable, eq(factTable.sourceId, sourceTable.id))
-    .where(eq(factTable.profileId, profileId))
+    .where(
+      and(
+        eq(factTable.profileId, profileId),
+        gte(factTable.observedAt, factCutoff(now)),
+      ),
+    )
     .orderBy(desc(factTable.observedAt));
 
   return rows as FactRow[];
@@ -68,10 +108,14 @@ function line(row: FactRow): string {
  * treats a real number as a plausible number and rounds it, and a rounded
  * receipt is a receipt nobody can check.
  */
-export function factsBrief(facts: FactRow[]): string {
-  if (facts.length === 0) return "";
+export function factsBrief(facts: FactRow[], now = new Date()): string {
+  // `readFacts` already dropped these. Checked again because this function
+  // takes an array rather than a profile id, and the cost of a caller passing
+  // a stale row is a real number that is no longer real in a published post.
+  const fresh = facts.filter((row) => !isStale(row.observedAt, now));
+  if (fresh.length === 0) return "";
 
-  const ordered = [...facts]
+  const ordered = [...fresh]
     .sort((a, b) => weight(a) - weight(b))
     .slice(0, MAX_FACTS);
 
@@ -106,13 +150,4 @@ export function factsBrief(facts: FactRow[]): string {
     // A blank line between sources, so five of them do not read as one list.
     blocks.join("\n\n"),
   ].join("\n");
-}
-
-/** What the board says under a card that is waiting on nothing. */
-export function factSummary(facts: FactRow[]): string {
-  if (facts.length === 0) return "Nothing connected yet.";
-  const kinds = new Set(facts.map((f) => f.kind));
-  const sources = kinds.size === 1 ? "1 source" : `${kinds.size} sources`;
-  const readings = facts.length === 1 ? "1 reading" : `${facts.length} readings`;
-  return `${readings} from ${sources}.`;
 }
