@@ -6,6 +6,7 @@ import { saveAnswer, trackView } from "@/app/onboarding/actions";
 import { burstConfetti } from "@/components/onboarding/confetti";
 import { FunnelHeader } from "@/components/onboarding/funnel-header";
 import { QuestionScreen } from "@/components/onboarding/question-screen";
+import type { ResearchEvent } from "@/lib/agent/competitors";
 import {
   CONTENT_QUESTION,
   GOAL_QUESTION,
@@ -26,9 +27,10 @@ import {
  *
  *   website  →  image  →  content  →  goal  →  sample (waits, then the offer)
  *
- * The research is never shown while it runs. Every screen is one question and
- * its answers, and the wait is one line, because each extra row is something
- * to read instead of something to answer.
+ * The research is never shown while a question is on screen, because each
+ * extra row is something to read instead of something to answer. Once the
+ * questions are done it is the waiting screen: the searches and the pages the
+ * research read, as it reads them.
  *
  * Each answer is saved as it is given, so a member who leaves comes back to
  * the question they left, with the research started again if it never landed.
@@ -68,6 +70,8 @@ export function FunnelFlow({
   const [error, setError] = useState<string | null>(null);
   const [sampleError, setSampleError] = useState<string | null>(null);
   const [sampleReady, setSampleReady] = useState(false);
+  const [researchEvents, setResearchEvents] = useState<ResearchEvent[]>([]);
+  const [researching, setResearching] = useState(resumeRivals);
 
   const brandJob = useRef<Promise<boolean> | null>(null);
   const rivalsJob = useRef<Promise<unknown> | null>(null);
@@ -94,8 +98,12 @@ export function FunnelFlow({
   }, []);
 
   const readRivals = useCallback((next: NonNullable<Funnel["site"]>) => {
-    // Failure is fine here: the sample route researches again.
-    rivalsJob.current = fetch("/api/onboarding/competitors", post(body(next))).catch(() => null);
+    // Failure is fine here: the sample route researches again. The caller
+    // marks the research as running, so this can start from an effect.
+    rivalsJob.current = fetch("/api/onboarding/competitors", post(body(next)))
+      .then((res) => readLines(res, (event) => setResearchEvents((prev) => [...prev, event])))
+      .catch(() => null)
+      .finally(() => setResearching(false));
   }, []);
 
   const writeSample = useCallback(async () => {
@@ -162,6 +170,8 @@ export function FunnelFlow({
               setBrandFailed(false);
               setSite(next);
               readBrand(next, source);
+              setResearchEvents([]);
+              setResearching(true);
               readRivals(next);
               setStep("image");
               window.scrollTo({ top: 0 });
@@ -186,6 +196,8 @@ export function FunnelFlow({
           </>
         ) : (
           <Waiting
+            events={researchEvents}
+            researching={researching}
             ready={sampleReady}
             error={sampleError}
             onRetry={() => {
@@ -197,6 +209,26 @@ export function FunnelFlow({
       </main>
     </>
   );
+}
+
+/** Reads a stream of JSON lines, handing each to onEvent as it arrives. */
+async function readLines(res: Response, onEvent: (event: ResearchEvent) => void) {
+  if (!res.ok || !res.body) return;
+  const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+  let buffer = "";
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += value;
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      try {
+        onEvent(JSON.parse(line) as ResearchEvent);
+      } catch {}
+    }
+  }
 }
 
 function body(site: NonNullable<Funnel["site"]>) {
@@ -351,35 +383,86 @@ function WebsiteScreen({
   );
 }
 
-/** Where the countdown starts. The sample takes about this long. */
-const COUNTDOWN_FROM = 30;
+/** How often the screen shows the next thing the research did. */
+const TICK_MS = 140;
+
+/** The most lines the screen holds. Older ones leave from the bottom. */
+const SHOWN = 6;
 
 /**
- * The half minute after the last question. One sentence and a countdown set
- * large enough to be the screen, because it is the one thing on it that moves.
- * At zero it holds and the line under it changes, so a slow write reads as
- * nearly done rather than broken.
+ * The minute after the last question, showing what is happening in it: every
+ * search the research runs and every page it reads, from the stream the
+ * competitors route sends. The big number is pages read, so it moves because
+ * the work moves. Nothing on this screen is invented; where the stream has
+ * nothing to say, as on a reload after the research finished, the number is
+ * the seconds waited.
+ *
+ * Pages arrive ten at a time with each search. They are shown one per tick so
+ * the list reads as it fills, and a backlog, from a member who took their time
+ * on the questions, is caught up in a few ticks rather than replayed.
  */
 function Waiting({
+  events,
+  researching,
   ready,
   error,
   onRetry,
 }: {
+  events: ResearchEvent[];
+  researching: boolean;
   ready: boolean;
   error: string | null;
   onRetry: () => void;
 }) {
-  const [left, setLeft] = useState(COUNTDOWN_FROM);
+  const [shown, setShown] = useState(0);
+  const [seconds, setSeconds] = useState(0);
+
+  useEffect(() => {
+    if (shown >= events.length) return;
+    const timer = window.setTimeout(() => {
+      const backlog = events.length - shown;
+      setShown(shown + Math.max(1, Math.ceil(backlog / 4)));
+    }, TICK_MS);
+    return () => window.clearTimeout(timer);
+  }, [shown, events.length]);
+
   useEffect(() => {
     if (error || ready) return;
-    const timer = window.setInterval(() => setLeft((s) => Math.max(0, s - 1)), 1000);
+    const timer = window.setInterval(() => setSeconds((s) => s + 1), 1000);
     return () => window.clearInterval(timer);
   }, [error, ready]);
+
+  const visible = events.slice(0, Math.min(shown, events.length));
+  const steps = visible.filter(
+    (e): e is Extract<ResearchEvent, { type: "progress" }> => e.type === "progress",
+  );
+  const pages = steps.filter((e) => e.kind === "read").length;
+  const result = visible.find(
+    (e): e is Extract<ResearchEvent, { type: "result" }> => e.type === "result",
+  );
+  const reading = researching || shown < events.length;
+  const recent = steps.slice(-SHOWN).reverse();
+
+  const heading = ready
+    ? "Your first post is ready."
+    : reading
+      ? "Reading what customers say about your market."
+      : "Writing your first post.";
+
+  const status = ready
+    ? "Here it comes."
+    : reading
+      ? recent[0]?.kind === "search"
+        ? `Searching for ${recent[0].query}`
+        : "Reading reviews, comparisons and threads."
+      : result
+        ? writingLine(result)
+        : "Writing the post and drawing the picture.";
 
   return (
     <section>
       <h1 className="text-[clamp(30px,4.6vw,48px)] font-semibold leading-[1.04] tracking-[-0.03em]">
-        {ready ? "Your first post is ready." : "Writing your first post."}
+        {heading}
       </h1>
 
       {error ? (
@@ -388,7 +471,7 @@ function Waiting({
           <button
             type="button"
             onClick={() => {
-              setLeft(COUNTDOWN_FROM);
+              setSeconds(0);
               onRetry();
             }}
             className="btn-ink rounded-[var(--r-btn)] bg-ink px-5 py-3 font-semibold text-paper"
@@ -398,17 +481,53 @@ function Waiting({
         </div>
       ) : (
         <div className="mt-10">
-          <p
-            aria-hidden="true"
-            className="num text-[clamp(160px,34vw,320px)] font-semibold leading-[0.85] tracking-[-0.06em] text-accent-text"
-          >
-            {ready ? 0 : left}
+          <p className="flex items-baseline gap-4">
+            <span
+              aria-hidden="true"
+              className="num text-[clamp(120px,26vw,240px)] font-semibold leading-[0.85] tracking-[-0.06em] text-accent-text"
+            >
+              {pages > 0 ? pages : seconds}
+            </span>
+            <span className="text-ink-2">{pages > 0 ? "pages read" : "seconds"}</span>
           </p>
-          <p className="mt-6 text-ink-2" aria-live="polite">
-            {ready ? "Here it comes." : left > 0 ? "Seconds to go." : "Nearly there."}
+          <p className="mt-6" aria-live="polite">
+            {status}
           </p>
+          {recent.length > 0 && !ready ? (
+            <ul className="mt-6 space-y-2 text-[14px] text-ink-2" aria-hidden="true">
+              {recent.map((step, index) => (
+                <li
+                  key={visible.length - index}
+                  className="truncate"
+                  style={{ opacity: 1 - index * (0.7 / SHOWN) }}
+                >
+                  {step.kind === "search" ? (
+                    <span className="text-ink">Searched {step.query}</span>
+                  ) : (
+                    <>
+                      <span className="num">{step.host}</span> · {step.title}
+                    </>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </div>
       )}
     </section>
   );
+}
+
+/** What the post is being written from, in one line. */
+function writingLine(result: Extract<ResearchEvent, { type: "result" }>): string {
+  const companies = `${result.companies.length} ${result.companies.length === 1 ? "company" : "companies"}`;
+  if (result.reviewed === 0) return `Writing the post about ${companies} in ${result.field}.`;
+  const where = result.sources.slice(0, 3);
+  const on = where.length > 0 ? ` on ${listOf(where)}` : "";
+  return `Writing the post from reviews of ${result.reviewed} of ${companies}${on}.`;
+}
+
+function listOf(items: string[]): string {
+  if (items.length <= 1) return items.join("");
+  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
 }

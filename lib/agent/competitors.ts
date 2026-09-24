@@ -17,6 +17,10 @@ import type { SiteText } from "./site";
  * one about what other people have said in public. A post about their own
  * results waits until a connected source gives us the numbers.
  *
+ * The searched call streams, and every search it runs and every page it gets
+ * back is handed to onProgress as it happens, so the waiting screen can show
+ * the member the research itself rather than a countdown.
+ *
  * Web search first, the model's own knowledge if search fails. Without search
  * the praise, the complaints, the jobs and the history are dropped here in code, not left to the
  * prompt, because a review we did not read is a review we would be inventing
@@ -81,6 +85,30 @@ export type Job = z.infer<typeof JobSchema>;
 export type Milestone = z.infer<typeof MilestoneSchema>;
 export type Research = z.infer<typeof ResearchSchema> & { searched: boolean };
 
+/** One thing the research did, as it happened. */
+export type ResearchProgress =
+  | { kind: "search"; query: string }
+  | { kind: "read"; title: string; host: string };
+
+/** One line of the competitors route's stream, as the waiting screen reads it. */
+export type ResearchEvent =
+  | ({ type: "progress" } & ResearchProgress)
+  | { type: "result"; field: string; companies: string[]; reviewed: number; sources: string[] }
+  | { type: "error"; error: string };
+
+/**
+ * What the searched call may spend before it gives up and the model's own
+ * knowledge is used. The competitors route has 120 seconds and the fallback
+ * needs about fifteen of them.
+ */
+const SEARCH_MS = 90_000;
+
+/**
+ * Server-side search runs its own loop and pauses after ten steps. Resuming is
+ * sending the paused turn back. Two resumes is more than a normal run needs.
+ */
+const MAX_RESUMES = 2;
+
 const SYSTEM = `You map the market one company sells into, for a LinkedIn post its founder will publish under their own name.
 
 List three to five companies operating in the same field and selling to the same buyers. The company whose website you are given is always one of them, marked own. Only name a company you found or are certain exists. Fewer real ones beats more invented ones.
@@ -91,7 +119,7 @@ Then the jobs: up to five distinct things customers say they hired a product in 
 
 Then the history of the field: up to six dated moments from its start to now, such as the first company, the change that made it grow and the arrival of the current leaders. Only dates and names you read. An empty list beats an invented date.
 
-Search efficiently. One search for the field and its alternatives, then searches for reviews that cover several companies at once, such as comparison pages and review site category listings, then one search for the history of the field.
+Search in this order. One search for the field and its alternatives. Then searches for reviews that cover several companies at once, such as comparison pages and review site category listings. Then, for every company those did not cover, one search for that company by name with the word reviews. Any company with paying customers has reviews somewhere: G2, Capterra, Trustpilot, the App Store, Google Play, Product Hunt or a Reddit thread. Leave praised and criticised null only after a search for that company by name came back with nothing. Last, one search for the history of the field.
 
 Never use em dashes. Never use "seamless", "leverage", "unlock", "supercharge", "effortless", or "game-changer". Never use "actually", "really", "simply", "just", or "basically".`;
 
@@ -110,11 +138,14 @@ function brief(site: Extract<SiteText, { ok: true }>, personName?: string | null
     .join("\n");
 }
 
-export async function researchCompetitors(opts: {
+type ResearchOpts = {
   site: Extract<SiteText, { ok: true }>;
   profileId: string;
   personName?: string | null;
-}): Promise<Research> {
+  onProgress?: (progress: ResearchProgress) => void;
+};
+
+export async function researchCompetitors(opts: ResearchOpts): Promise<Research> {
   try {
     return await searched(opts);
   } catch (cause) {
@@ -123,40 +154,58 @@ export async function researchCompetitors(opts: {
   }
 }
 
-async function searched(opts: {
-  site: Extract<SiteText, { ok: true }>;
-  profileId: string;
-  personName?: string | null;
-}): Promise<Research> {
-  const response = await anthropic().messages.create(
-    {
-      model: MODEL,
-      max_tokens: 8000,
-      thinking: { type: "adaptive" },
-      // Low effort: the work here is reading search results, not reasoning
-      // about them, and every second spent is a second on the waiting screen.
-      output_config: { effort: "low" },
-      system: SYSTEM,
-      tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 5 }],
-      messages: [
-        {
-          role: "user",
-          content: `${brief(opts.site, opts.personName)}\n\n${JSON_INSTRUCTION}`,
-        },
-      ],
-    },
-    // The member is answering questions while this runs. Past this it is
-    // cheaper to fall back than to keep them waiting on the sample screen.
-    { timeout: 45_000, maxRetries: 0 },
-  );
+async function searched(opts: ResearchOpts): Promise<Research> {
+  const signal = AbortSignal.timeout(SEARCH_MS);
+  const messages: Anthropic.MessageParam[] = [
+    { role: "user", content: `${brief(opts.site, opts.personName)}\n\n${JSON_INSTRUCTION}` },
+  ];
 
-  recordSpend({ profileId: opts.profileId, operation: "competitors", usage: response.usage });
+  for (let resumes = 0; ; resumes++) {
+    const stream = anthropic().messages.stream(
+      {
+        model: MODEL,
+        max_tokens: 16000,
+        thinking: { type: "adaptive" },
+        // Low effort: the work here is reading search results, not reasoning
+        // about them, and every second spent is a second on the waiting screen.
+        output_config: { effort: "low" },
+        system: SYSTEM,
+        tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 8 }],
+        messages,
+      },
+      // One deadline across the resumes. Past it the member has waited long
+      // enough, and the fallback still writes a post.
+      { signal, maxRetries: 0 },
+    );
+    if (opts.onProgress) {
+      const onProgress = opts.onProgress;
+      stream.on("contentBlock", (block) => progressOf(block).forEach(onProgress));
+    }
+    const response = await stream.finalMessage();
 
-  if (response.stop_reason !== "end_turn") {
-    throw new Error(`Search stopped with ${response.stop_reason}.`);
+    recordSpend({ profileId: opts.profileId, operation: "competitors", usage: response.usage });
+
+    if (response.stop_reason === "pause_turn" && resumes < MAX_RESUMES) {
+      messages.push({ role: "assistant", content: response.content });
+      continue;
+    }
+    if (response.stop_reason !== "end_turn") {
+      throw new Error(`Search stopped with ${response.stop_reason}.`);
+    }
+    return withOwn({ ...parse(response.content), searched: true }, opts.site);
   }
+}
 
-  return withOwn({ ...parse(response.content), searched: true }, opts.site);
+/** The searches and the pages in one finished content block, in order. */
+function progressOf(block: Anthropic.ContentBlock): ResearchProgress[] {
+  if (block.type === "server_tool_use" && block.name === "web_search") {
+    const query = (block.input as { query?: unknown } | null)?.query;
+    return typeof query === "string" && query.trim() ? [{ kind: "search", query: query.trim() }] : [];
+  }
+  if (block.type === "web_search_tool_result" && Array.isArray(block.content)) {
+    return block.content.map((r) => ({ kind: "read", title: r.title, host: hostOf(r.url) }));
+  }
+  return [];
 }
 
 /**
@@ -180,11 +229,7 @@ function parse(content: Anthropic.ContentBlock[]): z.infer<typeof ResearchSchema
   return LenientResearch.parse(JSON.parse(text.slice(start, end + 1)));
 }
 
-async function unsearched(opts: {
-  site: Extract<SiteText, { ok: true }>;
-  profileId: string;
-  personName?: string | null;
-}): Promise<Research> {
+async function unsearched(opts: ResearchOpts): Promise<Research> {
   const response = await anthropic().messages.parse({
     model: MODEL,
     max_tokens: 4000,
