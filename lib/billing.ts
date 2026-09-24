@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import type Stripe from "stripe";
+import Stripe from "stripe";
 import { getDb } from "@/db";
 import { account as accountTable } from "@/db/schema";
 import {
@@ -432,4 +432,98 @@ export async function accountForCustomer(
   customerId: string,
 ): Promise<Account | null> {
   return findAccount(customerId, undefined);
+}
+
+/** Statuses Stripe will still charge for, or still try to. */
+const CHARGEABLE: readonly Stripe.Subscription.Status[] = [
+  "trialing",
+  "active",
+  "past_due",
+  "unpaid",
+  "incomplete",
+  "paused",
+] as const;
+
+/**
+ * Stops every charge on this account, for the delete button and nothing else.
+ *
+ * Cancels now rather than at period end. The account is about to stop
+ * existing, so there is no board left for the remaining days to post from, and
+ * a subscription left running to its period end is one more invoice somebody
+ * has to write in about.
+ *
+ * Every subscription on the customer is listed and cancelled, not only the one
+ * in `stripe_subscription_id`. That column is written by the webhook, and a
+ * webhook that never arrived is exactly the case where the column is wrong and
+ * the card is still being charged.
+ *
+ * Then the customer is deleted, which takes the saved card and the email with
+ * it. The invoices stay in Stripe, because Dutch tax law keeps them seven years
+ * and the privacy policy says so.
+ *
+ * Does not write the billing columns. The row is deleted straight after, and
+ * `applySubscription` stays their only writer.
+ */
+export async function endBilling(
+  account: Pick<Account, "id" | "stripeCustomerId">,
+): Promise<StripeResult<{ cancelled: number }>> {
+  const customer = account.stripeCustomerId;
+  if (!customer) return { ok: true, value: { cancelled: 0 } };
+
+  const listed = await callStripe("subscriptions.list", (stripe) =>
+    stripe.subscriptions
+      .list({ customer, status: "all", limit: 100 })
+      .catch((cause: unknown) => {
+        if (missing(cause)) return { data: [] as Stripe.Subscription[] };
+        throw cause;
+      }),
+  );
+  if (!listed.ok) return gone(listed.error, "listing subscriptions");
+
+  const live = listed.value.data.filter((sub) =>
+    CHARGEABLE.includes(sub.status),
+  );
+  for (const sub of live) {
+    const cancelled = await callStripe("subscriptions.cancel", (stripe) =>
+      stripe.subscriptions.cancel(sub.id, { prorate: false }),
+    );
+    if (!cancelled.ok) return gone(cancelled.error, "cancelling the subscription");
+  }
+
+  const removed = await callStripe("customers.del", (stripe) =>
+    stripe.customers.del(customer).catch((cause: unknown) => {
+      if (missing(cause)) return null;
+      throw cause;
+    }),
+  );
+  if (!removed.ok) return gone(removed.error, "removing the saved card");
+
+  console.log(
+    JSON.stringify({
+      event: "billing_ended",
+      account_id: account.id,
+      cancelled: live.map((sub) => sub.id),
+    }),
+  );
+  return { ok: true, value: { cancelled: live.length } };
+}
+
+/**
+ * The customer is gone already, deleted by hand in the dashboard or by an
+ * earlier attempt that failed after that step. The outcome the delete wanted is
+ * the one it has, so this is not a reason to keep the account open.
+ */
+function missing(cause: unknown): boolean {
+  return (
+    cause instanceof Stripe.errors.StripeInvalidRequestError &&
+    cause.code === "resource_missing"
+  );
+}
+
+/** Says which step stopped the delete, and that nothing was deleted. */
+function gone<T>(error: string, step: string): StripeResult<T> {
+  return {
+    ok: false,
+    error: `Stripe failed while ${step}, so nothing was deleted. ${error}`,
+  };
 }

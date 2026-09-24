@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
-import { auth } from "@/auth";
+import { auth, signOut } from "@/auth";
+import { deleteAccount } from "@/lib/account-data";
 import { getDb } from "@/db";
 import { board as boardTable } from "@/db/schema";
 import { loadAccess, setActiveProfile, type Access } from "@/lib/profiles";
@@ -176,5 +177,37 @@ export async function clearHistory(): Promise<SaveResult> {
   await clearPastPosts(acc.active.profile.id);
   revalidatePath("/board");
   revalidatePath("/settings");
+  return { ok: true };
+}
+
+/**
+ * What has to be typed before the delete button does anything. Not exported:
+ * a "use server" file exports async functions only, so the form in
+ * components/settings/delete-account.tsx carries its own copy of the word.
+ */
+const DELETE_CONFIRMATION = "delete";
+
+/**
+ * Closes the account: cancels the subscription, deletes every board under it,
+ * signs out. The typed word is checked here and not only in the form, because
+ * a server action is a public endpoint and the form is a suggestion.
+ *
+ * Returns only on failure. Success ends in a redirect out of the app, since
+ * there is no screen left to show.
+ */
+export async function deleteAccountAction(typed: string): Promise<SaveResult> {
+  const session = await auth();
+  if (!session?.memberId) return { ok: false, error: "Sign in first." };
+  if (typed.trim().toLowerCase() !== DELETE_CONFIRMATION) {
+    return { ok: false, error: `Type ${DELETE_CONFIRMATION} to confirm.` };
+  }
+
+  const acc = await loadAccess(session.memberId);
+  if (!acc) return { ok: false, error: "There is no account to delete." };
+
+  const result = await deleteAccount(acc.account);
+  if (!result.ok) return result;
+
+  await signOut({ redirectTo: "/" });
   return { ok: true };
 }
