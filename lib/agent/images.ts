@@ -10,6 +10,7 @@ import {
 } from "@/lib/quota";
 import { readFunnel } from "@/lib/funnel";
 import { imageStyleFor, type ImageStyle } from "./image-styles";
+import { cleanHeadline, drawHeadline, HEADLINE_MAX } from "./headline";
 
 /**
  * Every generated image costs money on a fixed subscription, so the order here
@@ -48,6 +49,11 @@ const PromptSchema = z.object({
     .describe(
       "The image prompt. Concrete nouns, stated as a scene rather than as a brief. Names the subject, the lighting, the framing and the treatment.",
     ),
+  headline: z
+    .string()
+    .describe(
+      `The line we set in white across the top of the picture. Two to six words, at most ${HEADLINE_MAX} characters, sentence case, no full stop.`,
+    ),
 });
 
 const PROMPT_SYSTEM = `You write one image prompt for the picture that will sit beside a LinkedIn post.
@@ -63,6 +69,8 @@ Never ask for text, words, letters, numbers, logos, charts with labels, or UI wi
 Never ask for a clear, frontal, fully lit face. A recognisable invented face published under a real person's byline reads as a stock photo at best and a deepfake at worst. Where a person belongs in the picture, they are turned away, in profile, or mostly in shadow.
 
 Banned because they are the visual equivalent of the words we ban: glowing blue neural networks, robot hands touching human hands, floating holograms, rocket ships, light bulbs as ideas, chess pieces, people in suits shaking hands, arrows going up and to the right.
+
+Separately from the prompt, write the headline we set across the top of the picture ourselves, in our own font. It names what the post is about the way a magazine names a feature: "Scheduling tools in 2026", "Why booking pages lose people", "What we charge for SMS". Two to six words, sentence case, no full stop, no question to the reader, no em dash, no buzzwords. A year or a number only when the post states it. It labels the post; it does not summarise the argument or tease it. Because the line sits over the top of the frame, the prompt keeps the top third quiet: sky, haze, dark space or a soft background, never the subject's detail.
 
 Write the prompt as a description of a photograph or a made object, not as instructions to an artist. No lists, no negative prompt section. The picture is a 4:3 landscape frame, so never ask for a vertical composition.`;
 
@@ -104,18 +112,20 @@ export async function generateImage(opts: {
     // revise comment that rewrites the principle cannot delete the recipe.
     const funnel = await readFunnel(opts.profileId);
     const style = imageStyleFor(funnel?.answers.image?.choice);
-    const prompt = await writePrompt({ ...opts, style });
-    const { bytes, contentType, cost } = await draw(prompt);
+    const { prompt, headline } = await writePrompt({ ...opts, style });
+    const drawn = await draw(prompt);
+    const { bytes, contentType } = await withHeadline(drawn, headline);
 
     // Randomised suffix on, so a regeneration cannot be served from a cache
     // holding the picture the user just rejected.
-    const blob = await put(`cards/${opts.cardId}.jpg`, bytes, {
+    const extension = contentType === "image/png" ? "png" : "jpg";
+    const blob = await put(`cards/${opts.cardId}.${extension}`, bytes, {
       access: "public",
       contentType,
       addRandomSuffix: true,
     });
 
-    recordImageSpend(opts.profileId, cost);
+    recordImageSpend(opts.profileId, drawn.cost);
     return { ok: true, url: blob.url, prompt, quota: claim.state };
   } catch (cause) {
     await releaseImage(opts.profileId);
@@ -185,12 +195,31 @@ async function draw(prompt: string): Promise<{
   };
 }
 
+/**
+ * The generation is paid for by the time this runs, so a headline that fails
+ * to render costs the line and not the picture: the card keeps the image the
+ * member was charged a quota slot for.
+ */
+async function withHeadline(
+  drawn: { bytes: Buffer; contentType: string },
+  raw: string,
+): Promise<{ bytes: Buffer; contentType: string }> {
+  const headline = cleanHeadline(raw);
+  if (!headline) return drawn;
+  try {
+    return await drawHeadline({ ...drawn, headline });
+  } catch (cause) {
+    console.error("[images] headline render failed, keeping the plain image:", cause);
+    return drawn;
+  }
+}
+
 async function writePrompt(opts: {
   profileId: string;
   postText: string;
   visualPrinciple: string;
   style: ImageStyle | null;
-}): Promise<string> {
+}): Promise<{ prompt: string; headline: string }> {
   const response = await anthropic().messages.parse({
     model: MODEL,
     max_tokens: 2000,
@@ -229,7 +258,7 @@ async function writePrompt(opts: {
   if (!response.parsed_output) {
     throw new Error("The model did not return an image prompt.");
   }
-  return response.parsed_output.prompt;
+  return response.parsed_output;
 }
 
 /**
