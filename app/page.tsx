@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { SiteNav } from "@/components/marketing/site-nav";
 import { HeroVideo } from "@/components/marketing/hero-video";
-import { Logo } from "@/components/marketing/logo";
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { Eyebrow, SectionHead } from "@/components/marketing/section-head";
 import { Streak, StepDots } from "@/components/marketing/streak";
@@ -204,16 +203,7 @@ export default async function Home() {
         >
           <HeroVideo />
 
-          {/* The mark at the size it was drawn for. Pinned to the white tile
-              rather than the token pair, because the footage under it is dark
-              whatever the reader's system is set to. */}
-          <Logo size={74} tile="#ffffff" cell="#0c0c0d" />
-
-          <span className="eyebrow-video mt-8">
-            Written by AI, in your voice
-          </span>
-
-          <h1 className="mx-auto mt-6 max-w-[16ch] text-balance text-[clamp(40px,6.6vw,78px)] font-semibold leading-[1.02] tracking-[-0.045em]">
+          <h1 className="mx-auto max-w-[16ch] text-balance text-[clamp(40px,6.6vw,78px)] font-semibold leading-[1.02] tracking-[-0.045em]">
             Hire a social media manager for LinkedIn.
           </h1>
 
