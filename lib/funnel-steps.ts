@@ -13,8 +13,8 @@ import type { Research } from "@/lib/agent/competitors";
  *
  *   website   Which website is yours. Research starts the moment it is answered.
  *   image     Which pictures fit you.        } answered while the research runs,
- *   voice     How should you sound.          } so the minute it takes is spent
- *   goal      What should posts get you.     } on the member's own choices.
+ *   goal      What should posts get you.     } so the minute it takes is spent
+ *                                              on the member's own choices.
  *   sample    Their first post, drawn the way LinkedIn draws it.
  *   offer     The same post, the week it starts, and the price.
  *   refine    After paying: what to change about the pictures.
@@ -34,7 +34,6 @@ import type { Research } from "@/lib/agent/competitors";
 export const STEPS = [
   "website",
   "image",
-  "voice",
   "goal",
   "sample",
   "offer",
@@ -54,7 +53,6 @@ export type Funnel = {
   site?: { url: string | null; description?: string };
   answers: {
     image?: Answer;
-    voice?: Answer;
     goal?: Answer;
     refine?: Answer;
   };
@@ -75,8 +73,10 @@ export function emptyFunnel(): Funnel {
 export function parseFunnel(value: unknown): Funnel | null {
   if (!value || typeof value !== "object") return null;
   const raw = value as Partial<Funnel>;
-  if (!raw.step || !STEPS.includes(raw.step)) return null;
-  return { ...raw, step: raw.step, answers: raw.answers ?? {} };
+  // The voice question was removed. A member saved on it resumes at goal.
+  const step = (raw.step as string) === "voice" ? "goal" : raw.step;
+  if (!step || !STEPS.includes(step)) return null;
+  return { ...raw, step, answers: raw.answers ?? {} };
 }
 
 export function stepIndex(step: Step): number {
@@ -140,35 +140,6 @@ export const IMAGE_QUESTION: Question = {
   other: { label: "Other", placeholder: "Black and white photos of cities" },
 };
 
-export const VOICE_QUESTION: Question = {
-  step: "voice",
-  title: "How should your posts read?",
-  options: [
-    {
-      id: "researcher",
-      label: "Numbers first",
-      detail: "“We looked at 212 calls. Churn tracked one thing.”",
-      principle:
-        "Sounds like a researcher: leads with the number and where it came from, short declarative sentences, no adjectives doing the selling.",
-    },
-    {
-      id: "operator",
-      label: "What we did and what happened",
-      detail: "“We moved invoices to day 3. Churn fell.”",
-      principle:
-        "Sounds like an operator: what we did, what it cost, what happened next. First person plural, plain verbs, ends where the evidence ends.",
-    },
-    {
-      id: "teacher",
-      label: "Step by step",
-      detail: "“Three steps to a first invoice in a week.”",
-      principle:
-        "Sounds like a teacher: names a method, then the steps in order, each one usable on its own. Second person, warm, no jargon.",
-    },
-  ],
-  other: { label: "Other", placeholder: "Short, dry, no jargon" },
-};
-
 export const GOAL_QUESTION: Question = {
   step: "goal",
   title: "What are your posts for?",
@@ -213,7 +184,6 @@ export const REFINE_QUESTION: Question = {
 
 export const QUESTIONS = {
   image: IMAGE_QUESTION,
-  voice: VOICE_QUESTION,
   goal: GOAL_QUESTION,
   refine: REFINE_QUESTION,
 } as const;
@@ -226,8 +196,7 @@ export function isQuestionStep(value: string): value is QuestionStep {
 
 /** The step after a question, which is where saving an answer moves the member. */
 export const NEXT_STEP: Record<QuestionStep, Step> = {
-  image: "voice",
-  voice: "goal",
+  image: "goal",
   goal: "sample",
   refine: "ideas",
 };

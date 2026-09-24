@@ -9,7 +9,6 @@ import {
   GOAL_QUESTION,
   IMAGE_QUESTION,
   NEXT_STEP,
-  VOICE_QUESTION,
   type Answer,
   type Funnel,
   type Question,
@@ -19,11 +18,11 @@ import {
 
 /**
  * The free half of the funnel, in one client component, because its point is
- * that two things happen at once: the member answers three questions while
+ * that two things happen at once: the member answers two questions while
  * the website and the competitors are read behind them. Splitting it across
  * pages would stop the reads on every navigation.
  *
- *   website  →  image  →  voice  →  goal  →  sample (waits, then the offer)
+ *   website  →  image  →  goal  →  sample (waits, then the offer)
  *
  * The research is never shown while it runs. Every screen is one question and
  * its answers, and the wait is one line, because each extra row is something
@@ -33,11 +32,10 @@ import {
  * the question they left, with the research started again if it never landed.
  */
 
-const FREE_STEPS: Step[] = ["website", "image", "voice", "goal"];
+const FREE_STEPS: Step[] = ["website", "image", "goal"];
 
-const BY_STEP: Record<"image" | "voice" | "goal", Question> = {
+const BY_STEP: Record<"image" | "goal", Question> = {
   image: IMAGE_QUESTION,
-  voice: VOICE_QUESTION,
   goal: GOAL_QUESTION,
 };
 
@@ -160,7 +158,7 @@ export function FunnelFlow({
               window.scrollTo({ top: 0 });
             }}
           />
-        ) : step === "image" || step === "voice" || step === "goal" ? (
+        ) : step === "image" || step === "goal" ? (
           <>
             {brandFailed ? (
               <p role="alert" className="mb-10">

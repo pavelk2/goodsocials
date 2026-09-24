@@ -5,7 +5,6 @@ import type { Goal } from "@/lib/agent/ideas";
 import {
   GOAL_QUESTION,
   IMAGE_QUESTION,
-  VOICE_QUESTION,
   answerLine,
   appendLine,
   emptyFunnel,
@@ -49,7 +48,7 @@ export async function updateFunnel(
 }
 
 /**
- * Writes the answers into the voice and visual principles, and the goal onto
+ * Writes the answers into the visual and format principles, and the goal onto
  * the board. Idempotent: a line already in a principle is not appended twice,
  * so a retried sample request cannot stack the same instruction.
  */
@@ -70,7 +69,7 @@ export async function applyAnswers(
       : null;
 
   const next = {
-    voice: appendLine(principles.voice, answerLine(VOICE_QUESTION, funnel.answers.voice)),
+    voice: principles.voice,
     visual: appendLine(principles.visual, answerLine(IMAGE_QUESTION, funnel.answers.image)),
     format: appendLine(principles.format, goalNote),
   };
