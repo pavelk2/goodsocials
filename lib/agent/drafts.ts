@@ -3,7 +3,7 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { anthropic, MODEL, recordSpend } from "./client";
 import { appendUtm } from "@/lib/utm";
 import { factsBrief, type FactRow } from "@/lib/integrations/facts";
-import type { Principles } from "./principles";
+import { readerLines, type Principles } from "./principles";
 import type { Goal, PostKind } from "./ideas";
 import type { Research } from "./competitors";
 import { THIRD_PERSON } from "./person";
@@ -137,6 +137,7 @@ export async function generateDraft(opts: {
           "Brand principles:",
           `Voice. ${opts.principles.voice}`,
           `Format. ${opts.principles.format}`,
+          ...readerLines(opts.principles),
           "",
           `Goal. ${GOAL_BRIEF[opts.goal]}`,
           opts.siteUrl ? `The website to link to is ${opts.siteUrl}` : "",
@@ -312,6 +313,7 @@ export async function generateSamplePost(opts: {
           "Brand principles:",
           `Voice. ${opts.principles.voice}`,
           `Format. ${opts.principles.format}`,
+          ...readerLines(opts.principles),
           "",
           `Goal. ${GOAL_BRIEF[opts.goal]}`,
           opts.siteUrl ? `The website to link to is ${opts.siteUrl}` : "",

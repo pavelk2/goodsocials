@@ -33,6 +33,8 @@ export const FUNNEL_EVENTS = [
   "checkout_cancelled",
   "offer_skipped",
   "onboarding_finished",
+  "level_step_completed",
+  "level_reached",
 ] as const;
 
 export type FunnelEvent = (typeof FUNNEL_EVENTS)[number];

@@ -12,6 +12,9 @@ import { BoardHeader } from "@/components/board/board-header";
 import { QueueNotice } from "@/components/board/queue-notice";
 import { TimezoneProbe } from "@/components/board/timezone-probe";
 import { TopUp } from "@/components/board/top-up";
+import { auth } from "@/auth";
+import { levelDef, MAX_LEVEL } from "@/lib/levels";
+import { syncLevel } from "@/lib/levels-store";
 
 export const metadata = { title: "Board" };
 
@@ -43,7 +46,12 @@ export default async function BoardPage({
   const mode = params.view === "calendar" ? "calendar" : "board";
   const zone = boardZone(view.board.timezone);
 
-  const quota = await readQuota(view.profile.id);
+  const [quota, levelState] = await Promise.all([
+    readQuota(view.profile.id),
+    auth().then((session) => syncLevel(view.profile.id, session?.memberId)),
+  ]);
+  const nextLevel =
+    levelState && levelState.level < MAX_LEVEL ? levelDef(levelState.level + 1) : null;
   // Only the calendar draws these, and the columns are the common view.
   const history = mode === "calendar" ? await readPastPosts(view.profile.id) : [];
   const thin =
@@ -60,6 +68,14 @@ export default async function BoardPage({
         view={mode}
         principles={view.principles}
         themes={view.themes}
+        level={
+          levelState
+            ? {
+                level: levelState.level,
+                next: nextLevel?.open ? nextLevel.next : null,
+              }
+            : null
+        }
       />
 
       <QueueNotice

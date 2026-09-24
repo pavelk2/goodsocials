@@ -24,7 +24,7 @@ import { isDayKey, isZone } from "@/lib/time";
 import { resolveActor, type Actor } from "@/lib/profiles";
 import { COLUMNS, type Column } from "@/lib/board";
 
-const KINDS = new Set(["voice", "visual", "format"]);
+const KINDS = new Set(["voice", "visual", "format", "reader"]);
 
 /**
  * The three actions, and nothing else a card can do. Each one is a thin wrapper
@@ -190,15 +190,18 @@ export async function savePrinciple(
     return { ok: false, error: "Keep a principle under 2000 characters." };
   }
 
+  // An upsert: the reader has no row until somebody names one.
   await getDb()
-    .update(brandPrinciple)
-    .set({ text: trimmed, updatedAt: new Date() })
-    .where(
-      and(
-        eq(brandPrinciple.profileId, who.profileId),
-        eq(brandPrinciple.kind, kind as "voice" | "visual" | "format"),
-      ),
-    );
+    .insert(brandPrinciple)
+    .values({
+      profileId: who.profileId,
+      kind: kind as "voice" | "visual" | "format" | "reader",
+      text: trimmed,
+    })
+    .onConflictDoUpdate({
+      target: [brandPrinciple.profileId, brandPrinciple.kind],
+      set: { text: trimmed, updatedAt: new Date() },
+    });
 
   revalidatePath("/board");
   return { ok: true };

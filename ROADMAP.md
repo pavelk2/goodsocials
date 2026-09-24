@@ -118,6 +118,23 @@ is checked properly on the preview deploy.
 - [x] **The calendar shows what was posted before GoodSocials.** LinkedIn has no API for a member's own posts, so the history is imported from the archive they download themselves, parsed in the browser out of `Shares.csv` and sent in chunks of 100. The most recent 300 are kept per profile, drawn in `--ink-3` behind our own cards, reference only. Re-importing adds the posts since and nothing else. Unobserved: a real archive, which needs one of us to request one from LinkedIn and wait for the email.
 - [ ] **Backfill the zone for boards created before this.** They carry null until somebody opens the board, which is the only moment the browser can be asked. Until then they schedule at 09:00 UTC, which is what they were already doing.
 
+## Levels, phase 1
+
+Built and green on typecheck, lint and build. The screens were rendered from a
+throwaway route with mock data at desktop and phone width. The container has no
+database and no Anthropic key, so every condition below is checked on the
+preview deploy after `/api/admin/migrate` applies `0012_levels.sql`.
+
+- [x] **Every profile has a level, and the board says it.** One line under the board title: ten dots, the level, and the next step, linking to `/levels`. Unobserved: the level rising on a real board after a real step.
+- [x] **`/levels` shows the ladder, what we know, what we guess, the next step and the gates.** Every gate is a row with a bar and a plain value, the earliest date included.
+- [x] **Level 2, your voice.** Archive import, three pasted pieces, three admired posts, or a description, and the voice principle is rewritten from it. Unobserved: whether the rewritten voice reads like the person, which only real writing answers.
+- [x] **Level 3, your reader.** Three readers suggested once and kept, or their own words, saved as the `reader` principle, with the four themes editable on the same screen. The reader reaches ideas, drafts and revisions.
+- [x] **Level 4, your proof.** Connect a source, answer the open number questions, or give a number that becomes a receipt on top of the Idea column. The gate counts a source that has synced or three posted receipts with no open gap.
+- [x] **Level 5, runs itself.** Repeated revise comments proposed as up to three rules, kept, edited or dropped, and appended to the matching principle. Gate: 15 posts, 7 of the last 10 approved on the first draft, two weeks at cadence.
+- [x] **`level_step_completed` and `level_reached` go to PostHog**, with days since the profile was created, which is the number the thresholds get recalibrated against.
+- [ ] **Level 6.** Before any code, one real LinkedIn analytics export read by hand. Must ship before the first profile turns 35 days old.
+- [ ] **A level column per profile for agencies.** Which client needs what from whom, on the profile picker in settings.
+
 ## Pre-launch
 
 - [ ] **PostHog events named and firing.** The funnel from sign-in to first publish is visible as one funnel, and cost per account (tokens plus images) is a queryable property.

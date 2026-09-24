@@ -84,10 +84,17 @@ export const postKind = pgEnum("post_kind", [
   "finding",
 ]);
 
+/**
+ * Three written at onboarding. `reader` is the fourth and arrives at level 3,
+ * when the member names who the posts are for: a comment such as "too
+ * technical for my readers" is about the reader, and folding that into voice
+ * would leave the revision loop guessing which principle to change.
+ */
 export const principleKind = pgEnum("principle_kind", [
   "voice",
   "visual",
   "format",
+  "reader",
 ]);
 
 /**
@@ -143,6 +150,13 @@ export const profile = pgTable(
     name: text("name"),
     email: text("email"),
     avatarUrl: text("avatar_url"),
+    /**
+     * How well this profile is set up, 1 to 10. Stored because a level is
+     * earned once and never taken away; the progress toward the next one is
+     * derived in lib/levels.ts and stored nowhere. See docs/LEVELS.md.
+     */
+    level: integer("level").notNull().default(1),
+    levelReachedAt: timestamp("level_reached_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -287,7 +301,10 @@ export const cardAction = pgTable(
   (t) => [index("card_action_card_idx").on(t.cardId)],
 );
 
-/** Exactly three per profile. The unique index is what enforces the cap. */
+/**
+ * One per kind per profile: three from onboarding, `reader` from level 3. The
+ * unique index is what enforces the cap.
+ */
 export const brandPrinciple = pgTable(
   "brand_principle",
   {
@@ -438,6 +455,33 @@ export const pastPost = pgTable(
     index("past_post_profile_day_idx").on(t.profileId, t.postedAt),
     uniqueIndex("past_post_source_unique").on(t.profileId, t.sourceKey),
   ],
+);
+
+/**
+ * What a member answered on a level step, append only like card_action, so what
+ * they told us is never overwritten. `suggested` rows hold what the agent
+ * offered before they answered, which is what keeps a reload from paying for
+ * the same suggestions twice; every other choice completes the step.
+ */
+export const levelStep = pgTable(
+  "level_step",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profile.id, { onDelete: "cascade" }),
+    /** The level this step leads to. */
+    level: integer("level").notNull(),
+    choice: text("choice").notNull(),
+    /** Their own words, when they wrote any. */
+    text: text("text"),
+    detail: jsonb("detail"),
+    actorMemberId: text("actor_member_id"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("level_step_profile_idx").on(t.profileId, t.level)],
 );
 
 /**

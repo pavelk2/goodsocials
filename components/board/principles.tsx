@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { savePrinciple } from "@/app/board/actions";
 import { Working } from "@/components/ui/working";
+import type { Principles } from "@/lib/agent/principles";
 
 /**
  * Rows, not cards. Three boxes with icons is the pattern the house style bans,
@@ -13,6 +14,7 @@ const ROWS = [
   { kind: "voice", label: "Voice" },
   { kind: "visual", label: "Visual" },
   { kind: "format", label: "Format" },
+  { kind: "reader", label: "Reader" },
 ] as const;
 
 /**
@@ -22,7 +24,7 @@ const ROWS = [
 export function PrinciplesPanel({
   principles,
 }: {
-  principles: { voice: string; visual: string; format: string };
+  principles: Principles;
 }) {
   return (
     <div>
@@ -32,12 +34,12 @@ export function PrinciplesPanel({
             key={row.kind}
             kind={row.kind}
             label={row.label}
-            text={principles[row.kind]}
+            text={principles[row.kind] ?? ""}
           />
         ))}
       </ul>
       <p className="mt-6 text-[13px] text-ink-3">
-        Three, and only three. A comment on a card updates the one it is about.
+        Four at most. A comment on a card updates the one it is about.
       </p>
     </div>
   );
@@ -117,7 +119,9 @@ function PrincipleRow({
           className="mt-2 w-full rounded-[8px] border border-hairline bg-surface px-3 py-2 text-[15px] leading-[1.4] text-ink outline-none"
         />
       ) : (
-        <p className="mt-1 text-[15px] leading-[1.4]">{saved}</p>
+        <p className={`mt-1 text-[15px] leading-[1.4] ${saved ? "" : "text-ink-3"}`}>
+          {saved || "Not named yet. Level 3 asks who your posts are for."}
+        </p>
       )}
 
       {error ? (

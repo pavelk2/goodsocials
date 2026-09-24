@@ -2,7 +2,7 @@ import { z } from "zod";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { anthropic, MODEL, recordSpend } from "./client";
 import { THIRD_PERSON } from "./person";
-import type { Principles } from "./principles";
+import { readerLines, type Principles } from "./principles";
 import { KIND_LABEL, type PostKind } from "@/lib/post-kind";
 import { factsBrief, type FactRow } from "@/lib/integrations/facts";
 import type { Theme } from "./themes";
@@ -189,6 +189,7 @@ export async function generateIdeas(opts: {
           `Voice. ${opts.principles.voice}`,
           `Visual. ${opts.principles.visual}`,
           `Format. ${opts.principles.format}`,
+          ...readerLines(opts.principles),
           "",
           "Themes. Every idea sits under one of these, by its exact title:",
           ...opts.themes.map((t) => `${t.title}. ${t.description}`),

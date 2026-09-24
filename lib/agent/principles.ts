@@ -27,7 +27,17 @@ const PrinciplesSchema = z.object({
     ),
 });
 
-export type Principles = z.infer<typeof PrinciplesSchema>;
+/**
+ * The three written from the site, plus `reader` once the member names who the
+ * posts are for at level 3. Empty until then, and every prompt leaves it out
+ * while it is.
+ */
+export type Principles = z.infer<typeof PrinciplesSchema> & { reader?: string };
+
+/** The reader line for a prompt, or nothing while no reader is named. */
+export function readerLines(principles: Principles): string[] {
+  return principles.reader ? [`Reader. ${principles.reader}`] : [];
+}
 
 const SYSTEM = `You write the brand principles that a LinkedIn ghostwriter would keep pinned above their desk.
 

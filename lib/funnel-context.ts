@@ -2,6 +2,7 @@ import { asc, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { getDb } from "@/db";
 import { brandPrinciple, theme as themeTable } from "@/db/schema";
+import type { Principles } from "@/lib/agent/principles";
 import { fetchSiteText, type SiteText } from "@/lib/agent/site";
 import { loadAccess } from "@/lib/profiles";
 import { readAnonId } from "@/lib/track";
@@ -60,7 +61,7 @@ export async function readBrand(profileId: string) {
       .where(eq(themeTable.profileId, profileId))
       .orderBy(asc(themeTable.position)),
   ]);
-  const principles = { voice: "", visual: "", format: "" };
+  const principles: Principles = { voice: "", visual: "", format: "", reader: "" };
   for (const row of rows) principles[row.kind] = row.text;
   return { principles, themes };
 }

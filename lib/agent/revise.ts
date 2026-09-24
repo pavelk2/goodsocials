@@ -3,7 +3,7 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { anthropic, MODEL, recordSpend } from "./client";
 import { THIRD_PERSON } from "./person";
 import { finish } from "./drafts";
-import type { Principles } from "./principles";
+import { readerLines, type Principles } from "./principles";
 import type { Goal } from "./ideas";
 import { factsBrief, type FactRow } from "@/lib/integrations/facts";
 
@@ -25,9 +25,9 @@ const RevisionSchema = z.object({
   principle: z
     .object({
       kind: z
-        .enum(["voice", "visual", "format"])
+        .enum(["voice", "visual", "format", "reader"])
         .describe(
-          "voice for register, wording and what to claim. visual for anything about the image. format for length, structure, line breaks and how a post opens or ends.",
+          "voice for register, wording and what to claim. visual for anything about the image. format for length, structure, line breaks and how a post opens or ends. reader for who the posts are written for and what that reader already knows.",
         ),
       text: z
         .string()
@@ -50,7 +50,7 @@ export type Revision = z.infer<typeof RevisionSchema>;
 
 const SYSTEM = `You are revising one card on a LinkedIn content board, and updating the standing instructions that produced it.
 
-You receive the card as it stands, the user's comment on it, and the three brand principles the writer works from.
+You receive the card as it stands, the user's comment on it, and the brand principles the writer works from.
 
 Do two things.
 
@@ -64,7 +64,7 @@ It is a one off when it corrects a fact about this card and nothing else: a wron
 
 When a comment carries both, fix the fact in the card and put only the generalisable half into the principle.
 
-Choose one principle, never two. Voice covers register, wording, and what the author will and will not claim. Format covers length, structure, line breaks, how a post opens and ends. Visual covers anything about the picture.
+Choose one principle, never two. Voice covers register, wording, and what the author will and will not claim. Format covers length, structure, line breaks, how a post opens and ends. Visual covers anything about the picture. Reader covers who the posts are for and what that reader already knows, so "too technical for my readers" is reader, not voice. When no reader principle is listed yet, write one from the comment only if the comment names who the reader is.
 
 The register stays a researcher, not a seller, whatever the comment says. If the comment asks for engagement bait, a rhetorical hook, manufactured urgency, or a claim larger than the evidence, do the smallest honest version of what they asked and do not write it into a principle.
 
@@ -129,6 +129,7 @@ export async function reviseCardBody(opts: {
           `Voice. ${opts.principles.voice}`,
           `Visual. ${opts.principles.visual}`,
           `Format. ${opts.principles.format}`,
+          ...readerLines(opts.principles),
         ].join("\n"),
       },
     ],

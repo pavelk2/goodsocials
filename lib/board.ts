@@ -10,6 +10,7 @@ import {
   theme as themeTable,
 } from "@/db/schema";
 import { parseFunnel } from "@/lib/funnel-steps";
+import type { Principles } from "@/lib/agent/principles";
 
 export const COLUMNS = [
   "idea",
@@ -34,7 +35,7 @@ export type BoardTheme = typeof themeTable.$inferSelect;
 export type BoardView = {
   profile: typeof profileTable.$inferSelect;
   board: typeof boardTable.$inferSelect;
-  principles: { voice: string; visual: string; format: string };
+  principles: Principles;
   /** What this profile posts about. Ordered, editable, four to start with. */
   themes: BoardTheme[];
   cards: Record<Column, BoardCard[]>;
@@ -125,7 +126,7 @@ export async function loadBoard(profileId: string): Promise<BoardView | null> {
         .limit(1),
     ]);
 
-  const principles = { voice: "", visual: "", format: "" };
+  const principles: Principles = { voice: "", visual: "", format: "", reader: "" };
   for (const row of principleRows) principles[row.kind] = row.text;
 
   const cards = Object.fromEntries(
@@ -142,7 +143,7 @@ export async function loadBoard(profileId: string): Promise<BoardView | null> {
   const perDay = brd.targetCadence / 7;
   const runwayDays = perDay > 0 ? Math.floor(ready / perDay) : 0;
 
-  const brandWritten = !Object.values(principles).every(
+  const brandWritten = ![principles.voice, principles.visual, principles.format].every(
     (t) => t === "" || t.startsWith(PLACEHOLDER_PREFIX),
   );
 

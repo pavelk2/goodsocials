@@ -13,6 +13,7 @@ import type { Actor } from "@/lib/profiles";
 import { generateDraft } from "@/lib/agent/drafts";
 import { generateImage } from "@/lib/agent/images";
 import { reviseCardBody } from "@/lib/agent/revise";
+import type { Principles } from "@/lib/agent/principles";
 import { generateIdeas, type Goal } from "@/lib/agent/ideas";
 import { fetchSiteText } from "@/lib/agent/site";
 import { parseFunnel } from "@/lib/funnel-steps";
@@ -36,7 +37,7 @@ type Loaded = {
   card: typeof cardTable.$inferSelect;
   board: typeof boardTable.$inferSelect;
   profile: typeof profileTable.$inferSelect;
-  principles: { voice: string; visual: string; format: string };
+  principles: Principles;
   /** Null when the card predates themes, or when its theme was deleted. */
   theme: { title: string; description: string } | null;
   /**
@@ -85,7 +86,7 @@ async function load(actor: Actor, cardId: string): Promise<Loaded | null> {
     readFacts(row.profile.id),
   ]);
 
-  const principles = { voice: "", visual: "", format: "" };
+  const principles: Principles = { voice: "", visual: "", format: "", reader: "" };
   for (const p of principleRows) principles[p.kind] = p.text;
 
   return { ...row, principles, facts };
@@ -380,15 +381,19 @@ export async function reviseCard(
     .where(eq(cardTable.id, card.id));
 
   if (revision.principle) {
+    // An upsert, because the reader principle has no row until level 3, and a
+    // comment naming the reader before then should still land.
     await db
-      .update(brandPrinciple)
-      .set({ text: revision.principle.text, updatedAt: new Date() })
-      .where(
-        and(
-          eq(brandPrinciple.profileId, profile.id),
-          eq(brandPrinciple.kind, revision.principle.kind),
-        ),
-      );
+      .insert(brandPrinciple)
+      .values({
+        profileId: profile.id,
+        kind: revision.principle.kind,
+        text: revision.principle.text,
+      })
+      .onConflictDoUpdate({
+        target: [brandPrinciple.profileId, brandPrinciple.kind],
+        set: { text: revision.principle.text, updatedAt: new Date() },
+      });
   }
 
   // A visual comment on a card that already has a picture means that picture is
@@ -553,7 +558,7 @@ export async function topUpDrafts(profileId: string): Promise<number> {
       .where(eq(themeTable.profileId, row.profile.id)),
     readFacts(row.profile.id),
   ]);
-  const principles = { voice: "", visual: "", format: "" };
+  const principles: Principles = { voice: "", visual: "", format: "", reader: "" };
   for (const p of principleRows) principles[p.kind] = p.text;
   const themes = new Map(themeRows.map((t) => [t.id, t]));
 
@@ -647,7 +652,7 @@ export async function planMoreIdeas(actor: Actor): Promise<CardResult> {
   if (themeRows.length === 0) {
     return { ok: false, error: "Add a theme in Brand principles first." };
   }
-  const principles = { voice: "", visual: "", format: "" };
+  const principles: Principles = { voice: "", visual: "", format: "", reader: "" };
   for (const p of principleRows) principles[p.kind] = p.text;
 
   // The homepage again, because it may have changed since onboarding. A site
@@ -715,6 +720,12 @@ export async function addOwnIdea(
   actor: Actor,
   text: string,
   themeId: string | null,
+  /**
+   * A finding unless the caller knows better. The level 4 step passes
+   * `receipt`, because a number the member is proud of is a receipt from the
+   * first sentence.
+   */
+  kind: "finding" | "receipt" = "finding",
 ): Promise<CardResult> {
   const idea = text.trim();
   if (idea.length < 10) return { ok: false, error: "Say a little more than that." };
@@ -758,7 +769,7 @@ export async function addOwnIdea(
   await db.insert(cardTable).values({
     boardId: row.boardId,
     idea,
-    kind: "finding",
+    kind,
     themeId: theme,
     position: (top?.position ?? 1) - 1,
   });

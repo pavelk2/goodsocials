@@ -507,3 +507,37 @@ Changing the free days is then one edit in `lib/plans.ts` rather than three new 
 Rejected: prorating both ways on the spot.
 An immediate downgrade hands back money for a month already half used and drops the seats under an agency mid-week, and Stripe's portal does the scheduling for us.
 
+
+## Decided building levels 1 to 5
+
+**A fourth principle, `reader`, rather than folding the reader into voice.**
+Rejected: keeping exactly three.
+"Too technical for my readers" is about the reader, and with only three kinds the revision loop had to push it into voice, where it changes how a post sounds instead of who it is for.
+
+**Levels never drop.**
+Rejected: taking a level away after two weeks without posting.
+The upper gates ask for current results, so somebody who stops posting stops climbing, and a holiday week costs nothing.
+
+**Levels unlock the next step, never a feature.**
+Rejected: holding experiments or series back until a level.
+Everybody pays the same 100 USD, and the ladder is advice with a scoreboard, not a paywall inside the paywall.
+
+**Engagement appears on `/levels` only, relative to the member's own baseline.**
+Rejected: putting it on the board.
+The board leads with cadence, which is what we sell. Levels 6 and up need engagement, so it lives on the one screen that is about getting better.
+
+**The board's level line is ink and grey, the levels screen's current level is plum.**
+Rejected: a plum level beside the plum runway.
+One saturated thing per screen. On the board that is the runway; on /levels it is where you are on the ladder.
+
+**Level 5 counts weeks at the board's cadence, not a weekday streak.**
+Rejected: 10 weekdays in a row, as first planned.
+A board set to three posts a week could never post ten weekdays running, so the gate would punish the setting instead of the habit. Two whole weeks at the chosen cadence is the same bar for the 5 a week board.
+
+**The level is raised on render, not by a cron.**
+Rejected: a daily level job.
+Seven small counts on the board and levels pages, and the level is right the moment the post that earned it is published. The update is guarded on the old level, so two tabs raise it once.
+
+**The picture choice planned for level 5 is not in this pass.**
+Rejected: shipping it with the rules step.
+It needs the approved and regenerated images read back per card, which nothing logs yet. The rules step carries level 5 on its own.

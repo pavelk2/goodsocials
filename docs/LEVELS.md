@@ -1,6 +1,8 @@
 # Levels
 
-A plan, not a build. Nothing here is implemented yet.
+Levels 1 to 5 are built: `lib/levels.ts` holds the rules, `lib/levels-store.ts`
+reads the evidence, `/levels` is the screen. Levels 6 to 10 show on the ladder
+and cannot be reached until their steps exist.
 
 ## Why
 
@@ -89,10 +91,10 @@ supplied, 8 posts published.
 Step: *These are the corrections you made most. Keep them as rules?*
 We read `card_action` and show the three revise comments that repeat most,
 phrased as rules ("never open with a question"). Each one: keep, edit, drop.
-Kept rules go into the matching principle. Plus one picture choice: the style
-of the images they approved without regenerating, against two alternatives.
+Kept rules go into the matching principle. A picture choice from the images
+they approved was planned here and is deferred, see DECISIONS.md.
 Gate: 15 posts published, 7 of the last 10 cards approved on the first draft,
-a 10 weekday streak.
+two whole weeks in a row at the board's cadence.
 Level 5 is the promise of the product kept: the board fills, the member
 approves, the feed stays regular.
 
@@ -240,7 +242,10 @@ There is no API route to engagement either. What remains:
 Parsing a spreadsheet in the browser needs a dependency. The reason goes in the
 commit that adds it.
 
-## Decisions for Pavel
+## Decisions
+
+All four taken as recommended on 24 September 2026, and recorded in
+DECISIONS.md.
 
 1. **A fourth principle, `reader`.** CLAUDE.md says exactly three. Folding the
    reader into `voice` keeps the rule but makes a revise comment like "too

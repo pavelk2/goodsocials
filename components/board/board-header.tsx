@@ -5,6 +5,7 @@ import { useState } from "react";
 import { PrinciplesPanel } from "@/components/board/principles";
 import { ThemesPanel, type ThemeRow } from "@/components/board/themes";
 import { Sheet } from "@/components/ui/sheet";
+import type { Principles } from "@/lib/agent/principles";
 
 /**
  * One shape for both controls: 30px tall, so 8px radius, same padding, same
@@ -41,13 +42,16 @@ export function BoardHeader({
   view,
   principles,
   themes,
+  level,
 }: {
   seat: string | null;
   runwayDays: number;
   /** Which reading of the same cards is on screen. */
   view: "board" | "calendar";
-  principles: { voice: string; visual: string; format: string };
+  principles: Principles;
   themes: ThemeRow[];
+  /** Where this profile is on the ladder, and the next step in a few words. */
+  level: { level: number; next: string | null } | null;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -100,6 +104,8 @@ export function BoardHeader({
         </div>
       </header>
 
+      {level ? <LevelLine level={level.level} next={level.next} /> : null}
+
       {open ? (
         <Sheet title="Brand principles" onClose={() => setOpen(false)}>
           <PrinciplesPanel principles={principles} />
@@ -148,5 +154,35 @@ function ViewSwitch({ view }: { view: "board" | "calendar" }) {
         Calendar
       </Link>
     </div>
+  );
+}
+
+/**
+ * The ladder in one line, under the title. Ink and grey only: the plum on this
+ * screen belongs to the runway, and a second saturated thing beside it would
+ * make neither of them the one to look at. /levels is where the level is the
+ * colored thing.
+ */
+function LevelLine({ level, next }: { level: number; next: string | null }) {
+  return (
+    <Link
+      href="/levels"
+      className="btn-outline mt-3 inline-flex max-w-full items-center gap-[10px] rounded-full border border-hairline bg-surface py-[5px] pl-[9px] pr-3 text-[13px]"
+    >
+      <span aria-hidden="true" className="flex gap-[3px]">
+        {Array.from({ length: 10 }, (_, i) => (
+          <span
+            key={i}
+            className={`h-[6px] w-[6px] rounded-full ${i < level ? "bg-ink" : "bg-hairline"}`}
+          />
+        ))}
+      </span>
+      <span className="num font-medium">Level {level}</span>
+      {next ? (
+        <span className="truncate text-ink-2">
+          Next: <span className="text-ink underline decoration-ink-3 underline-offset-2">{next}</span>
+        </span>
+      ) : null}
+    </Link>
   );
 }
