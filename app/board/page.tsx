@@ -57,6 +57,7 @@ export default async function BoardPage({
       <BoardHeader
         seat={access.seats.length > 1 ? seatName(seat) : null}
         runwayDays={view.runwayDays}
+        readyToSchedule={view.readyToSchedule}
         view={mode}
         principles={view.principles}
         themes={view.themes}

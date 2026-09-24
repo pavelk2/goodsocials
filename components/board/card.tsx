@@ -63,7 +63,7 @@ export function Card({
       style={isDragging ? { opacity: 0.4 } : undefined}
       handleProps={{ ...attributes, ...listeners }}
     >
-      <CardActions id={id} state={state} />
+      <CardActions id={id} state={state} compact />
 
       {/* Mounted only while open, so the dialog opens on mount and every close,
           by Escape or by click, is the same unmount. */}

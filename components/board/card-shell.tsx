@@ -1,6 +1,7 @@
 import type { CSSProperties, HTMLAttributes, ReactNode, Ref } from "react";
 import { formatSlot } from "@/lib/time";
 import { PostText } from "@/components/post-text";
+import { hasGap } from "@/lib/gap";
 
 const IMAGE_ALT = "The image generated for this post";
 
@@ -68,6 +69,10 @@ export function CardShell({
   children?: ReactNode;
 }) {
   const when = scheduledAt ? formatSlot(scheduledAt, timeZone ?? "UTC") : null;
+  // The same question in two shapes: an idea names what it needs, a draft
+  // carries it as a bracket in the text. The card flags both the same way and
+  // leaves the detail to the dialog, where there is room to answer it.
+  const waiting = Boolean(needs) || hasGap(body);
 
   return (
     <article
@@ -99,22 +104,35 @@ export function CardShell({
 
       {/* Outside the drag handle: this is a question, and a press on it should
           not pick the card up. It sits above the actions because it is the
-          reason one of them is not ready to be pressed yet. */}
-      {needs ? (
-        <p className="mt-2 text-[13px] leading-[1.4] text-ink">
-          <span className="font-medium">Needs from you.</span> {needs}
-        </p>
+          reason one of them is not ready to be pressed yet. Ink and a dot
+          rather than accent: a plum marker per card would spend the board's
+          one colour a dozen times. */}
+      {waiting ? (
+        onOpen ? (
+          <button
+            type="button"
+            onClick={onOpen}
+            className="mt-2 flex items-center gap-2 text-[13px] font-medium text-ink"
+          >
+            <span aria-hidden className="size-[6px] rounded-full bg-ink" />
+            Needs a detail from you
+          </button>
+        ) : needs ? (
+          <p className="mt-2 text-[13px] leading-[1.4] text-ink">
+            <span className="font-medium">Needs from you.</span> {needs}
+          </p>
+        ) : null
       ) : null}
 
-      {/* The keyboard route into the card, and the visible sign that there is
-          one. Enter on the body above starts a keyboard drag, so opening the
-          post needs a control of its own. Outside the drag handle, so reading a
-          post never picks the card up. */}
+      {/* The keyboard route into the card. Enter on the body above starts a
+          keyboard drag, so opening the post needs a control of its own. Out of
+          sight until it has focus: the whole card is the pointer target, and a
+          Read it link on every card was the noisiest line on the board. */}
       {onOpen ? (
         <button
           type="button"
           onClick={onOpen}
-          className="mt-2 text-[13px] text-ink-2 underline"
+          className="sr-only text-[13px] text-ink-2 underline focus-visible:not-sr-only focus-visible:mt-2 focus-visible:block"
         >
           Read it
         </button>
@@ -147,9 +165,10 @@ export function CardShell({
 }
 
 /**
- * The card's image, at the card's full width in the ratio it was generated at.
- * Not a 48px thumbnail: the Image column asks the user to approve or reject
- * this picture, and nobody can judge a picture at 48px.
+ * The card's image, at the card's full width in a 120px strip. Enough to tell
+ * which picture it is and whether it is wrong at a glance; the judgement
+ * happens in the dialog, where it runs at full size. At 4:3 two cards filled
+ * the Image column.
  *
  * Not optimized: a Vercel Blob URL written minutes ago and read by the one
  * person deciding on it, so a cached derivative pays for itself never.
@@ -160,7 +179,7 @@ function CardImage({ src, alt }: { src: string; alt: string }) {
     <img
       src={src}
       alt={alt}
-      className="aspect-[4/3] w-full rounded-[8px] border border-hairline object-cover"
+      className="h-[120px] w-full rounded-[8px] border border-hairline object-cover"
     />
   );
 }

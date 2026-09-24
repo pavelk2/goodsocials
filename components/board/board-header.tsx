@@ -7,20 +7,13 @@ import { ThemesPanel, type ThemeRow } from "@/components/board/themes";
 import { Sheet } from "@/components/ui/sheet";
 
 /**
- * One shape for both controls: 30px tall, so 8px radius, same padding, same
- * press. They differ only in weight, because they open the same kind of sheet
- * but are not equally worth opening. The motion lives on .btn-ink and
+ * One shape and one weight for both controls: 30px tall, 8px radius, same
+ * press. Neither is filled. The filled control on the board is a card's
+ * approve button, the thing the screen is for, and a filled Brand principles
+ * above it read as the main action on a page where it is the occasional one. The motion lives on .btn-ink and
  * .btn-outline in globals.css, with the rest of the app's buttons.
  */
 const SHAPE = "rounded-[8px] px-3 py-[6px] text-[13px] font-medium";
-
-/**
- * Solid ink, the house primary. Principles are what makes a correction stick
- * to every future card, so this is the one control on the header worth
- * pressing. Not accent: the board spends its one color on runway, per
- * DESIGN.md section 1.
- */
-const PRIMARY = `btn-ink ${SHAPE} bg-ink text-paper`;
 
 /**
  * Surface on paper with a hairline, the same way a card separates from the
@@ -38,12 +31,15 @@ const SECONDARY = `btn-outline ${SHAPE} border border-hairline bg-surface text-i
 export function BoardHeader({
   seat,
   runwayDays,
+  readyToSchedule,
   view,
   principles,
   themes,
 }: {
   seat: string | null;
   runwayDays: number;
+  /** Image column count: approved posts that still need a slot. */
+  readyToSchedule: number;
   /** Which reading of the same cards is on screen. */
   view: "board" | "calendar";
   principles: { voice: string; visual: string; format: string };
@@ -79,6 +75,15 @@ export function BoardHeader({
               <span className="num font-medium text-accent">
                 {runwayDays} {runwayDays === 1 ? "day" : "days"}
               </span>
+              {/* Said beside the runway, not added to it: these publish
+                  nothing until somebody schedules them. */}
+              {readyToSchedule > 0 ? (
+                <>
+                  {" · "}
+                  <span className="num">{readyToSchedule}</span> ready to
+                  schedule
+                </>
+              ) : null}
             </p>
           ) : null}
 
@@ -88,7 +93,7 @@ export function BoardHeader({
             type="button"
             onClick={() => setOpen(true)}
             aria-haspopup="dialog"
-            className={PRIMARY}
+            className={SECONDARY}
           >
             Brand principles
           </button>
