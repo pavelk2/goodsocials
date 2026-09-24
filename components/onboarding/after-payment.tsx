@@ -59,7 +59,7 @@ export function Refine({
   );
 }
 
-export type IdeaRow = { id: string; idea: string; kind: PostKind; theme: string | null; needs: string | null };
+export type IdeaRow = { id: string; idea: string; title: string | null; kind: PostKind; theme: string | null; needs: string | null };
 
 export function PickIdeas({ ideas }: { ideas: IdeaRow[] }) {
   const [picked, setPicked] = useState<Set<string>>(() => new Set(ideas.map((i) => i.id)));
@@ -95,7 +95,7 @@ export function PickIdeas({ ideas }: { ideas: IdeaRow[] }) {
                   onChange={() => toggle(row.id)}
                   className="mt-[6px] h-4 w-4 shrink-0 accent-accent"
                 />
-                <span className={picked.has(row.id) ? "" : "text-ink-3"}>{row.idea}</span>
+                <span className={picked.has(row.id) ? "" : "text-ink-3"}>{row.title ?? row.idea}</span>
               </label>
             </li>
           ))}

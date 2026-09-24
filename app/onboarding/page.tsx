@@ -181,6 +181,7 @@ async function ideaRows(boardId: string) {
     .select({
       id: cardTable.id,
       idea: cardTable.idea,
+      title: cardTable.title,
       kind: cardTable.kind,
       theme: themeTable.title,
       needs: cardTable.needs,
