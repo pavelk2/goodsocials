@@ -119,22 +119,22 @@ export const IMAGE_QUESTION: Question = {
       id: "abstract",
       label: "Abstract",
       principle:
-        "Images are abstract compositions: bold colour fields, simple geometric shapes, paper and paint textures. Nothing that pretends to be a literal scene.",
+        "Images are abstract light: soft, defocused colour fields on a near black ground, electric blue and cyan below, warm coral and orange above. No objects, no shapes, no symbols.",
       preview: "/onboarding/abstract.jpg",
+    },
+    {
+      id: "human",
+      label: "Human",
+      principle:
+        "Images are cinematic editorial portraits: one quiet person in a dark petrol blue space, lit by a single warm orange light, with deep shadow and empty space around them.",
+      preview: "/onboarding/human.jpg",
     },
     {
       id: "nature",
       label: "Nature",
       principle:
-        "Images are natural scenes and close textures: sunlight through leaves, stone, water, wood grain. Muted, low contrast, outdoor light, unusual crops.",
+        "Images are bold travel editorial landscapes: one striking natural subject, saturated blues and greens with a coral or red accent, clean poster-like composition. No people.",
       preview: "/onboarding/nature.jpg",
-    },
-    {
-      id: "real",
-      label: "Photos of your work",
-      principle:
-        "Images are documentary photographs of the real objects and places behind the work: tools, desks, products, workshops, screens with no readable text. Natural light, nothing staged.",
-      preview: "/onboarding/real.jpg",
     },
   ],
   other: { label: "Other", placeholder: "Black and white photos of cities" },

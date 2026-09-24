@@ -149,14 +149,15 @@ export function QuestionScreen({
 }
 
 /**
- * The picture that decides an image style. Generated once by
- * scripts/onboarding-styles.ts. Until it has been run the tile keeps its
- * shape and shows the name, so the question still works without it.
+ * The picture that decides an image style, from public/onboarding/. Portrait
+ * beside its neighbours on a wide screen, because the pictures are; landscape
+ * when the three stack on a phone, so the question still fits one screen. A
+ * missing file keeps the tile's shape and shows the name.
  */
 function Preview({ src, label }: { src?: string; label: string }) {
   const [missing, setMissing] = useState(false);
   return (
-    <span className="relative block aspect-[4/3] bg-paper">
+    <span className="relative block aspect-[4/3] bg-paper sm:aspect-[4/5]">
       {src && !missing ? (
         // A static file from /public, drawn at its own size. next/image would
         // add a loader for three pictures that never change.
