@@ -5,6 +5,7 @@ import { appendUtm } from "@/lib/utm";
 import { factsBrief, type FactRow } from "@/lib/integrations/facts";
 import type { Principles } from "./principles";
 import type { Goal, PostKind } from "./ideas";
+import type { Research } from "./competitors";
 
 /**
  * One idea becomes one finished post. The draft is publishable as written: no
@@ -144,6 +145,73 @@ export async function generateDraft(opts: {
     operation: "draft",
     usage: response.usage,
   });
+
+  if (!response.parsed_output) {
+    throw new Error("The model did not return a draft in the expected shape.");
+  }
+  return finish(response.parsed_output.post, opts.goal);
+}
+
+const MARKET_BRIEF = `Build it as a map of the field. One opening sentence naming the field and that this is what customers say about the companies in it. Then one short block per company, the author's own company included and written about in the same plain register as the others: the name, what it offers, what customers like, what they dislike, and where that was said. Where a company has no reviews, say only what it offers and nothing about opinion. Report the reviews as reviews, never as your own verdict, and never rank the companies. End on the last company, or on one sentence from the author about why they wrote the list down. No brackets, because nothing here needs a number from the author.`;
+
+/**
+ * The onboarding sample. At that point we know the member's website and
+ * nothing they have done, so the post is built only from what the research
+ * read in public: who operates in the field and what their customers say.
+ *
+ * No thinking. The facts arrive laid out and the job is to set them in the
+ * member's voice, and on the waiting screen every second is counted.
+ */
+export async function generateMarketPost(opts: {
+  research: Research;
+  principles: Principles;
+  goal: Goal;
+  siteUrl: string | null;
+  profileId: string;
+}): Promise<string> {
+  const companies = opts.research.companies.map((c) =>
+    [
+      `${c.name}${c.own ? " (the author's own company)" : ""}. Offers: ${c.offers}`,
+      c.praised ? `Customers like: ${c.praised}` : "",
+      c.criticised ? `Customers dislike: ${c.criticised}` : "",
+      c.source && (c.praised || c.criticised) ? `Said on: ${c.source}` : "",
+      !c.praised && !c.criticised ? "No reviews found. Say nothing about opinion." : "",
+    ]
+      .filter(Boolean)
+      .join("\n"),
+  );
+
+  const response = await anthropic().messages.parse({
+    model: MODEL,
+    max_tokens: 2000,
+    thinking: { type: "disabled" },
+    system: SYSTEM,
+    output_config: { format: zodOutputFormat(DraftSchema) },
+    messages: [
+      {
+        role: "user",
+        content: [
+          `Idea: who operates in ${opts.research.field}, and what their customers say about each.`,
+          "",
+          `Shape. ${MARKET_BRIEF}`,
+          "",
+          "The companies, as read from their sites and from public reviews. Use nothing else:",
+          companies.join("\n\n"),
+          "",
+          "Brand principles:",
+          `Voice. ${opts.principles.voice}`,
+          `Format. ${opts.principles.format}`,
+          "",
+          `Goal. ${GOAL_BRIEF[opts.goal]}`,
+          opts.siteUrl ? `The website to link to is ${opts.siteUrl}` : "",
+        ]
+          .filter((line) => line !== null)
+          .join("\n"),
+      },
+    ],
+  });
+
+  recordSpend({ profileId: opts.profileId, operation: "draft_market", usage: response.usage });
 
   if (!response.parsed_output) {
     throw new Error("The model did not return a draft in the expected shape.");

@@ -1,9 +1,10 @@
+import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { after } from "next/server";
 import { getDb } from "@/db";
 import { board as boardTable, card as cardTable } from "@/db/schema";
-import { researchCompetitors, type Research } from "@/lib/agent/competitors";
-import { generateDraft } from "@/lib/agent/drafts";
+import { isResearch, researchCompetitors, type Research } from "@/lib/agent/competitors";
+import { generateMarketPost } from "@/lib/agent/drafts";
 import { generateImage } from "@/lib/agent/images";
 import { funnelActor, readBrand, siteFor } from "@/lib/funnel-context";
 import { advance, applyAnswers, readFunnel, updateFunnel } from "@/lib/funnel";
@@ -12,13 +13,19 @@ import { track } from "@/lib/track";
 
 /**
  * The payoff screen of the free half of the funnel: one finished post with its
- * picture, and the week it starts planned behind it.
+ * picture.
  *
- * Two jobs run side by side. The sample is a draft and then its image, written
- * from the opening idea competitor research aimed at the gap. The plan is the
- * seven ideas the board fills with. Both are here rather than after payment so
- * the offer can show the real week, and so a member coming back from Stripe
- * finds their ideas already waiting instead of another minute of progress rows.
+ * The post is a map of the member's field: the companies in it, theirs among
+ * them, and what customers say about each, read from public reviews by the
+ * research that ran while the questions were answered. At this point we know
+ * the website and nothing the member has done, so this is the one post we can
+ * write without inventing anything.
+ *
+ * The draft and the picture run side by side. The picture is prompted from
+ * the field rather than from the finished text, so it does not wait on it.
+ * The seven ideas the board fills with are written after the response, since
+ * the offer does not show them and the ideas step writes them again if they
+ * never land.
  *
  * Idempotent. A sample that exists is returned as it is, because a reload on
  * the waiting screen must not write, draw and charge a second one.
@@ -53,104 +60,111 @@ export async function POST() {
 
   const started = Date.now();
 
-  // Competitor research normally landed while the questions were answered. If
-  // the member reloaded before it did, it runs here, and it has its own
-  // fallback, so this cannot be the reason a sample never appears.
-  let research: Research | null = funnel.research ?? null;
+  // Research normally landed while the questions were answered. If the member
+  // reloaded before it did, it runs here, and it has its own fallback. Research
+  // stored before the market map had another shape and is read again.
+  let research: Research | null = isResearch(funnel.research) ? funnel.research : null;
   if (!research) {
     try {
       research = await researchCompetitors({ site, profileId, personName: actor.profile.name });
-      await updateFunnel(profileId, (f) => ({ ...f, research }));
+      const fresh = research;
+      await updateFunnel(profileId, (f) => ({ ...f, research: fresh }));
     } catch (cause) {
       console.error("[onboarding] research in sample failed:", cause);
     }
+  }
+  if (!research) {
+    after(() =>
+      track("sample_failed", { distinctId: actor.distinctId, memberId: actor.memberId }),
+    );
+    return Response.json(
+      { error: "We could not read your market. Try again, it takes about half a minute." },
+      { status: 502 },
+    );
   }
 
   const applied = await applyAnswers(profileId, funnel, brand.principles);
   const principles = { voice: applied.voice, visual: applied.visual, format: applied.format };
   const theme = brand.themes[0];
+  const idea = `Who operates in ${research.field}, and what their customers say about each.`;
 
-  const sample = (async () => {
-    const idea =
-      research?.opening.idea ??
-      `A method from ${theme.title.toLowerCase()}: the steps this business follows, in the order that matters.`;
-    const kind = research?.opening.kind ?? "framework";
-
-    const text = await generateDraft({
-      idea,
-      kind,
-      theme,
+  // The id is chosen here so the picture can be stored under it before the
+  // row exists. The row is written once, with both halves, so a failed draft
+  // leaves nothing half made on the board.
+  const cardId = randomUUID();
+  const names = research.companies.map((c) => c.name).join(", ");
+  const [drafted, drawn] = await Promise.allSettled([
+    generateMarketPost({
+      research,
       principles,
       goal: applied.goal,
       siteUrl: brd.siteUrl,
       profileId,
-    });
-
-    const [row] = await db
-      .insert(cardTable)
-      .values({ boardId: brd.id, idea, kind, themeId: theme.id, draftText: text, state: "draft", position: 0 })
-      .returning({ id: cardTable.id });
-
-    const image = await generateImage({
+    }),
+    generateImage({
       profileId,
-      cardId: row.id,
-      postText: text,
+      cardId,
+      postText: `A LinkedIn post comparing the companies in ${research.field}: ${names}. What their customers like about each and what they do not.`,
       visualPrinciple: principles.visual,
-    });
+    }),
+  ]);
 
-    // A picture that failed leaves the card in Draft with its text, which is
-    // still a post worth showing. The offer screen draws it without an image.
-    if (image.ok) {
-      await db
-        .update(cardTable)
-        .set({ state: "image", imageUrl: image.url, imageAlt: image.prompt, updatedAt: new Date() })
-        .where(eq(cardTable.id, row.id));
-    }
-    return { cardId: row.id, image: image.ok };
-  })();
-
-  const plan = planWeek({
-    boardId: brd.id,
-    profileId,
-    principles,
-    themes: brand.themes,
-    goal: applied.goal,
-    siteUrl: brd.siteUrl,
-    siteText: site.text,
-  });
-
-  const [sampled, planned] = await Promise.allSettled([sample, plan]);
-
-  if (planned.status === "rejected") {
-    // Not fatal. The ideas step writes them again if the column is empty.
-    console.error("[onboarding] plan failed:", planned.reason);
-  }
-
-  if (sampled.status === "rejected") {
-    console.error("[onboarding] sample failed:", sampled.reason);
+  if (drafted.status === "rejected") {
+    console.error("[onboarding] sample failed:", drafted.reason);
     after(() =>
       track("sample_failed", { distinctId: actor.distinctId, memberId: actor.memberId }),
     );
     return Response.json(
-      { error: "Your first post did not write. Try again, it takes about a minute." },
+      { error: "Your first post did not write. Try again, it takes about half a minute." },
       { status: 502 },
     );
   }
 
-  await updateFunnel(profileId, (f) =>
-    advance({ ...f, sampleCardId: sampled.value.cardId }, "offer"),
-  );
+  // A picture that failed leaves the card in Draft with its text, which is
+  // still a post worth showing. The offer screen draws it without an image.
+  const image = drawn.status === "fulfilled" && drawn.value.ok ? drawn.value : null;
+  await db.insert(cardTable).values({
+    id: cardId,
+    boardId: brd.id,
+    idea,
+    kind: "data",
+    themeId: theme.id,
+    draftText: drafted.value,
+    state: image ? "image" : "draft",
+    imageUrl: image?.url ?? null,
+    imageAlt: image?.prompt ?? null,
+    position: 0,
+  });
 
-  after(() =>
-    track("sample_ready", {
+  await updateFunnel(profileId, (f) => advance({ ...f, sampleCardId: cardId }, "offer"));
+
+  const market = research;
+  after(async () => {
+    await track("sample_ready", {
       distinctId: actor.distinctId,
       memberId: actor.memberId,
       seconds: Math.round((Date.now() - started) / 1000),
-      image: sampled.value.image,
-      ideas: planned.status === "fulfilled" ? planned.value : 0,
+      image: Boolean(image),
+      companies: market.companies.length,
+      reviewed: market.companies.filter((c) => c.praised || c.criticised).length,
+      searched: market.searched,
       goal: applied.goal,
-    }),
-  );
+    });
+    // Not fatal. The ideas step writes them again if the column is empty.
+    try {
+      await planWeek({
+        boardId: brd.id,
+        profileId,
+        principles,
+        themes: brand.themes,
+        goal: applied.goal,
+        siteUrl: brd.siteUrl,
+        siteText: site.text,
+      });
+    } catch (cause) {
+      console.error("[onboarding] plan failed:", cause);
+    }
+  });
 
   return Response.json({ ok: true });
 }

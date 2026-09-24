@@ -5,63 +5,69 @@ import { anthropic, MODEL, recordSpend } from "./client";
 import type { SiteText } from "./site";
 
 /**
- * Who else is posting to this member's readers, what they post, and the gap
- * none of them fill. Runs during onboarding while the member answers three
- * questions, so it has about a minute and spends it on at most three searches.
+ * The market this member sells into, read from public reviews: who operates in
+ * the field, the member's own company among them, and what customers of each
+ * say they like and dislike. Runs during onboarding while the member answers
+ * three questions, so it has well under a minute.
  *
- * Two outputs matter. The competitors are what the waiting screen shows, which
- * is the first proof that we read their market and not only their homepage.
- * The opening idea is the post the sample is written from, so the first thing
- * a member reads from us is aimed at the gap rather than at the middle.
+ * It is the whole of the sample post. At onboarding we know the member's
+ * website and nothing they have done, so the only true post we can write is
+ * one about what other people have said in public. A post about their own
+ * results waits until a connected source gives us the numbers.
  *
- * Web search first, the model's own knowledge if search fails. A small
- * business may have no competitor the model has heard of, and search is the
- * only way to name real ones. Citations and structured output cannot share a
+ * Web search first, the model's own knowledge if search fails. Without search
+ * the praise and the complaints are dropped here in code, not left to the
+ * prompt, because a review we did not read is a review we would be inventing
+ * under a real person's name. Citations and structured output cannot share a
  * request, so the searched call returns JSON in text and is validated here.
  */
 
-const ResearchSchema = z.object({
-  competitors: z
-    .array(
-      z.object({
-        name: z.string().describe("The company or the person, as they are known."),
-        posts: z
-          .string()
-          .describe(
-            "What they post about on LinkedIn or in public, in one sentence of plain words.",
-          ),
-      }),
-    )
-    .max(3),
-  gap: z
+const CompanySchema = z.object({
+  name: z.string().describe("The company, as it is known."),
+  own: z.boolean().describe("True for the company whose website you were given."),
+  offers: z
     .string()
+    .describe("What it sells and to whom, in one plain sentence, as its own site puts it."),
+  praised: z
+    .string()
+    .nullable()
     .describe(
-      "One or two sentences. What none of them say that this business has the evidence to say.",
+      "What customers say they like, paraphrased from reviews you read. Null if you found none.",
     ),
-  opening: z.object({
-    idea: z
-      .string()
-      .describe(
-        "The first post, as a sentence a writer could work from. Aimed at the gap. It must not need a number only the author has.",
-      ),
-    kind: z.enum(["framework", "finding"]),
-  }),
+  criticised: z
+    .string()
+    .nullable()
+    .describe(
+      "What customers say they dislike, paraphrased from reviews you read. Null if you found none.",
+    ),
+  source: z
+    .string()
+    .nullable()
+    .describe("Where those reviews were, for example G2, Capterra, Trustpilot or a Reddit thread."),
 });
 
+const ResearchSchema = z.object({
+  field: z
+    .string()
+    .describe("The field these companies operate in, in a few plain words, lower case."),
+  companies: z.array(CompanySchema).max(5),
+});
+
+export type Company = z.infer<typeof CompanySchema>;
 export type Research = z.infer<typeof ResearchSchema> & { searched: boolean };
 
-const SYSTEM = `You research the market one person posts into on LinkedIn, before a ghostwriter writes their first post.
+const SYSTEM = `You map the market one company sells into, for a LinkedIn post its founder will publish under their own name.
 
-Find up to three competitors: companies or people selling to the same buyers, who publish. For each, say in one plain sentence what they post about. Only name a competitor you found or are certain exists. Fewer than three real ones beats three invented ones, and an empty list is an acceptable answer.
+List three to five companies operating in the same field and selling to the same buyers. The company whose website you are given is always one of them, marked own. Only name a company you found or are certain exists. Fewer real ones beats more invented ones.
 
-Then name the gap: what none of them say that this business has first hand evidence to say. A gap is evidence the author holds, never a contrarian opinion, a hot take, or a claim meant to surprise.
+For each company, say in one plain sentence what it sells and to whom. Then what its customers say they like and what they say they dislike, paraphrased from reviews you read: review sites, forums, app stores, public threads. Name where the reviews were. If you found no reviews for a company, praised and criticised are null. Never infer an opinion from a company's own marketing, never write one you did not read, and never soften or sharpen what a reviewer said. This includes the own company: if its reviews say something unflattering, report it as written.
 
-Then write the opening idea: one post that sits in that gap. It reports what the author knows and can show. It does not try to surprise, provoke, or sound bold, because it will be published under a real person's name and it must be something they would post without wincing. It is a framework (a method in named steps) or a finding (something the author found out and can point to). It must be writable without a number only the author has, because it is written before they have told us anything.
+Search efficiently. One search for the field and its alternatives, then searches for reviews that cover several companies at once, such as comparison pages and review site category listings.
 
 Never use em dashes. Never use "seamless", "leverage", "unlock", "supercharge", "effortless", or "game-changer". Never use "actually", "really", "simply", "just", or "basically".`;
 
 const JSON_INSTRUCTION = `When you have finished searching, reply with one JSON object and nothing else, in this shape:
-{"competitors":[{"name":"...","posts":"..."}],"gap":"...","opening":{"idea":"...","kind":"framework"}}`;
+{"field":"...","companies":[{"name":"...","own":true,"offers":"...","praised":"..." or null,"criticised":"..." or null,"source":"..." or null}]}`;
 
 function brief(site: Extract<SiteText, { ok: true }>, personName?: string | null): string {
   return [
@@ -96,11 +102,13 @@ async function searched(opts: {
   const response = await anthropic().messages.create(
     {
       model: MODEL,
-      max_tokens: 16000,
+      max_tokens: 8000,
       thinking: { type: "adaptive" },
-      output_config: { effort: "medium" },
+      // Low effort: the work here is reading search results, not reasoning
+      // about them, and every second spent is a second on the waiting screen.
+      output_config: { effort: "low" },
       system: SYSTEM,
-      tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 3 }],
+      tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 4 }],
       messages: [
         {
           role: "user",
@@ -110,7 +118,7 @@ async function searched(opts: {
     },
     // The member is answering questions while this runs. Past this it is
     // cheaper to fall back than to keep them waiting on the sample screen.
-    { timeout: 55_000, maxRetries: 0 },
+    { timeout: 45_000, maxRetries: 0 },
   );
 
   recordSpend({ profileId: opts.profileId, operation: "competitors", usage: response.usage });
@@ -119,7 +127,7 @@ async function searched(opts: {
     throw new Error(`Search stopped with ${response.stop_reason}.`);
   }
 
-  return { ...parse(response.content), searched: true };
+  return withOwn({ ...parse(response.content), searched: true }, opts.site);
 }
 
 function parse(content: Anthropic.ContentBlock[]): z.infer<typeof ResearchSchema> {
@@ -140,10 +148,10 @@ async function unsearched(opts: {
 }): Promise<Research> {
   const response = await anthropic().messages.parse({
     model: MODEL,
-    max_tokens: 8000,
-    thinking: { type: "adaptive" },
-    output_config: { effort: "medium", format: zodOutputFormat(ResearchSchema) },
-    system: `${SYSTEM}\n\nYou cannot search. Name a competitor only if you are certain it exists and sells to these buyers.`,
+    max_tokens: 4000,
+    thinking: { type: "disabled" },
+    output_config: { format: zodOutputFormat(ResearchSchema) },
+    system: `${SYSTEM}\n\nYou cannot search, so you have read no reviews. Name a company only if you are certain it exists and sells to these buyers, and leave praised, criticised and source null for every one.`,
     messages: [{ role: "user", content: brief(opts.site, opts.personName) }],
   });
 
@@ -152,5 +160,41 @@ async function unsearched(opts: {
   if (!response.parsed_output) {
     throw new Error("The model did not return research in the expected shape.");
   }
-  return { ...response.parsed_output, searched: false };
+  // Enforced here as well as asked for: an opinion nobody read is not written.
+  const companies = response.parsed_output.companies.map((c) => ({
+    ...c,
+    praised: null,
+    criticised: null,
+    source: null,
+  }));
+  return withOwn({ ...response.parsed_output, companies, searched: false }, opts.site);
+}
+
+/**
+ * The member's company is on the list whatever the model returned, because a
+ * market map that leaves out the author reads as a post about somebody else.
+ */
+function withOwn(research: Research, site: Extract<SiteText, { ok: true }>): Research {
+  if (research.companies.some((c) => c.own)) return research;
+  const name = site.url ? hostOf(site.url) : site.title;
+  return {
+    ...research,
+    companies: [
+      { name, own: true, offers: site.title, praised: null, criticised: null, source: null },
+      ...research.companies.slice(0, 4),
+    ],
+  };
+}
+
+function hostOf(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
+
+/** Research written before the market map had a different shape. */
+export function isResearch(value: unknown): value is Research {
+  return Boolean(value && Array.isArray((value as Research).companies));
 }

@@ -6,13 +6,12 @@ import { updateFunnel, type Funnel } from "@/lib/funnel";
 import { track } from "@/lib/track";
 
 /**
- * Funnel step one, second half: who else writes to this member's readers, and
- * the gap between them. Fired beside /research rather than after it, and given
+ * Funnel step one, second half: the companies in this member's field and what
+ * their customers say about each, which the sample post is written from. Fired beside /research rather than after it, and given
  * the site in the body for the same reason, so neither waits on the other.
  *
  * A failure here does not stop the funnel. The sample route runs research
- * again without search if this never landed, and the waiting screen says
- * nothing about competitors rather than something invented.
+ * again if this never landed.
  */
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -44,13 +43,14 @@ export async function POST(request: Request) {
         distinctId: actor.distinctId,
         memberId: actor.memberId,
         part: "competitors",
-        competitors: research.competitors.length,
+        competitors: research.companies.length,
+        reviewed: research.companies.filter((c) => c.praised || c.criticised).length,
         searched: research.searched,
         seconds: Math.round((Date.now() - started) / 1000),
       }),
     );
 
-    return Response.json({ competitors: research.competitors, gap: research.gap });
+    return Response.json({ field: research.field, companies: research.companies });
   } catch (cause) {
     console.error("[onboarding] competitors failed:", cause);
     after(() =>
