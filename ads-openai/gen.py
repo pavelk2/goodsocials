@@ -20,20 +20,20 @@ body{font-family:Geist,sans-serif;background:#a61e4d;color:#fff;padding:34px 34p
 ads = {
     # Stay visible without writing: the week, filled.
     '1-week': ('''.dots{display:flex;gap:14px}.dots i{width:44px;height:44px;border-radius:50%;background:#fff;display:block}''',
-               '<div class="h">Next week,<br><span class="soft">written.</span></div>'
-               '<div class="dots"><i></i><i></i><i></i><i></i><i></i></div>'),
+               '<div class="dots"><i></i><i></i><i></i><i></i><i></i></div>'
+               '<div class="h">LinkedIn,<br><span class="soft">every day</span></div>'),
     # Sound like me: the AI word, crossed out.
     '2-voice': ('''.x{font-size:46px;font-weight:600;letter-spacing:-.03em;color:#f2a8c0;text-decoration:line-through;text-decoration-thickness:5px;text-decoration-color:#fff}''',
                 '<div class="x">game-changing</div>'
                 '<div class="h">Sounds like<br><span class="soft">you, not AI</span></div>'),
-    # Turn traction into proof: the number is the post.
-    '3-numbers': ('''.n{font-size:104px;font-weight:700;letter-spacing:-.06em;line-height:.9}.n small{font-size:40px;letter-spacing:-.03em;color:#f2a8c0;margin-left:6px}''',
-                  '<div class="n">+18%<small>MRR</small></div>'
-                  '<div class="h">Metrics in,<br><span class="soft">posts out</span></div>'),
-    # Agency: twelve clients, one of them is you, all posting.
+    # Turn what the business already measures into posts. No invented result.
+    '3-data': ('''.bars{display:flex;gap:12px;align-items:flex-end;height:64px}.bars i{width:34px;background:#fff;border-radius:6px;display:block}''',
+               '<div class="bars"><i style="height:40%"></i><i style="height:70%"></i><i style="height:55%"></i><i style="height:100%"></i><i style="height:80%"></i></div>'
+               '<div class="h">Your data,<br><span class="soft">on LinkedIn</span></div>'),
+    # Agency: twelve clients on one board.
     '4-agency': ('''.g{display:grid;grid-template-columns:repeat(6,34px);gap:12px}.g i{width:34px;height:34px;border-radius:50%;background:#fff;display:block}''',
                  '<div class="g">' + '<i></i>' * 12 + '</div>'
-                 '<div class="h">12 clients.<br><span class="soft">One board.</span></div>'),
+                 '<div class="h">12 clients<br><span class="soft">on LinkedIn</span></div>'),
 }
 for k, (css, body) in ads.items():
     open(f'{k}.html', 'w').write(BASE % (FONT, css, body))
