@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Logo } from "./logo";
 import { DEFAULT_PLAN, TRIAL_DAYS } from "@/lib/plans";
 
@@ -15,6 +18,11 @@ import { DEFAULT_PLAN, TRIAL_DAYS } from "@/lib/plans";
  * Sign in is an outlined pill rather than a bare link. On the reference page
  * the pair reads as one control with two ends, and a text link beside a filled
  * button reads as an afterthought.
+ *
+ * With `overlay` the bar has no ground of its own until the reader leaves the
+ * hero. DESIGN.md section 8: a bar with a paper fill across the top of the
+ * footage would cut the frame in half and turn a full screen of video into a
+ * banner.
  */
 const LINKS = [
   { href: "#how", label: "How it works" },
@@ -23,24 +31,58 @@ const LINKS = [
   { href: "#permissions", label: "LinkedIn" },
 ];
 
-export function SiteNav() {
+export function SiteNav({ overlay = false }: { overlay?: boolean }) {
+  /* Over footage until the hero is behind us, then the bar the rest of the
+     site has. Starting at true when there is no overlay keeps every other page
+     server-rendered in its final state. */
+  const [landed, setLanded] = useState(!overlay);
+
+  useEffect(() => {
+    if (!overlay) return;
+
+    const onScroll = () => {
+      setLanded(window.scrollY > window.innerHeight - 120);
+    };
+
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [overlay]);
+
+  const onFootage = overlay && !landed;
+
   return (
-    <header className="sticky top-0 z-50 border-b border-hairline bg-paper/80 backdrop-blur-[12px]">
+    <header
+      className={`sticky top-0 z-50 transition-[background-color,border-color] duration-300 ${
+        onFootage
+          ? "border-b border-transparent"
+          : "border-b border-hairline bg-paper/80 backdrop-blur-[12px]"
+      }`}
+      style={onFootage ? { color: "#ffffff" } : undefined}
+    >
       <nav className="mx-auto flex h-[var(--nav-h)] max-w-[1160px] items-center gap-6 px-6">
         <Link
           href="/"
           className="flex shrink-0 items-center gap-[10px] text-[17px] font-semibold tracking-[-0.02em]"
         >
-          <Logo />
+          {onFootage ? <Logo tile="#ffffff" cell="#0c0c0d" /> : <Logo />}
           GoodSocials
         </Link>
 
         {/* Centred on the bar rather than on the space left over, so the link
             set does not drift when the two buttons change width. */}
-        <ul className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 text-[15px] text-ink-2 lg:flex">
+        <ul
+          className={`absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 text-[15px] lg:flex ${
+            onFootage ? "" : "text-ink-2"
+          }`}
+          style={onFootage ? { color: "rgba(255, 255, 255, 0.78)" } : undefined}
+        >
           {LINKS.map((link) => (
             <li key={link.href}>
-              <Link href={link.href} className="nav-link">
+              <Link
+                href={link.href}
+                className={onFootage ? "nav-link-video" : "nav-link"}
+              >
                 {link.label}
               </Link>
             </li>
@@ -50,7 +92,17 @@ export function SiteNav() {
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <Link
             href="/signin"
-            className="pill btn-outline hidden whitespace-nowrap border border-hairline bg-surface px-[18px] py-[9px] text-[15px] sm:block"
+            className={`pill btn-outline hidden whitespace-nowrap border px-[18px] py-[9px] text-[15px] sm:block ${
+              onFootage ? "" : "border-hairline bg-surface"
+            }`}
+            style={
+              onFootage
+                ? {
+                    borderColor: "rgba(255, 255, 255, 0.38)",
+                    color: "#ffffff",
+                  }
+                : undefined
+            }
           >
             Sign in
           </Link>
