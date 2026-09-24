@@ -383,6 +383,9 @@ function WebsiteScreen({
   );
 }
 
+/** Where the countdown starts. The sample takes about this long. */
+const COUNTDOWN_FROM = 30;
+
 /** How often the screen shows the next thing the research did. */
 const TICK_MS = 140;
 
@@ -392,10 +395,10 @@ const SHOWN = 6;
 /**
  * The minute after the last question, showing what is happening in it: every
  * search the research runs and every page it reads, from the stream the
- * competitors route sends. The big number is pages read, so it moves because
- * the work moves. Nothing on this screen is invented; where the stream has
- * nothing to say, as on a reload after the research finished, the number is
- * the seconds waited.
+ * competitors route sends. The big number is a countdown, set large enough to
+ * be the screen. At zero it holds and the line under it changes, so a slow
+ * write reads as nearly done rather than broken. The lines under it are the
+ * research as it runs, and none of them is invented.
  *
  * Pages arrive ten at a time with each search. They are shown one per tick so
  * the list reads as it fills, and a backlog, from a member who took their time
@@ -415,7 +418,7 @@ function Waiting({
   onRetry: () => void;
 }) {
   const [shown, setShown] = useState(0);
-  const [seconds, setSeconds] = useState(0);
+  const [left, setLeft] = useState(COUNTDOWN_FROM);
 
   useEffect(() => {
     if (shown >= events.length) return;
@@ -428,7 +431,7 @@ function Waiting({
 
   useEffect(() => {
     if (error || ready) return;
-    const timer = window.setInterval(() => setSeconds((s) => s + 1), 1000);
+    const timer = window.setInterval(() => setLeft((s) => Math.max(0, s - 1)), 1000);
     return () => window.clearInterval(timer);
   }, [error, ready]);
 
@@ -436,7 +439,6 @@ function Waiting({
   const steps = visible.filter(
     (e): e is Extract<ResearchEvent, { type: "progress" }> => e.type === "progress",
   );
-  const pages = steps.filter((e) => e.kind === "read").length;
   const result = visible.find(
     (e): e is Extract<ResearchEvent, { type: "result" }> => e.type === "result",
   );
@@ -471,7 +473,7 @@ function Waiting({
           <button
             type="button"
             onClick={() => {
-              setSeconds(0);
+              setLeft(COUNTDOWN_FROM);
               onRetry();
             }}
             className="btn-ink rounded-[var(--r-btn)] bg-ink px-5 py-3 font-semibold text-paper"
@@ -486,9 +488,9 @@ function Waiting({
               aria-hidden="true"
               className="num text-[clamp(120px,26vw,240px)] font-semibold leading-[0.85] tracking-[-0.06em] text-accent-text"
             >
-              {pages > 0 ? pages : seconds}
+              {ready ? 0 : left}
             </span>
-            <span className="text-ink-2">{pages > 0 ? "pages read" : "seconds"}</span>
+            <span className="text-ink-2">{ready || left > 0 ? "seconds" : "nearly there"}</span>
           </p>
           <p className="mt-6" aria-live="polite">
             {status}
