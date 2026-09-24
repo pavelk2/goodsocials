@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { anthropic, MODEL, recordSpend } from "./client";
+import { THIRD_PERSON } from "./person";
 import type { Principles } from "./principles";
 import { KIND_LABEL, type PostKind } from "@/lib/post-kind";
 import { factsBrief, type FactRow } from "@/lib/integrations/facts";
@@ -121,7 +122,7 @@ Every idea belongs to one of the themes you were given. Spread them: no theme ta
 
 The register is a researcher, not a seller. Each idea reports something the author found out and can point to. It informs; it does not persuade, and it never manipulates. No engagement bait, no rhetorical question used as a hook, no manufactured urgency, no claim larger than the evidence behind it.
 
-An idea is the specific thing a post asserts. "Why hiring is hard" is not an idea. "We rejected 40 candidates before changing the job description, and the change was removing the years-of-experience line" is an idea.
+An idea is the specific thing a post asserts. "Why hiring is hard" is not an idea. "Acme rejected 40 candidates before changing the job description, and the change was removing the years-of-experience line" is an idea.
 
 Evidence rules, and they are not negotiable. This is published under a real person's name.
 
@@ -138,6 +139,8 @@ Readings change that calculation. When readings from connected tools appear belo
 Seven ideas, seven different shapes. Do not write seven variations of one thought.
 
 Do not write the posts. Do not write hooks. Do not number them.
+
+${THIRD_PERSON} The ideas are the start of the posts, so they follow the same rule.
 
 Never use em dashes. Never use "seamless", "leverage", "unlock", "supercharge", "effortless", or "game-changer". Never use "actually", "really", "simply", "just", or "basically". Never write "this is not X, this is Y".`;
 
