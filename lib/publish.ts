@@ -13,6 +13,8 @@ import { uploadImage } from "@/lib/linkedin/images";
 import { personUrn, postPermalink, publishPost } from "@/lib/linkedin/posts";
 import { statusFor } from "@/lib/token-expiry";
 import { toLinkedInText } from "@/lib/bold";
+import { brokenIssues, type QualityIssue, type QualityVerdict } from "@/lib/quality";
+import { textHash } from "@/lib/quality-hash";
 
 /**
  * LinkedIn has no scheduling endpoint, so this is the publish loop. It reads
@@ -35,6 +37,13 @@ import { toLinkedInText } from "@/lib/bold";
  * post goes out without one is the image cap, and that decision was made at
  * approval time, on the board, where the user saw it.
  *
+ * Publish a post that is broken in the feed. The quality gate in
+ * lib/cards.ts runs when a card asks for a slot; this repeats its rules that
+ * make a post false or unreadable, for anything queued before the gate or
+ * changed after it. A post that fails is taken off the queue and handed back
+ * to Ready to schedule with the reason, never retried, because no number of
+ * attempts fills a bracket.
+ *
  * Publish for an account that is not paying. Billing is checked before the
  * token, once per profile, and a stopped account pauses rather than fails, so
  * the queue it has built publishes the day the plan starts again.
@@ -47,6 +56,7 @@ export type PublishOutcome =
   | { cardId: string; result: "published"; postUrn: string; permalink: string }
   | { cardId: string; result: "failed"; attempts: number; error: string }
   | { cardId: string; result: "paused"; error: string }
+  | { cardId: string; result: "held"; error: string }
   | { cardId: string; result: "exhausted"; attempts: number; error: string };
 
 export type PublishRun = {
@@ -56,6 +66,7 @@ export type PublishRun = {
   failed: number;
   paused: number;
   exhausted: number;
+  held: number;
   outcomes: PublishOutcome[];
 };
 
@@ -101,6 +112,7 @@ export async function runPublishQueue(opts?: {
     failed: 0,
     paused: 0,
     exhausted: 0,
+    held: 0,
     outcomes: [],
   };
 
@@ -225,6 +237,11 @@ async function publishForProfile(
       continue;
     }
 
+    if (outcome.result === "held") {
+      run.held += 1;
+      continue;
+    }
+
     // A dead or revoked token found mid-run stops the rest of this profile in
     // the same pass. Carrying on would spend attempts on posts that cannot
     // succeed and would fill the log with the same 401 twelve times.
@@ -252,6 +269,9 @@ async function publishOne(opts: {
   if (!text) {
     return record(row, "That card has no text to publish.");
   }
+
+  const broken = brokenIssues(text);
+  if (broken.length > 0) return hold(row, text, broken);
 
   // The upload is idempotent from our side: a URN we already hold is reused,
   // so a post that failed after the upload does not pay for it twice.
@@ -364,6 +384,48 @@ async function publishOne(opts: {
     result: "published",
     postUrn,
     permalink: postPermalink(postUrn),
+  };
+}
+
+/**
+ * Off the queue and back to Ready to schedule, carrying the reasons the way a
+ * card the gate held at approval does, so the board shows the same thing
+ * whichever check caught it. The slot is freed rather than kept, because the
+ * day has come and the post is not going out on it.
+ */
+async function hold(
+  row: DueRow,
+  text: string,
+  issues: QualityIssue[],
+): Promise<PublishOutcome> {
+  const db = getDb();
+  const verdict: QualityVerdict = {
+    textHash: textHash(text),
+    passed: false,
+    issues,
+    checkedAt: new Date().toISOString(),
+  };
+  await db.delete(scheduledPost).where(eq(scheduledPost.id, row.scheduled.id));
+  await db
+    .update(cardTable)
+    .set({ state: "image", scheduledAt: null, quality: verdict, updatedAt: new Date() })
+    .where(eq(cardTable.id, row.card.id));
+
+  console.log(
+    JSON.stringify({
+      event: "post_quality_checked",
+      profile_id: row.profile.id,
+      card_id: row.card.id,
+      passed: false,
+      layer: "cron",
+      rules: issues.map((i) => i.rule),
+    }),
+  );
+
+  return {
+    cardId: row.card.id,
+    result: "held",
+    error: `Held back at publish time. ${issues[0].problem}`,
   };
 }
 

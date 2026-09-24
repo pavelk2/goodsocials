@@ -41,6 +41,7 @@ export function CardActions({
   state,
   compact,
   onAdvance,
+  initialComment,
 }: {
   id: string;
   state: Column;
@@ -53,9 +54,11 @@ export function CardActions({
    * stays and redraws with the new text.
    */
   onAdvance?: () => void;
+  /** Opens the revise box holding this, for a fix the quality gate suggested. */
+  initialComment?: string;
 }) {
-  const [commenting, setCommenting] = useState(false);
-  const [comment, setComment] = useState("");
+  const [commenting, setCommenting] = useState(Boolean(initialComment));
+  const [comment, setComment] = useState(initialComment ?? "");
   const [confirmingReject, setConfirmingReject] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);

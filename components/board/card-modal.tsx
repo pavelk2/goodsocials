@@ -5,6 +5,7 @@ import { CardActions } from "./card-actions";
 import { ImageLightbox } from "./image-lightbox";
 import { PostText } from "@/components/post-text";
 import { COLUMN_LABEL, type Column } from "@/lib/board";
+import type { QualityIssue } from "@/lib/quality";
 
 const IMAGE_ALT = "The image generated for this post";
 
@@ -28,6 +29,7 @@ export function CardModal({
   body,
   label,
   needs,
+  held,
   imageUrl,
   scheduledAt,
   timeZone,
@@ -38,6 +40,7 @@ export function CardModal({
   body: string;
   label?: string | null;
   needs?: string | null;
+  held?: QualityIssue[] | null;
   imageUrl?: string | null;
   scheduledAt?: Date | null;
   /** The profile's own zone. The dialog says the hour the author will see. */
@@ -47,6 +50,10 @@ export function CardModal({
   const ref = useRef<HTMLDialogElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const [viewingImage, setViewingImage] = useState(false);
+  // A fix picked from the held list, put in the revise box. The count remounts
+  // the actions, so picking a second fix replaces the first rather than
+  // appending to whatever was typed.
+  const [prefill, setPrefill] = useState<{ text: string; n: number } | null>(null);
 
   // Read through a ref so the effect below can keep empty deps and open the
   // dialog once, without a new callback identity reopening it.
@@ -137,7 +144,40 @@ export function CardModal({
           </p>
         ) : null}
 
-        <CardActions id={id} state={state} onAdvance={onClose} />
+        {/* Each reason carries the revise comment that answers it, one press
+            from the box below. Sending it rewrites the post and clears the
+            hold, and the next Schedule it checks the new text. */}
+        {held ? (
+          <div className="mt-5">
+            <p className="text-[15px] font-medium leading-[1.4] text-ink">
+              Held back before scheduling
+            </p>
+            <ul className="mt-2 flex flex-col gap-3">
+              {held.map((issue, i) => (
+                <li key={i} className="text-[15px] leading-[1.4] text-ink">
+                  {issue.problem}{" "}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPrefill((p) => ({ text: issue.fix, n: (p?.n ?? 0) + 1 }))
+                    }
+                    className="text-[13px] text-ink-2 underline"
+                  >
+                    Revise with the fix
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        <CardActions
+          key={prefill?.n ?? 0}
+          id={id}
+          state={state}
+          onAdvance={onClose}
+          initialComment={prefill?.text}
+        />
 
         <button
           type="button"

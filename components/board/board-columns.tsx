@@ -22,6 +22,7 @@ import {
   type Column,
 } from "@/lib/board";
 import { cardLabel } from "@/lib/post-kind";
+import { heldIssues } from "@/lib/quality";
 import { formatSlot } from "@/lib/time";
 import { Column as ColumnShell } from "./column";
 import { Card } from "./card";
@@ -164,6 +165,7 @@ export function BoardColumns({
                     body={bodyOf(card, state)}
                     label={labelOf(card)}
                     needs={card.needs}
+                    held={heldIssues(card.quality)}
                     imageUrl={card.imageUrl}
                     scheduledAt={card.scheduledAt}
                     timeZone={timeZone}

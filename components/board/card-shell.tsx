@@ -2,6 +2,7 @@ import type { CSSProperties, HTMLAttributes, ReactNode, Ref } from "react";
 import { formatSlot } from "@/lib/time";
 import { PostText } from "@/components/post-text";
 import { hasGap } from "@/lib/gap";
+import type { QualityIssue } from "@/lib/quality";
 
 const IMAGE_ALT = "The image generated for this post";
 
@@ -20,6 +21,7 @@ export function CardShell({
   body,
   label,
   needs,
+  held,
   imageUrl,
   onOpen,
   scheduledAt,
@@ -45,6 +47,12 @@ export function CardShell({
    * addressed to the reader rather than describing the post.
    */
   needs?: string | null;
+  /**
+   * What the quality gate found, when it kept this post out of the queue. The
+   * card says only that it was held; the reasons and their fixes are in the
+   * dialog, where there is room to act on them.
+   */
+  held?: QualityIssue[] | null;
   imageUrl?: string | null;
   /**
    * Opens the card. Given on the board, withheld on the drag overlay and on the
@@ -107,7 +115,18 @@ export function CardShell({
           reason one of them is not ready to be pressed yet. Ink and a dot
           rather than accent: a plum marker per card would spend the board's
           one colour a dozen times. */}
-      {waiting ? (
+      {/* Before the gap, because a held card cannot be scheduled whatever else
+          it is waiting on, and a bracket is one of the things it holds for. */}
+      {held && onOpen ? (
+        <button
+          type="button"
+          onClick={onOpen}
+          className="mt-2 flex items-center gap-2 text-[13px] font-medium text-ink"
+        >
+          <span aria-hidden className="size-[6px] rounded-full bg-ink" />
+          Held back, {held.length === 1 ? "one thing" : `${held.length} things`} to fix
+        </button>
+      ) : waiting ? (
         onOpen ? (
           <button
             type="button"

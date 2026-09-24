@@ -6,6 +6,7 @@ import { CardShell } from "./card-shell";
 import { CardActions } from "./card-actions";
 import { CardModal } from "./card-modal";
 import type { Column } from "@/lib/board";
+import type { QualityIssue } from "@/lib/quality";
 
 /**
  * A card on the board is a summary and a dialog is the whole post. Clicking the
@@ -24,6 +25,7 @@ export function Card({
   body,
   label,
   needs,
+  held,
   imageUrl,
   scheduledAt,
   timeZone,
@@ -33,6 +35,7 @@ export function Card({
   body: string;
   label?: string | null;
   needs?: string | null;
+  held?: QualityIssue[] | null;
   imageUrl?: string | null;
   scheduledAt?: Date | null;
   timeZone?: string;
@@ -55,6 +58,7 @@ export function Card({
       body={body}
       label={label}
       needs={needs}
+      held={held}
       imageUrl={imageUrl}
       onOpen={() => setReading(true)}
       scheduledAt={scheduledAt}
@@ -74,6 +78,7 @@ export function Card({
           body={body}
           label={label}
           needs={needs}
+          held={held}
           imageUrl={imageUrl}
           scheduledAt={scheduledAt}
           timeZone={timeZone}
