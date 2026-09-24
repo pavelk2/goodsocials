@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { switchProfile } from "@/app/settings/actions";
+import { Working } from "@/components/ui/working";
 
 export type SeatRow = {
   id: string;
@@ -82,7 +83,7 @@ export function ProfilePicker({
                   onClick={() => pick(seat.id)}
                   className="text-[13px] text-ink underline disabled:text-ink-3 disabled:no-underline"
                 >
-                  {pending ? "Switching" : "Post here"}
+                  {pending ? <Working label="Switching" /> : "Post here"}
                 </button>
               )}
             </span>

@@ -14,6 +14,7 @@ export function Column({
   emptyLine,
   dropRef,
   over,
+  head,
   children,
 }: {
   name: string;
@@ -21,6 +22,8 @@ export function Column({
   emptyLine: string;
   dropRef?: Ref<HTMLDivElement>;
   over?: boolean;
+  /** Controls that add cards to this column, above the cards they add. */
+  head?: ReactNode;
   children?: ReactNode;
 }) {
   return (
@@ -35,6 +38,7 @@ export function Column({
           over ? "border-accent" : "border-hairline"
         }`}
       >
+        {head}
         {count === 0 ? (
           <p className="px-2 py-3 text-[13px] text-ink-3">{emptyLine}</p>
         ) : (

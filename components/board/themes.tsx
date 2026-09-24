@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { saveTheme } from "@/app/board/actions";
+import { Working } from "@/components/ui/working";
 
 /**
  * Rows, not cards, for the same reason the principles are rows: a theme is a
@@ -96,7 +97,7 @@ function Row({ theme }: { theme: ThemeRow }) {
               disabled={pending}
               className="btn-quiet font-medium text-ink underline"
             >
-              {pending ? "Saving" : "Save"}
+              {pending ? <Working label="Saving" /> : "Save"}
             </button>
             <button
               type="button"

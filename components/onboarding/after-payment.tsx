@@ -7,6 +7,7 @@ import { FunnelHeader } from "@/components/onboarding/funnel-header";
 import { QuestionScreen } from "@/components/onboarding/question-screen";
 import { OTHER_MAX, REFINE_QUESTION, type Answer } from "@/lib/funnel-steps";
 import type { PostKind } from "@/lib/post-kind";
+import { Working } from "@/components/ui/working";
 
 /**
  * The two questions after payment. Both are the product's own mechanics shown
@@ -131,7 +132,7 @@ export function PickIdeas({ ideas }: { ideas: IdeaRow[] }) {
           }
           className="pill btn-ink mt-10 bg-ink px-6 py-[14px] text-[17px] font-semibold text-paper disabled:opacity-40"
         >
-          {pending ? "Opening the board" : `Write ${count} ${count === 1 ? "post" : "posts"}`}
+          {pending ? <Working label="Opening the board" inherit /> : `Write ${count} ${count === 1 ? "post" : "posts"}`}
         </button>
       </main>
     </>

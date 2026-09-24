@@ -15,6 +15,10 @@ import { TopUp } from "@/components/board/top-up";
 
 export const metadata = { title: "Board" };
 
+// Server actions run inside this page's function. Planning seven ideas with
+// thinking on, or drafting and then drawing a post, runs past the default.
+export const maxDuration = 300;
+
 /** Below this the board is one click deep and the agent should be writing. */
 const THIN_DRAFT_COLUMN = 2;
 

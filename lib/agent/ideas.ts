@@ -153,9 +153,15 @@ export async function generateIdeas(opts: {
    * precondition for a board filling up.
    */
   facts?: FactRow[];
+  /**
+   * Ideas this board already holds or turned down. Empty on the first plan.
+   * On every plan after it, this is what stops week four reading like week one.
+   */
+  avoid?: string[];
   profileId: string;
 }): Promise<GeneratedIdea[]> {
   const readings = factsBrief(opts.facts ?? []);
+  const avoid = (opts.avoid ?? []).map((idea) => `- ${idea.slice(0, 240)}`);
 
   const response = await anthropic().messages.parse({
     model: MODEL,
@@ -180,12 +186,25 @@ export async function generateIdeas(opts: {
           // Readings before the slate, so the planner knows which receipts it
           // already has a number for before it is told to write two of them.
           ...(readings ? [readings, ""] : []),
+          ...(avoid.length > 0
+            ? [
+                "Already on the board or turned down. Do not repeat any of these or write a close variation:",
+                ...avoid,
+                "",
+              ]
+            : []),
           "The slate. One idea per slot, in this order:",
           slate(),
-          "",
-          `Website: ${opts.siteUrl}`,
-          "What the business does, from its own page:",
-          opts.siteText.slice(0, 6000),
+          // A board whose site could not be read this time still plans from
+          // its principles and themes, which were written from that site.
+          ...(opts.siteText.trim()
+            ? [
+                "",
+                `Website: ${opts.siteUrl}`,
+                "What the business does, from its own page:",
+                opts.siteText.slice(0, 6000),
+              ]
+            : []),
         ].join("\n"),
       },
     ],

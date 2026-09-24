@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { savePrinciple } from "@/app/board/actions";
+import { Working } from "@/components/ui/working";
 
 /**
  * Rows, not cards. Three boxes with icons is the pattern the house style bans,
@@ -82,7 +83,7 @@ function PrincipleRow({
               disabled={pending}
               className="btn-quiet font-medium text-ink underline"
             >
-              {pending ? "Saving" : "Save"}
+              {pending ? <Working label="Saving" /> : "Save"}
             </button>
             <button
               type="button"
