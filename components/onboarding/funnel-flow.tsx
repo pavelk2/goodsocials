@@ -92,7 +92,7 @@ export function FunnelFlow({
   }, []);
 
   const readRivals = useCallback((next: NonNullable<Funnel["site"]>) => {
-    // Failure is fine here: the sample route researches again without search.
+    // Failure is fine here: the sample route researches again.
     rivalsJob.current = fetch("/api/onboarding/competitors", post(body(next))).catch(() => null);
   }, []);
 
@@ -106,8 +106,7 @@ export function FunnelFlow({
         setStep("website");
         return;
       }
-      // Competitors are worth waiting for, because the sample is aimed at the
-      // gap they leave.
+      // The market research is the sample, so it is worth waiting for.
       if (rivalsJob.current) await Promise.allSettled([rivalsJob.current]);
 
       const res = await fetch("/api/onboarding/sample", { method: "POST" });
@@ -342,7 +341,7 @@ function WebsiteScreen({
 }
 
 /**
- * The minute after the last question. One sentence and a clock. The clock is
+ * The half minute after the last question. One sentence and a clock. The clock is
  * the accent because it is the one thing on the screen that moves.
  */
 function Waiting({ error, onRetry }: { error: string | null; onRetry: () => void }) {
@@ -375,7 +374,7 @@ function Waiting({ error, onRetry }: { error: string | null; onRetry: () => void
           <span className="text-accent-text">
             {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, "0")}
           </span>{" "}
-          About a minute.
+          About half a minute.
         </p>
       )}
     </section>
