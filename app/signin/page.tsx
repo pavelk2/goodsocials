@@ -60,12 +60,12 @@ export default async function SignInPage({
       <main className="mx-auto max-w-[480px] px-6 py-20">
         <div className="card-lift rounded-[var(--r-xl)] p-8 sm:p-10">
           <h1 className="text-[32px] font-semibold leading-[1.1] tracking-[-0.03em]">
-            {blocked ? "Finish connecting." : "See your first post in a minute."}
+            {blocked ? "Finish connecting." : "Connect LinkedIn."}
           </h1>
           <p className="mt-3 text-ink-2">
             {blocked
               ? BLOCK_LINE[blocked]
-              : "Connect LinkedIn and tell us your website. We write your first post with its picture before you pay anything."}
+              : "We read your website and write your first post. You see it before you pay."}
           </p>
 
           <div className="mt-10 flex items-baseline justify-between gap-6 border-y border-hairline py-[14px]">
@@ -103,7 +103,7 @@ export default async function SignInPage({
               {blocked ? "Connect again" : "Continue with LinkedIn"}
             </button>
             <p className="num mt-3 text-center text-[13px] text-ink-2">
-              Your first post is free. {TRIAL_LINE} Then {plan.priceLine}.
+              {TRIAL_LINE} Then {plan.priceLine}.
             </p>
           </form>
 

@@ -131,7 +131,7 @@ export function PickIdeas({ ideas }: { ideas: IdeaRow[] }) {
           }
           className="pill btn-ink mt-10 bg-ink px-6 py-[14px] text-[17px] font-semibold text-paper disabled:opacity-40"
         >
-          {pending ? "Opening your board" : `Continue with ${count}`}
+          {pending ? "Opening the board" : `Write ${count} ${count === 1 ? "post" : "posts"}`}
         </button>
       </main>
     </>

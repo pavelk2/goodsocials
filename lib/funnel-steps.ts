@@ -113,7 +113,7 @@ export type Question = {
 
 export const IMAGE_QUESTION: Question = {
   step: "image",
-  title: "Which pictures fit you?",
+  title: "Which pictures should your posts have?",
   options: [
     {
       id: "abstract",
@@ -131,47 +131,47 @@ export const IMAGE_QUESTION: Question = {
     },
     {
       id: "real",
-      label: "The real thing",
+      label: "Photos of your work",
       principle:
         "Images are documentary photographs of the real objects and places behind the work: tools, desks, products, workshops, screens with no readable text. Natural light, nothing staged.",
       preview: "/onboarding/real.jpg",
     },
   ],
-  other: { label: "Something else", placeholder: "Black and white photos of cities" },
+  other: { label: "Other", placeholder: "Black and white photos of cities" },
 };
 
 export const VOICE_QUESTION: Question = {
   step: "voice",
-  title: "How should you sound?",
+  title: "How should your posts read?",
   options: [
     {
       id: "researcher",
-      label: "The researcher",
+      label: "Numbers first",
       detail: "“We looked at 212 calls. Churn tracked one thing.”",
       principle:
         "Sounds like a researcher: leads with the number and where it came from, short declarative sentences, no adjectives doing the selling.",
     },
     {
       id: "operator",
-      label: "The operator",
+      label: "What we did and what happened",
       detail: "“We moved invoices to day 3. Churn fell.”",
       principle:
         "Sounds like an operator: what we did, what it cost, what happened next. First person plural, plain verbs, ends where the evidence ends.",
     },
     {
       id: "teacher",
-      label: "The teacher",
+      label: "Step by step",
       detail: "“Three steps to a first invoice in a week.”",
       principle:
         "Sounds like a teacher: names a method, then the steps in order, each one usable on its own. Second person, warm, no jargon.",
     },
   ],
-  other: { label: "In my own words", placeholder: "Dry, a bit funny, never salesy" },
+  other: { label: "Other", placeholder: "Short, dry, no jargon" },
 };
 
 export const GOAL_QUESTION: Question = {
   step: "goal",
-  title: "What should your posts get you?",
+  title: "What are your posts for?",
   options: [
     {
       id: "followers",
@@ -179,14 +179,14 @@ export const GOAL_QUESTION: Question = {
     },
     {
       id: "traffic",
-      label: "Clicks to your website",
+      label: "Visits to your website",
     },
     {
       id: "leads",
       label: "Leads",
     },
   ],
-  other: { label: "Something else", placeholder: "Hire two engineers this quarter" },
+  other: { label: "Other", placeholder: "Hiring engineers" },
 };
 
 export const REFINE_QUESTION: Question = {
@@ -204,11 +204,11 @@ export const REFINE_QUESTION: Question = {
     },
     {
       id: "literal",
-      label: "More literal",
+      label: "Closer to the post",
       principle: "Closer to the post: show the specific object the post is about, never a metaphor for it.",
     },
   ],
-  other: { label: "Something else", placeholder: "Use our brand green, #1F6F4A" },
+  other: { label: "Other", placeholder: "Use our brand green, #1F6F4A" },
 };
 
 export const QUESTIONS = {

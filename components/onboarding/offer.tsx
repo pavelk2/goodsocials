@@ -41,7 +41,9 @@ export function Offer({
           <h1 className="text-[clamp(30px,4.2vw,44px)] font-semibold leading-[1.04] tracking-[-0.03em]">
             Your first post is ready.
           </h1>
-          <p className="mt-4 text-ink-2">Start and we write six more for this week.</p>
+          <p className="mt-4 text-ink-2">
+            We write six more this week. You approve each one before it posts.
+          </p>
 
           <form action={startTrial} className="mt-8">
             <button
