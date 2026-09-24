@@ -58,7 +58,7 @@ export type Funnel = {
     goal?: Answer;
     refine?: Answer;
   };
-  /** Competitors, the gap between them, and the post that opens the gap. */
+  /** The companies in the field and what their customers say, which the sample is written from. */
   research?: Research | null;
   /** The card the sample post lives on once it is written. */
   sampleCardId?: string;
