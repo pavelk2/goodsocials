@@ -60,7 +60,7 @@ const KIND_BRIEF: Record<PostKind, string> = {
     "Something the author found out and can point to. A decision and what it cost, a number from their own data nobody else publishes, or something they measured that contradicted what they expected. Not a summary of received wisdom.",
 };
 
-export type Goal = "interesting" | "followers" | "traffic" | "leads";
+export type Goal = "interesting" | "followers" | "traffic" | "leads" | "engagement";
 
 /**
  * The goal changes what gets written, not a setting appended to the end of it.
@@ -72,6 +72,8 @@ const GOAL_BRIEF: Record<Goal, string> = {
     "The goal is growing the audience. Favour findings a stranger can follow without context, stated plainly enough that a reader could disagree with the evidence rather than the tone. Broader than the day to day, still specific enough to be checkable.",
   traffic:
     "The goal is sending readers to the website. Each idea should name something specific the reader would find there, usually the fuller version of the finding the post reports. The post has to stand on its own whether or not anyone clicks, and it is never an advert.",
+  engagement:
+    "The goal is comments and reactions. Favour ideas people in the field hold a view on: a claim with evidence behind it that a practitioner could agree or disagree with from their own experience, or a comparison where readers will have a favourite. Specific enough that a reply can add a case, never a hot take made to provoke.",
   leads:
     "The goal is that the right buyer thinks of this person the week they have the problem this business solves. Favour ideas that show the work: a problem a customer brought, how it was diagnosed, what it cost them before and after. Each idea should make it obvious who the post is for without naming a product. Never a pitch, never a discount.",
 };
