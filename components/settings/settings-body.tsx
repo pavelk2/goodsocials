@@ -31,6 +31,7 @@ import {
 import { manageBilling, startPlanCheckout } from "@/app/billing/actions";
 import { saveCadence, saveGoal, saveTimezone } from "@/app/settings/actions";
 import { ChoiceRow } from "@/components/settings/choice-row";
+import { DeleteAccount } from "@/components/settings/delete-account";
 import { HistoryImport } from "@/components/settings/history-import";
 import { ProfilePicker, type SeatRow } from "@/components/settings/profile-picker";
 
@@ -275,6 +276,33 @@ export async function SettingsBody({
         background. We email you before yours runs out, and posting pauses
         rather than failing one post at a time.
       </p>
+
+      <section className="mt-8 max-w-[760px]">
+        <h2 className="text-[13px] font-medium text-ink-2">Your account</h2>
+        <ul className="mt-2">
+          <li className="flex items-baseline justify-between gap-6 border-b border-hairline py-[14px]">
+            <span className="text-[13px] font-medium text-ink-2">Your data</span>
+            {/* A plain link, so it downloads with no JavaScript and works
+                with save link as. The route sets the file name. */}
+            <a
+              href="/api/account/export"
+              download
+              className="text-right text-[15px] text-ink underline"
+            >
+              {access.seats.length === 1
+                ? "Download as JSON"
+                : `Download all ${access.seats.length} profiles as JSON`}
+            </a>
+          </li>
+          <li className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-b border-hairline py-[14px]">
+            <span className="text-[13px] font-medium text-ink-2">Close account</span>
+            <DeleteAccount
+              profiles={access.seats.length}
+              subscribed={canManageBilling(account)}
+            />
+          </li>
+        </ul>
+      </section>
     </>
   );
 }
