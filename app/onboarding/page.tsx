@@ -1,4 +1,5 @@
 import { and, asc, eq } from "drizzle-orm";
+import Script from "next/script";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { getDb } from "@/db";
@@ -28,11 +29,8 @@ import { track } from "@/lib/track";
 export const metadata = { title: "Your first post" };
 export const maxDuration = 120;
 
-/**
- * The funnel, one screen at a time. The step is stored on the board, so this
- * page is where a member lands whether they are new, came back tomorrow, or
- * came back from Stripe, and it opens the screen they are on.
- */
+const openAiAdsPixelId = process.env.NEXT_PUBLIC_OPENAI_ADS_PIXEL_ID;
+
 export default async function OnboardingPage({
   searchParams,
 }: {
@@ -50,12 +48,12 @@ export default async function OnboardingPage({
   const profileId = seat.profile.id;
   const params = await searchParams;
   const actor = await funnelActor();
+  let trialStartedEventId: string | null = null;
 
   let funnel: Funnel = parseFunnel(view.board.funnel) ?? (await updateFunnel(profileId, () => emptyFunnel()));
 
-  // Back from Stripe. The webhook owns the subscription; this only asks
-  // Stripe whether the checkout it came back from completed, to move the
-  // member on and to count the payment where the funnel can see it.
+  // Stripe is the source of truth for the trial. Only emit the OpenAI
+  // conversion after Stripe confirms this checkout session is complete.
   if (params.checkout === "done" && params.session && funnel.step === "offer") {
     const session = await callStripe("checkout.sessions.retrieve", (stripe) =>
       stripe.checkout.sessions.retrieve(params.session as string),
@@ -66,6 +64,7 @@ export default async function OnboardingPage({
       session.value.client_reference_id === access.account.id
     ) {
       funnel = await updateFunnel(profileId, (f) => advance(f, "refine"));
+      trialStartedEventId = params.session;
       if (actor) {
         await track("checkout_completed", {
           distinctId: actor.distinctId,
@@ -76,8 +75,6 @@ export default async function OnboardingPage({
     }
   }
 
-  // An account that already pays, an agency adding a client or a member who
-  // subscribed before, has nothing to buy. The paywall is skipped, not shown.
   if (funnel.step === "offer" && canPublish(access.account)) {
     funnel = await updateFunnel(profileId, (f) => advance(f, "refine"));
   }
@@ -86,6 +83,11 @@ export default async function OnboardingPage({
 
   const name = seatName(seat);
   const db = getDb();
+  const measurement = trialStartedEventId && openAiAdsPixelId ? (
+    <Script id="openai-ads-trial-started">
+      {`window.oaiq&&window.oaiq("measure","trial_started",{type:"plan_enrollment",plan_id:"pro_trial"},{event_id:${JSON.stringify(trialStartedEventId)}});`}
+    </Script>
+  ) : null;
 
   if (funnel.step === "offer" || funnel.step === "refine") {
     const [sample] = funnel.sampleCardId
@@ -98,18 +100,20 @@ export default async function OnboardingPage({
       }
 
       return (
-        <Offer
-          name={name}
-          avatarUrl={seat.profile.avatarUrl}
-          post={{ text: sample.draftText, imageUrl: sample.imageUrl, imageAlt: sample.imageAlt }}
-          plan={planFromSlug((await cookies()).get(PLAN_COOKIE)?.value)}
-          checkoutError={params.checkout === "error" ? params.why ?? "Checkout did not open." : null}
-          cancelled={params.checkout === "cancelled"}
-        />
+        <>
+          <Offer
+            name={name}
+            avatarUrl={seat.profile.avatarUrl}
+            post={{ text: sample.draftText, imageUrl: sample.imageUrl, imageAlt: sample.imageAlt }}
+            plan={planFromSlug((await cookies()).get(PLAN_COOKIE)?.value)}
+            checkoutError={params.checkout === "error" ? params.why ?? "Checkout did not open." : null}
+            cancelled={params.checkout === "cancelled"}
+          />
+          {measurement}
+        </>
       );
     }
 
-    // The card the sample lived on is gone, so the flow writes a new one.
     if (!sample && funnel.step === "offer") {
       funnel = await updateFunnel(profileId, (f) => ({ ...f, sampleCardId: undefined }));
     }
@@ -117,6 +121,7 @@ export default async function OnboardingPage({
     if (funnel.step === "refine") {
       return (
         <>
+          {measurement}
           <TrackView step="refine" />
           <Refine
             name={name}
@@ -134,8 +139,6 @@ export default async function OnboardingPage({
   if (funnel.step === "ideas") {
     let ideas = await ideaRows(view.board.id);
 
-    // The plan is written beside the sample. If that run failed, it is written
-    // here, once, so the last question never opens on an empty list.
     if (ideas.length === 0) {
       const brand = await readBrand(profileId);
       const site = await siteFor(funnel.site, seat.profile.name);
@@ -159,23 +162,25 @@ export default async function OnboardingPage({
 
     return (
       <>
+        {measurement}
         <TrackView step="ideas" />
         <PickIdeas ideas={ideas} />
       </>
     );
   }
 
-  // Everything before the offer, and an offer whose sample went missing,
-  // which the flow writes again.
   const step = funnel.step === "offer" ? "sample" : funnel.step;
   const brandReady = view.brandWritten && view.themes.length > 0;
 
   return (
-    <FunnelFlow
-      initial={{ ...funnel, step }}
-      emailDomain={domainFromEmail(seat.profile.email ?? access.account.email)}
-      brandReady={brandReady}
-    />
+    <>
+      {measurement}
+      <FunnelFlow
+        initial={{ ...funnel, step }}
+        emailDomain={domainFromEmail(seat.profile.email ?? access.account.email)}
+        brandReady={brandReady}
+      />
+    </>
   );
 }
 
