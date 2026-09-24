@@ -124,7 +124,12 @@ export function BoardColumns({
   }
 
   return (
-    <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+    <DndContext
+      id="board"
+      sensors={sensors}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+    >
       {error ? (
         <p className="mb-4 text-[13px] text-ink" role="alert">
           {error}
@@ -243,11 +248,14 @@ function PostedFold({
     <div className="px-2 py-3 text-[13px] leading-[1.4]">
       {last ? (
         <p className="text-ink-2">
-          Last one{" "}
-          <span className="num">{formatSlot(last, timeZone)}</span>
+          Last one <span className="num">{formatSlot(last, timeZone)}</span>
         </p>
       ) : null}
-      <button type="button" onClick={onShow} className="mt-2 text-ink underline">
+      <button
+        type="button"
+        onClick={onShow}
+        className="mt-2 text-ink underline"
+      >
         Show them
       </button>
     </div>

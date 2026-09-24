@@ -37,7 +37,7 @@ export function Column({
 }) {
   return (
     <section
-      className={`${narrow ? "w-[200px]" : "w-[320px]"} shrink-0 snap-start`}
+      className={`${narrow ? "w-[160px]" : "w-[320px]"} shrink-0 snap-start`}
     >
       <header className="flex h-[44px] items-center justify-between gap-3 px-1">
         <h2 className="truncate text-[13px] font-medium text-ink-2">
