@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { SaveResult } from "@/app/settings/actions";
+import { Working } from "@/components/ui/working";
 
 /**
  * A settings row whose value is the control. Label left, native select right,
@@ -56,7 +57,7 @@ export function ChoiceRow({
         </label>
         <span className="flex items-baseline gap-3">
           {pending ? (
-            <span className="text-[13px] text-ink-3">Saving</span>
+            <Working label="Saving" className="text-[13px]" />
           ) : null}
           <select
             id={`setting-${label}`}

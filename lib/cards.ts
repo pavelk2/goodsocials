@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   board as boardTable,
@@ -13,7 +13,9 @@ import type { Actor } from "@/lib/profiles";
 import { generateDraft } from "@/lib/agent/drafts";
 import { generateImage } from "@/lib/agent/images";
 import { reviseCardBody } from "@/lib/agent/revise";
-import type { Goal } from "@/lib/agent/ideas";
+import { generateIdeas, type Goal } from "@/lib/agent/ideas";
+import { fetchSiteText } from "@/lib/agent/site";
+import { parseFunnel } from "@/lib/funnel-steps";
 import { boardZone, checkDay, nextSlot } from "@/lib/schedule";
 import { formatDayAndTime, publishSlot, type DayKey } from "@/lib/time";
 import { readFacts, type FactRow } from "@/lib/integrations/facts";
@@ -581,4 +583,185 @@ export async function topUpDrafts(profileId: string): Promise<number> {
   }
 
   return written;
+}
+
+/**
+ * Ideas on demand. The first seven were written from the homepage at
+ * onboarding; this is where the next seven come from once those are used up.
+ * Everything the board already holds or turned down goes to the planner as a
+ * list not to repeat, so a second plan is new ground rather than the first
+ * one reworded.
+ *
+ * Capped by what is waiting in the Idea column, not by a counter: a user with
+ * a column full of unread ideas does not need more, and a double click cannot
+ * spend twice past it.
+ */
+export const OPEN_IDEA_LIMIT = 21;
+const AVOID_LIMIT = 40;
+
+export async function planMoreIdeas(actor: Actor): Promise<CardResult> {
+  const db = getDb();
+
+  const [row] = await db
+    .select({ board: boardTable })
+    .from(boardTable)
+    .innerJoin(profileTable, eq(boardTable.profileId, profileTable.id))
+    .where(
+      and(
+        eq(profileTable.id, actor.profileId),
+        eq(profileTable.accountId, actor.accountId),
+      ),
+    )
+    .limit(1);
+  if (!row) return { ok: false, error: "No board for this profile." };
+
+  const cards = await db
+    .select({
+      idea: cardTable.idea,
+      state: cardTable.state,
+      position: cardTable.position,
+      createdAt: cardTable.createdAt,
+    })
+    .from(cardTable)
+    .where(eq(cardTable.boardId, row.board.id));
+
+  const open = cards.filter((c) => c.state === "idea").length;
+  if (open >= OPEN_IDEA_LIMIT) {
+    return {
+      ok: false,
+      error: `You have ${open} ideas waiting. Write or reject some of them first.`,
+    };
+  }
+
+  const [principleRows, themeRows, facts] = await Promise.all([
+    db
+      .select()
+      .from(brandPrinciple)
+      .where(eq(brandPrinciple.profileId, actor.profileId)),
+    db
+      .select()
+      .from(themeTable)
+      .where(eq(themeTable.profileId, actor.profileId)),
+    readFacts(actor.profileId),
+  ]);
+  if (themeRows.length === 0) {
+    return { ok: false, error: "Add a theme in Brand principles first." };
+  }
+  const principles = { voice: "", visual: "", format: "" };
+  for (const p of principleRows) principles[p.kind] = p.text;
+
+  // The homepage again, because it may have changed since onboarding. A site
+  // that does not answer today falls back to the two sentences written in its
+  // place, and then to nothing: the principles and themes were written from
+  // it and carry most of what it said.
+  let siteText = "";
+  if (row.board.siteUrl) {
+    const site = await fetchSiteText(row.board.siteUrl);
+    if (site.ok) siteText = site.text;
+  }
+  if (!siteText) {
+    siteText = parseFunnel(row.board.funnel)?.site?.description ?? "";
+  }
+
+  const avoid = [...cards]
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .slice(0, AVOID_LIMIT)
+    .map((c) => c.idea);
+
+  let ideas;
+  try {
+    ideas = await generateIdeas({
+      principles,
+      themes: themeRows,
+      goal: row.board.goal as Goal,
+      siteUrl: row.board.siteUrl ?? "",
+      siteText,
+      facts,
+      avoid,
+      profileId: actor.profileId,
+    });
+  } catch (cause) {
+    console.error("[cards] more ideas failed:", cause);
+    return { ok: false, error: "The ideas did not come back. Try again in a minute." };
+  }
+
+  // Below everything already waiting, so what the user queued first is still
+  // what gets drafted first.
+  const last = Math.max(0, ...cards.map((c) => c.position));
+  const byTitle = new Map(themeRows.map((t) => [t.title.trim().toLowerCase(), t.id]));
+  await db.insert(cardTable).values(
+    ideas.map((idea, i) => ({
+      boardId: row.board.id,
+      idea: idea.idea,
+      kind: idea.kind,
+      themeId: byTitle.get(idea.theme.trim().toLowerCase()) ?? null,
+      needs: idea.needs,
+      position: last + 1 + i,
+    })),
+  );
+
+  return { ok: true, message: `${ideas.length} new ideas.` };
+}
+
+export const OWN_IDEA_MAX = 1000;
+
+/**
+ * An idea the user wrote. It goes to the top of the column, because somebody
+ * who typed it out wants it next, and it is a finding with no theme until the
+ * draft says otherwise: the shape of a post you thought of yourself is yours
+ * to tell us in a revise comment, not ours to guess.
+ */
+export async function addOwnIdea(
+  actor: Actor,
+  text: string,
+  themeId: string | null,
+): Promise<CardResult> {
+  const idea = text.trim();
+  if (idea.length < 10) return { ok: false, error: "Say a little more than that." };
+  if (idea.length > OWN_IDEA_MAX) {
+    return { ok: false, error: `Keep an idea under ${OWN_IDEA_MAX} characters.` };
+  }
+
+  const db = getDb();
+  const [row] = await db
+    .select({ boardId: boardTable.id })
+    .from(boardTable)
+    .innerJoin(profileTable, eq(boardTable.profileId, profileTable.id))
+    .where(
+      and(
+        eq(profileTable.id, actor.profileId),
+        eq(profileTable.accountId, actor.accountId),
+      ),
+    )
+    .limit(1);
+  if (!row) return { ok: false, error: "No board for this profile." };
+
+  // Scoped by profile, so a theme id from somebody else's board is dropped
+  // rather than attached.
+  let theme: string | null = null;
+  if (themeId) {
+    const [found] = await db
+      .select({ id: themeTable.id })
+      .from(themeTable)
+      .where(and(eq(themeTable.id, themeId), eq(themeTable.profileId, actor.profileId)))
+      .limit(1);
+    theme = found?.id ?? null;
+  }
+
+  const [top] = await db
+    .select({ position: cardTable.position })
+    .from(cardTable)
+    .where(and(eq(cardTable.boardId, row.boardId), eq(cardTable.state, "idea")))
+    .orderBy(asc(cardTable.position))
+    .limit(1);
+
+  await db.insert(cardTable).values({
+    boardId: row.boardId,
+    idea,
+    kind: "finding",
+    themeId: theme,
+    position: (top?.position ?? 1) - 1,
+  });
+
+  return { ok: true };
 }

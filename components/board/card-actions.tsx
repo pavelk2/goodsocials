@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { approve, reject, revise } from "@/app/board/actions";
 import type { Column } from "@/lib/board";
+import { Working } from "@/components/ui/working";
 
 /**
  * Three actions and no fourth. The approve button is labelled with what happens
@@ -20,6 +21,13 @@ const APPROVE_LABEL: Partial<Record<Column, string>> = {
   idea: "Write the draft",
   draft: "Make the image",
   image: "Schedule it",
+};
+
+/** What the agent is doing while the button waits, in the words of the outcome. */
+const WORKING_LABEL: Partial<Record<Column, string>> = {
+  idea: "Writing the draft",
+  draft: "Making the image",
+  image: "Scheduling",
 };
 
 type ActionResult = { ok: boolean; message?: string; error?: string };
@@ -45,10 +53,16 @@ export function CardActions({
   const [note, setNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [doing, setDoing] = useState<string>("Working");
 
   const approveLabel = APPROVE_LABEL[state];
 
-  function run(work: () => Promise<ActionResult>, advances: boolean) {
+  function run(
+    work: () => Promise<ActionResult>,
+    advances: boolean,
+    label: string,
+  ) {
+    setDoing(label);
     setError(null);
     setNote(null);
     startTransition(async () => {
@@ -68,23 +82,28 @@ export function CardActions({
   return (
     <>
       {commenting ? (
-        <div className="mt-3 border-t border-hairline pt-3">
+        <div className="mt-3">
+          <Rule busy={pending} />
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             rows={3}
             autoFocus
             placeholder="What should change? It sticks for every post after this one."
-            className="w-full rounded-[8px] border border-hairline bg-surface px-3 py-2 text-[13px] leading-[1.4] text-ink outline-none placeholder:text-ink-3"
+            className="mt-3 w-full rounded-[8px] border border-hairline bg-surface px-3 py-2 text-[13px] leading-[1.4] text-ink outline-none placeholder:text-ink-3"
           />
           <div className="mt-2 flex gap-4 text-[13px]">
             <button
               type="button"
               disabled={pending || comment.trim().length < 3}
-              onClick={() => run(() => revise(id, comment), false)}
-              className="font-medium text-ink underline disabled:text-ink-3 disabled:no-underline"
+              onClick={() => run(() => revise(id, comment), false, "Rewriting")}
+              className={
+                pending
+                  ? ""
+                  : "font-medium text-ink underline disabled:text-ink-3 disabled:no-underline"
+              }
             >
-              {pending ? "Rewriting" : "Send it"}
+              {pending ? <Working label="Rewriting" /> : "Send it"}
             </button>
             <button
               type="button"
@@ -99,40 +118,50 @@ export function CardActions({
             </button>
           </div>
         </div>
+      ) : pending ? (
+        // The whole row becomes the status while the work is out. Revise and
+        // Reject cannot be pressed then anyway, and a row of greyed links next
+        // to a moving grid splits the eye between two things.
+        <div className="mt-3 text-[13px]">
+          <Rule busy />
+          <Working label={doing} className="mt-3" />
+        </div>
       ) : (
-        <div className="mt-3 flex items-center gap-4 border-t border-hairline pt-3 text-[13px]">
-          {approveLabel ? (
+        <div className="mt-3 text-[13px]">
+          <Rule busy={false} />
+          <div className="mt-3 flex items-center gap-4">
+            {approveLabel ? (
+              <button
+                type="button"
+                onClick={() =>
+                  run(() => approve(id), true, WORKING_LABEL[state] ?? "Working")
+                }
+                className="font-medium text-ink underline"
+              >
+                {approveLabel}
+              </button>
+            ) : null}
             <button
               type="button"
-              disabled={pending}
-              onClick={() => run(() => approve(id), true)}
-              className="font-medium text-ink underline disabled:text-ink-3 disabled:no-underline"
+              onClick={() => setCommenting(true)}
+              className="text-ink-2 underline"
             >
-              {pending ? "Working" : approveLabel}
+              Revise
             </button>
-          ) : null}
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() => setCommenting(true)}
-            className="text-ink-2 underline disabled:text-ink-3 disabled:no-underline"
-          >
-            Revise
-          </button>
-          {/* Two clicks, because a rejected card leaves the board and the undo
-              for a mis-click is regenerating it. No modal for that. */}
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() =>
-              confirmingReject
-                ? run(() => reject(id), true)
-                : setConfirmingReject(true)
-            }
-            className="ml-auto text-ink-2 underline disabled:text-ink-3 disabled:no-underline"
-          >
-            {confirmingReject ? "Sure?" : "Reject"}
-          </button>
+            {/* Two clicks, because a rejected card leaves the board and the undo
+                for a mis-click is regenerating it. No modal for that. */}
+            <button
+              type="button"
+              onClick={() =>
+                confirmingReject
+                  ? run(() => reject(id), true, "Rejecting")
+                  : setConfirmingReject(true)
+              }
+              className="ml-auto text-ink-2 underline"
+            >
+              {confirmingReject ? "Sure?" : "Reject"}
+            </button>
+          </div>
         </div>
       )}
 
@@ -145,5 +174,14 @@ export function CardActions({
         </p>
       ) : null}
     </>
+  );
+}
+
+/** The rule above the action row, running while the card's work is out. */
+function Rule({ busy }: { busy: boolean }) {
+  return busy ? (
+    <div className="working-rule" />
+  ) : (
+    <div className="h-px bg-hairline" />
   );
 }

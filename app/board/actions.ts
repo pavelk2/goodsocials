@@ -10,8 +10,10 @@ import {
   theme as themeTable,
 } from "@/db/schema";
 import {
+  addOwnIdea,
   approveCard,
   moveCard,
+  planMoreIdeas,
   rejectCard,
   reviseCard,
   scheduleCardOn,
@@ -142,6 +144,29 @@ export async function topUp(): Promise<{ written: number }> {
   const written = await topUpDrafts(who.profileId);
   if (written > 0) revalidatePath("/board");
   return { written };
+}
+
+/** Seven more ideas, planned against everything already on the board. */
+export async function moreIdeas(): Promise<CardResult> {
+  const who = await actor();
+  if (!who) return { ok: false, error: "Sign in first." };
+
+  const result = await planMoreIdeas(who);
+  if (result.ok) revalidatePath("/board");
+  return result;
+}
+
+/** An idea the user typed, at the top of the Idea column. */
+export async function addIdea(
+  text: string,
+  themeId: string | null,
+): Promise<CardResult> {
+  const who = await actor();
+  if (!who) return { ok: false, error: "Sign in first." };
+
+  const result = await addOwnIdea(who, text, themeId);
+  if (result.ok) revalidatePath("/board");
+  return result;
 }
 
 /**

@@ -475,3 +475,85 @@ body:has(dialog[open]) {
     opacity: 0.9;
   }
 }
+
+/* Work in flight. The mark, animated: a 3 by 3 of dots filling in the order
+   the streak grid fills, so waiting on the agent looks like the product and
+   not like a browser. currentColor, so it takes the ink of the text beside it. */
+.working-grid {
+  display: inline-grid;
+  grid-template-columns: repeat(3, 4px);
+  gap: 2px;
+  vertical-align: -2px;
+}
+
+.working-grid > span {
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.2;
+  animation: working-dot 1.1s var(--ease) infinite;
+}
+
+@keyframes working-dot {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+/* A hairline with a segment running along it, for the rule above a row whose
+   action is in flight. Long jobs, a draft or an image, take tens of seconds,
+   and a still screen for that long reads as a hung one. */
+.working-rule {
+  position: relative;
+  height: 1px;
+  overflow: hidden;
+  background: var(--hairline);
+}
+
+.working-rule::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 35%;
+  background: var(--ink);
+  animation: working-sweep 1.4s var(--ease) infinite;
+}
+
+@keyframes working-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(290%);
+  }
+}
+
+/* Reduced motion keeps a signal that something is happening, at a pace that
+   does not move anything across the screen: a slow fade instead of a sweep. */
+@media (prefers-reduced-motion: reduce) {
+  .working-grid > span,
+  .working-rule::after {
+    animation: working-fade 2s ease-in-out infinite !important;
+    transform: none;
+  }
+  .working-rule::after {
+    width: 100%;
+  }
+}
+
+@keyframes working-fade {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}

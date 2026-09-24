@@ -24,6 +24,7 @@ import { cardLabel } from "@/lib/post-kind";
 import { Column as ColumnShell } from "./column";
 import { Card } from "./card";
 import { CardShell } from "./card-shell";
+import { IdeaControls } from "./idea-controls";
 
 const EMPTY_LINE: Record<Column, string> = {
   idea: "Ideas land here first.",
@@ -128,7 +129,11 @@ export function BoardColumns({
 
       <div className="flex snap-x gap-4 overflow-x-auto pb-4">
         {COLUMNS.map((state) => (
-          <Dropzone key={state} state={state}>
+          <Dropzone
+            key={state}
+            state={state}
+            head={state === "idea" ? <IdeaControls themes={themes} /> : null}
+          >
             {optimistic[state].map((card) => (
               <Card
                 key={card.id}
@@ -167,9 +172,11 @@ export function BoardColumns({
 
 function Dropzone({
   state,
+  head,
   children,
 }: {
   state: Column;
+  head?: React.ReactNode;
   children: React.ReactNode[];
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: state });
@@ -181,6 +188,7 @@ function Dropzone({
       name={COLUMN_LABEL[state]}
       count={children.length}
       emptyLine={EMPTY_LINE[state]}
+      head={head}
     >
       {children}
     </ColumnShell>
