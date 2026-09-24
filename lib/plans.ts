@@ -36,8 +36,17 @@ export type Plan = {
   cta: string;
   /** LinkedIn profiles this plan can connect. The seat limit on the account. */
   seats: number;
-  /** The environment variable holding this plan's Stripe price id. */
-  priceEnv: string;
+  /**
+   * The Stripe price this plan checks out at, written here rather than read
+   * from the environment. Three ids in three deployments was three things to
+   * keep in step for no benefit: a price id is not a secret, and it changes
+   * about as often as the price on the page does.
+   *
+   * These are live mode. Rehearsing a checkout in test mode means swapping
+   * them for the test ids, which is a one line edit and a deploy rather than
+   * an environment variable.
+   */
+  priceId: string;
 };
 
 export const PLANS: Plan[] = [
@@ -57,7 +66,7 @@ export const PLANS: Plan[] = [
     featured: true,
     cta: "Start for $100 a month",
     seats: 1,
-    priceEnv: "STRIPE_PRICE_PRO",
+    priceId: "price_1UIQaFBxtKkTb0BvoWnfIXFJ",
   },
   {
     slug: "agency",
@@ -73,7 +82,7 @@ export const PLANS: Plan[] = [
     ],
     cta: "Start for $1,000 a month",
     seats: AGENCY_SEATS,
-    priceEnv: "STRIPE_PRICE_AGENCY",
+    priceId: "price_1UIQaLBxtKkTb0Bv42qzgiWK",
   },
   {
     slug: "consultancy",
@@ -89,7 +98,7 @@ export const PLANS: Plan[] = [
     ],
     cta: "Start for $2,000 a month",
     seats: AGENCY_SEATS,
-    priceEnv: "STRIPE_PRICE_CONSULTANCY",
+    priceId: "price_1UIQaNBxtKkTb0BvcAbdUIhO",
   },
 ];
 
@@ -150,13 +159,9 @@ export function planForColumn(value: PlanColumn): Plan {
   return planFromSlug(slugForColumn(value));
 }
 
-/**
- * The Stripe price this plan checks out at. Missing rather than throwing,
- * because a price id absent from the environment is a deployment that is not
- * finished, and the caller says so in a sentence instead of a stack trace.
- */
-export function priceIdFor(slug: PlanSlug): string | null {
-  return process.env[planFromSlug(slug).priceEnv] || null;
+/** The Stripe price this plan checks out at. */
+export function priceIdFor(slug: PlanSlug): string {
+  return planFromSlug(slug).priceId;
 }
 
 /**
@@ -167,5 +172,5 @@ export function priceIdFor(slug: PlanSlug): string | null {
  */
 export function planForPriceId(priceId: string | null | undefined): Plan | null {
   if (!priceId) return null;
-  return PLANS.find((plan) => priceIdFor(plan.slug) === priceId) ?? null;
+  return PLANS.find((plan) => plan.priceId === priceId) ?? null;
 }

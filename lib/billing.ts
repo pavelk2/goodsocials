@@ -212,10 +212,6 @@ export async function startCheckout(opts: {
 }): Promise<StripeResult<string>> {
   const plan = planFromSlug(opts.plan);
   const price = priceIdFor(plan.slug);
-  if (!price) {
-    console.error(`[billing] ${plan.priceEnv} is not set on this deployment.`);
-    return { ok: false, error: "That plan is not on sale on this deployment yet." };
-  }
 
   const customer = await ensureCustomer(opts.account);
   if (!customer.ok) return customer;
@@ -404,7 +400,7 @@ function planOfSubscription(subscription: Stripe.Subscription): Plan | null {
   }
 
   console.error(
-    `[billing] ${subscription.id} is on a price this deployment does not know. Check STRIPE_PRICE_*.`,
+    `[billing] ${subscription.id} is on a price this build does not know. Check the price ids in lib/plans.ts.`,
   );
   return null;
 }

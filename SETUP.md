@@ -152,8 +152,8 @@ get deleted once this is signed off.
 
 Everything on Stripe's side is created and live: three products, three monthly
 prices in USD, the billing portal configuration, and the webhook endpoint at
-`https://goodsocials.co/api/stripe/webhook`. The price ids and the webhook
-signing secret are set on Vercel.
+`https://goodsocials.co/api/stripe/webhook`. The price ids are in
+`lib/plans.ts` and the webhook signing secret is on Vercel.
 
 One value is missing, and it is the one that cannot be created through an API.
 Stripe has no endpoint for minting API keys.
@@ -176,7 +176,7 @@ Two things to know about the account as it stands.
 the live account only, so the products, prices, portal and webhook are the real
 ones. Test mode has none of them. To rehearse a checkout without a real card,
 create the same three prices in test mode, register a test webhook endpoint,
-and swap the four `STRIPE_*` variables on a preview deployment.
+then swap the price ids in `lib/plans.ts` and the two `STRIPE_*` secrets.
 
 **The webhook is registered against `goodsocials.co` only.** A preview
 deployment receives no Stripe events, so a plan change made against a preview

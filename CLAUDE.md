@@ -141,9 +141,6 @@ No values in this file, ever.
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob, holds images until LinkedIn upload |
 | `STRIPE_SECRET_KEY` | Checkout sessions and subscription reads |
 | `STRIPE_WEBHOOK_SECRET` | Verifies Stripe webhook signatures |
-| `STRIPE_PRICE_PRO` | Price id for 100 USD per profile per month |
-| `STRIPE_PRICE_AGENCY` | Price id for 1000 USD for up to 10 profiles |
-| `STRIPE_PRICE_CONSULTANCY` | Price id for 2000 USD, 10 profiles and a weekly call |
 | `LOOPS_API_KEY` | Transactional email |
 | `NEXT_PUBLIC_POSTHOG_KEY` | Client analytics |
 | `NEXT_PUBLIC_POSTHOG_HOST` | PostHog ingest host |
@@ -195,6 +192,12 @@ Stripe sends its events to `/api/stripe/webhook`, signed with
 `STRIPE_WEBHOOK_SECRET`. The endpoint is registered against `goodsocials.co`
 only, so a preview deployment never receives one: test billing on production or
 with `stripe listen` against a tunnel.
+
+The three Stripe price ids are hardcoded in `lib/plans.ts`, beside the prices
+they charge, not read from the environment. A price id is not a secret and it
+changes about as often as the number on the pricing page, so two of them was
+one thing to keep in step for nothing. They are live mode ids: rehearsing a
+checkout in test mode is a one line edit there and a deploy.
 
 ## Conventions
 
