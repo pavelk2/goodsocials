@@ -1,81 +1,39 @@
-"""Renders the four OpenAI ads creatives. python3 gen.py, then render.sh."""
+"""Renders the four OpenAI ads creatives. python3 gen.py, then render.sh.
+
+The card shows the square at about 155px, 39% of the 400px canvas, so a
+word under 40px here is unreadable in the feed. One headline, one shape.
+"""
 FONT = '<style>' + ''.join(
     '@font-face{font-family:Geist;src:url(geist-%d.ttf);font-weight:%d}' % (w, w)
-    for w in (400, 500, 600)) + '</style>'
+    for w in (400, 500, 600, 700)) + '</style>'
 BASE = '''<!doctype html><html><head><meta charset="utf-8">%s<style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:400px;height:400px;overflow:hidden}
-body{font-family:Geist,sans-serif;background:#f7f6f3;color:#000;padding:28px;
-  display:flex;flex-direction:column;justify-content:center;letter-spacing:-.01em;font-feature-settings:"tnum"}
-.h{font-size:25px;font-weight:600;letter-spacing:-.025em;line-height:1.15}
-.s{font-size:15px;color:#6e6e73;margin-top:5px}
-.card{background:#fff;border:1px solid #e6e6e6;border-radius:14px}
-.grey{color:#6e6e73}.plum{color:#a61e4d}
-%s</style></head><body>%s</body></html>'''
+body{font-family:Geist,sans-serif;background:#a61e4d;color:#fff;padding:34px 34px 36px;
+  display:flex;flex-direction:column;justify-content:space-between;font-feature-settings:"tnum"}
+.brand{font-size:19px;font-weight:600;display:flex;align-items:center;gap:8px;opacity:.9}
+.brand i{width:10px;height:10px;border-radius:50%%;background:#fff;display:block}
+.h{font-size:58px;font-weight:700;letter-spacing:-.045em;line-height:.98}
+.soft{color:#f2a8c0}
+%s</style></head><body><div class="brand"><i></i>GoodSocials</div>%s</body></html>'''
 
-ads = {}
-
-# JTBD 1. Founder: stay visible to buyers without spending hours writing.
-days = [("Mon", "How Fernhill cut onboarding to 3 days"),
-        ("Tue", "The pricing test Fernhill ran for 6 weeks"),
-        ("Wed", "4 questions Fernhill asks every new hire"),
-        ("Thu", "What 212 support tickets taught Fernhill"),
-        ("Fri", "Fernhill's checklist for a first sales call")]
-rows = ''.join(
-    f'<div class="r"><span class="d">{d}</span><span class="t">{t}</span></div>'
-    for d, t in days)
-ads['1-week'] = ('''.card{margin-top:20px;padding:4px 16px}
-.r{display:flex;gap:12px;align-items:baseline;padding:12px 0;border-top:1px solid #eeeeee;font-size:14.5px}
-.r:first-child{border-top:0}.d{width:30px;color:#6e6e73;flex:none}
-.t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.f{margin-top:14px;font-size:14px;display:flex;align-items:center;gap:8px}
-.f i{width:8px;height:8px;border-radius:50%;background:#a61e4d;display:block}''',
-    '<div class="h">Next week on LinkedIn,<br>already written</div>'
-    f'<div class="card">{rows}</div>'
-    '<div class="f"><i></i>5 posts scheduled, 09:00 each day</div>')
-
-# JTBD 2. Anyone burned by AI writing: make it sound like me, and stay that way.
-ads['2-voice'] = ('''.card{margin-top:18px;padding:16px;font-size:15px;line-height:1.45}
-del{color:#b4b4b8;text-decoration-thickness:1.5px}ins{text-decoration:none;background:#fbecf1;color:#a61e4d;padding:0 3px;border-radius:4px}
-.c{margin-top:10px;margin-left:44px;background:#000;color:#fff;border-radius:14px 14px 4px 14px;padding:10px 14px;font-size:14.5px}
-.p{margin-top:10px;padding:12px 14px;font-size:14px;line-height:1.35}
-.p b{font-weight:600}''',
-    '<div class="h">Correct it once.<br><span class="grey">It remembers.</span></div>'
-    '<div class="card">Fernhill <del>is revolutionizing</del> <ins>cut</ins> invoice '
-    'reconciliation <del>with a game-changing</del> <ins>from 2 days to 40 minutes with one</ins> workflow.</div>'
-    '<div class="c">No hype words. Give the number.</div>'
-    '<div class="card p"><b>Voice rule updated.</b> <span class="grey">Every future post follows it.</span></div>')
-
-# JTBD 3. Founder with traction: turn real numbers into credible posts.
-ads['3-numbers'] = ('''.src{margin-top:18px;display:flex;gap:8px}
-.m{flex:1;padding:12px 14px}.m .k{font-size:12.5px;color:#6e6e73}.m .v{font-size:21px;font-weight:600;margin-top:3px;letter-spacing:-.02em}
-.m .v small{font-size:13px;color:#a61e4d;font-weight:500;margin-left:4px}
-.arr{text-align:center;color:#b4b4b8;font-size:18px;line-height:1;margin:8px 0}
-.post{padding:16px;font-size:15px;line-height:1.45}.post .by{font-size:12.5px;color:#6e6e73;margin-bottom:6px}''',
-    '<div class="h">Your numbers,<br>written as posts</div>'
-    '<div class="src"><div class="card m"><div class="k">Stripe · MRR</div><div class="v">4,210 EUR<small>+18%</small></div></div>'
-    '<div class="card m"><div class="k">Plausible · visitors</div><div class="v">9,840<small>+31%</small></div></div></div>'
-    '<div class="arr">↓</div>'
-    '<div class="card post"><div class="by">Draft · Thu 09:00</div>Fernhill grew MRR 18% in September, '
-    'to 4,210 EUR. Three changes did most of it.</div>')
-
-# JTBD 4. Agency: deliver LinkedIn for many clients without a writer per client.
-clients = [("AP", "Ada Park", "12 posts this month", False),
-           ("LB", "Lukas Brandt", "11 posts this month", False),
-           ("SR", "Sofia Reyes", "Reconnect in 5 days", True),
-           ("TO", "Tom Okafor", "13 posts this month", False)]
-crow = ''.join(
-    f'<div class="r"><span class="a">{i}</span><span class="n">{n}</span>'
-    f'<span class="{"x plum" if w else "x grey"}">{s}</span></div>'
-    for i, n, s, w in clients)
-ads['4-agency'] = ('''.card{margin-top:18px;padding:2px 14px}
-.r{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid #eeeeee;font-size:14.5px}
-.r:first-child{border-top:0}
-.a{width:28px;height:28px;border-radius:50%;background:#f1f0ec;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:none}
-.n{font-weight:500;flex:1}.x{font-size:13.5px}
-.more{font-size:13.5px;color:#6e6e73;padding:10px 0 11px;border-top:1px solid #eeeeee}''',
-    '<div class="h">Every client posts.<br><span class="grey">Nobody writes.</span></div>'
-    f'<div class="card">{crow}<div class="more">+ 8 more clients</div></div>')
-
+ads = {
+    # Stay visible without writing: the week, filled.
+    '1-week': ('''.dots{display:flex;gap:14px}.dots i{width:44px;height:44px;border-radius:50%;background:#fff;display:block}''',
+               '<div class="h">Next week,<br><span class="soft">written.</span></div>'
+               '<div class="dots"><i></i><i></i><i></i><i></i><i></i></div>'),
+    # Sound like me: the AI word, crossed out.
+    '2-voice': ('''.x{font-size:46px;font-weight:600;letter-spacing:-.03em;color:#f2a8c0;text-decoration:line-through;text-decoration-thickness:5px;text-decoration-color:#fff}''',
+                '<div class="x">game-changing</div>'
+                '<div class="h">Sounds like<br><span class="soft">you, not AI</span></div>'),
+    # Turn traction into proof: the number is the post.
+    '3-numbers': ('''.n{font-size:104px;font-weight:700;letter-spacing:-.06em;line-height:.9}.n small{font-size:40px;letter-spacing:-.03em;color:#f2a8c0;margin-left:6px}''',
+                  '<div class="n">+18%<small>MRR</small></div>'
+                  '<div class="h">Metrics in,<br><span class="soft">posts out</span></div>'),
+    # Agency: twelve clients, one of them is you, all posting.
+    '4-agency': ('''.g{display:grid;grid-template-columns:repeat(6,34px);gap:12px}.g i{width:34px;height:34px;border-radius:50%;background:#fff;display:block}''',
+                 '<div class="g">' + '<i></i>' * 12 + '</div>'
+                 '<div class="h">12 clients.<br><span class="soft">One board.</span></div>'),
+}
 for k, (css, body) in ads.items():
     open(f'{k}.html', 'w').write(BASE % (FONT, css, body))
