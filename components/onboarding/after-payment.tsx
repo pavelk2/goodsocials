@@ -6,7 +6,7 @@ import { pickIdeas, saveAnswer } from "@/app/onboarding/actions";
 import { FunnelHeader } from "@/components/onboarding/funnel-header";
 import { QuestionScreen } from "@/components/onboarding/question-screen";
 import { OTHER_MAX, REFINE_QUESTION, type Answer } from "@/lib/funnel-steps";
-import { KIND_LABEL, type PostKind } from "@/lib/post-kind";
+import type { PostKind } from "@/lib/post-kind";
 
 /**
  * The two questions after payment. Both are the product's own mechanics shown
@@ -31,8 +31,7 @@ export function Refine({
   return (
     <>
       <FunnelHeader label="1 of 2" />
-      <main className="mx-auto w-full max-w-[760px] px-6 pb-24 pt-16">
-        <p className="mb-10 text-[15px] text-ink-2">You are in. Two questions and your board opens.</p>
+      <main className="mx-auto w-full max-w-[640px] px-6 pb-24 pt-20">
         {imageUrl ? (
           // The picture on their first post, from Vercel Blob.
           // eslint-disable-next-line @next/next/no-img-element
@@ -81,12 +80,9 @@ export function PickIdeas({ ideas }: { ideas: IdeaRow[] }) {
   return (
     <>
       <FunnelHeader label="2 of 2" />
-      <main className="mx-auto w-full max-w-[760px] px-6 pb-24 pt-16">
-        <h1 className="max-w-[22ch] text-[clamp(30px,4.6vw,48px)] font-semibold leading-[1.04] tracking-[-0.03em]">
-          <span>Which should we write first?</span>{" "}
-          <span className="text-ink-3">
-            All of them are picked. Untick the ones that are not you, or add your own.
-          </span>
+      <main className="mx-auto w-full max-w-[640px] px-6 pb-24 pt-20">
+        <h1 className="text-[clamp(30px,4.6vw,48px)] font-semibold leading-[1.04] tracking-[-0.03em]">
+          Which should we write?
         </h1>
 
         <ul className="mt-10">
@@ -99,23 +95,12 @@ export function PickIdeas({ ideas }: { ideas: IdeaRow[] }) {
                   onChange={() => toggle(row.id)}
                   className="mt-[6px] h-4 w-4 shrink-0 accent-accent"
                 />
-                <span className={picked.has(row.id) ? "" : "text-ink-3"}>
-                  <span className="block text-[13px] text-ink-2">
-                    {KIND_LABEL[row.kind]}
-                    {row.theme ? ` · ${row.theme}` : ""}
-                  </span>
-                  <span className="mt-1 block">{row.idea}</span>
-                  {row.needs ? (
-                    <span className="mt-1 block text-[13px] text-ink-2">
-                      Needs from you: {row.needs}
-                    </span>
-                  ) : null}
-                </span>
+                <span className={picked.has(row.id) ? "" : "text-ink-3"}>{row.idea}</span>
               </label>
             </li>
           ))}
           <li className="border-b border-hairline py-[16px]">
-            <label htmlFor="own-idea" className="block font-medium">
+            <label htmlFor="own-idea" className="sr-only">
               Your own idea
             </label>
             <input
@@ -123,7 +108,7 @@ export function PickIdeas({ ideas }: { ideas: IdeaRow[] }) {
               value={own}
               maxLength={OTHER_MAX}
               onChange={(e) => setOwn(e.target.value)}
-              placeholder="What we learned raising prices twice in one year"
+              placeholder="Your own idea"
               className="mt-3 w-full rounded-[var(--r-sm)] border border-hairline bg-surface px-4 py-3 text-ink outline-none focus:border-ink-3"
             />
           </li>
@@ -146,7 +131,7 @@ export function PickIdeas({ ideas }: { ideas: IdeaRow[] }) {
           }
           className="pill btn-ink mt-10 bg-ink px-6 py-[14px] text-[17px] font-semibold text-paper disabled:opacity-40"
         >
-          {pending ? "Opening your board" : `Open my board with ${count} ${count === 1 ? "idea" : "ideas"}`}
+          {pending ? "Opening your board" : `Continue with ${count}`}
         </button>
       </main>
     </>

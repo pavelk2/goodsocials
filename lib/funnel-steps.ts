@@ -95,7 +95,8 @@ export function advance(funnel: Funnel, to: Step): Funnel {
 export type Option = {
   id: string;
   label: string;
-  detail: string;
+  /** A few words under the label, when the label alone does not decide it. */
+  detail?: string;
   /** What the choice becomes in the principle it feeds. */
   principle?: string;
   /** A picture for the option, where a picture decides it faster than words. */
@@ -105,8 +106,6 @@ export type Option = {
 export type Question = {
   step: Step;
   title: string;
-  /** The grey half of the headline sentence. */
-  rest: string;
   options: Option[];
   /** The label on the free text option, and its placeholder. */
   other: { label: string; placeholder: string };
@@ -115,20 +114,17 @@ export type Question = {
 export const IMAGE_QUESTION: Question = {
   step: "image",
   title: "Which pictures fit you?",
-  rest: "Every post goes out with one. Pick the closest, you can tune it after.",
   options: [
     {
       id: "abstract",
-      label: "Abstract and colourful",
-      detail: "Shapes and colour fields. Recognisable as yours from across the feed.",
+      label: "Abstract",
       principle:
         "Images are abstract compositions: bold colour fields, simple geometric shapes, paper and paint textures. Nothing that pretends to be a literal scene.",
       preview: "/onboarding/abstract.jpg",
     },
     {
       id: "nature",
-      label: "Nature and texture",
-      detail: "Light on leaves, stone and water. Calm next to a busy feed.",
+      label: "Nature",
       principle:
         "Images are natural scenes and close textures: sunlight through leaves, stone, water, wood grain. Muted, low contrast, outdoor light, unusual crops.",
       preview: "/onboarding/nature.jpg",
@@ -136,7 +132,6 @@ export const IMAGE_QUESTION: Question = {
     {
       id: "real",
       label: "The real thing",
-      detail: "Desks, tools, products and places from the work itself.",
       principle:
         "Images are documentary photographs of the real objects and places behind the work: tools, desks, products, workshops, screens with no readable text. Natural light, nothing staged.",
       preview: "/onboarding/real.jpg",
@@ -148,26 +143,25 @@ export const IMAGE_QUESTION: Question = {
 export const VOICE_QUESTION: Question = {
   step: "voice",
   title: "How should you sound?",
-  rest: "The same idea, written three ways.",
   options: [
     {
       id: "researcher",
       label: "The researcher",
-      detail: "“We looked at 212 onboarding calls. Churn tracked one thing: time to first invoice.”",
+      detail: "“We looked at 212 calls. Churn tracked one thing.”",
       principle:
         "Sounds like a researcher: leads with the number and where it came from, short declarative sentences, no adjectives doing the selling.",
     },
     {
       id: "operator",
       label: "The operator",
-      detail: "“We moved first invoices to day 3. Churn fell the next month. Here is what we changed.”",
+      detail: "“We moved invoices to day 3. Churn fell.”",
       principle:
         "Sounds like an operator: what we did, what it cost, what happened next. First person plural, plain verbs, ends where the evidence ends.",
     },
     {
       id: "teacher",
       label: "The teacher",
-      detail: "“Three steps to get a new client to their first invoice in a week.”",
+      detail: "“Three steps to a first invoice in a week.”",
       principle:
         "Sounds like a teacher: names a method, then the steps in order, each one usable on its own. Second person, warm, no jargon.",
     },
@@ -178,22 +172,18 @@ export const VOICE_QUESTION: Question = {
 export const GOAL_QUESTION: Question = {
   step: "goal",
   title: "What should your posts get you?",
-  rest: "It decides what we write about and how each post ends.",
   options: [
     {
       id: "followers",
       label: "Followers",
-      detail: "Broader points a stranger can follow, and might argue with.",
     },
     {
       id: "traffic",
       label: "Clicks to your website",
-      detail: "Each post leaves a reason to go and look. Links carry UTM tags.",
     },
     {
       id: "leads",
       label: "Leads",
-      detail: "The right buyer thinks of you the week they have the problem.",
     },
   ],
   other: { label: "Something else", placeholder: "Hire two engineers this quarter" },
@@ -201,24 +191,20 @@ export const GOAL_QUESTION: Question = {
 
 export const REFINE_QUESTION: Question = {
   step: "refine",
-  title: "What should we change about your pictures?",
-  rest: "Your answer goes into your visual principle, so every picture after this one follows it.",
+  title: "How should the next pictures look?",
   options: [
     {
       id: "keep",
-      label: "Keep it like this",
-      detail: "The next ones look like this one.",
+      label: "Like this one",
     },
     {
       id: "calmer",
       label: "Calmer",
-      detail: "Softer colours, more empty space, less going on.",
       principle: "Calmer than the first attempt: softer colours, more empty space, one subject.",
     },
     {
       id: "literal",
-      label: "Closer to the post",
-      detail: "Show the thing the post is about, less metaphor.",
+      label: "More literal",
       principle: "Closer to the post: show the specific object the post is about, never a metaphor for it.",
     },
   ],

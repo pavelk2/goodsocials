@@ -93,14 +93,6 @@ export default async function OnboardingPage({
       : [];
 
     if (sample?.draftText && funnel.step === "offer") {
-      const planned = await db
-        .select({ kind: cardTable.kind, theme: themeTable.title })
-        .from(cardTable)
-        .leftJoin(themeTable, eq(themeTable.id, cardTable.themeId))
-        .where(and(eq(cardTable.boardId, view.board.id), eq(cardTable.state, "idea")))
-        .orderBy(asc(cardTable.position))
-        .limit(6);
-
       if (params.checkout === "cancelled" && actor) {
         await track("checkout_cancelled", { distinctId: actor.distinctId, memberId: actor.memberId });
       }
@@ -110,9 +102,6 @@ export default async function OnboardingPage({
           name={name}
           avatarUrl={seat.profile.avatarUrl}
           post={{ text: sample.draftText, imageUrl: sample.imageUrl, imageAlt: sample.imageAlt }}
-          week={planned}
-          competitors={funnel.research?.competitors ?? []}
-          gap={funnel.research?.gap ?? null}
           plan={planFromSlug((await cookies()).get(PLAN_COOKIE)?.value)}
           checkoutError={params.checkout === "error" ? params.why ?? "Checkout did not open." : null}
           cancelled={params.checkout === "cancelled"}
@@ -183,7 +172,6 @@ export default async function OnboardingPage({
       initial={{ ...funnel, step }}
       emailDomain={domainFromEmail(seat.profile.email ?? access.account.email)}
       brandReady={brandReady}
-      themes={view.themes.map((t) => t.title)}
     />
   );
 }

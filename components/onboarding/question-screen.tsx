@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { OTHER_MAX, type Answer, type Question } from "@/lib/funnel-steps";
 
 /**
- * One question, one screen. The options are rows, each numbered, and pressing
- * the number picks it: the fastest route through a funnel is one keypress per
- * screen. The last row is always the member's own words, which opens a field
+ * One question, one screen, three answers and a quiet fourth for the member's
+ * own words. Nothing else on the screen: every extra line is a reason to stop.
+ * Number keys still pick an option, unlabelled, for whoever tries them. The last row is always the member's own words, which opens a field
  * in place rather than on another screen.
  *
  * A picked option moves on immediately. There is no Next button to find,
@@ -18,15 +18,12 @@ export function QuestionScreen({
   onAnswer,
   busy = false,
   error,
-  aside,
 }: {
   question: Question;
   initial?: Answer;
   onAnswer: (answer: Answer) => void;
   busy?: boolean;
   error?: string | null;
-  /** What is happening in the background while this question is open. */
-  aside?: React.ReactNode;
 }) {
   const [other, setOther] = useState(initial?.choice === "other");
   const [text, setText] = useState(initial?.choice === "other" ? initial.text ?? "" : "");
@@ -56,11 +53,11 @@ export function QuestionScreen({
   return (
     <section>
       <h1 className="max-w-[22ch] text-[clamp(30px,4.6vw,48px)] font-semibold leading-[1.04] tracking-[-0.03em]">
-        <span>{question.title}</span> <span className="text-ink-3">{question.rest}</span>
+        {question.title}
       </h1>
 
       <ul className={pictures ? "mt-10 grid gap-3 sm:grid-cols-3" : "mt-10"}>
-        {question.options.map((option, i) => {
+        {question.options.map((option) => {
           const chosen = initial?.choice === option.id;
           return pictures ? (
             <li key={option.id}>
@@ -74,13 +71,7 @@ export function QuestionScreen({
                 }`}
               >
                 <Preview src={option.preview} label={option.label} />
-                <span className="block p-4">
-                  <span className="flex items-baseline justify-between gap-3">
-                    <span className="font-medium">{option.label}</span>
-                    <Key n={i + 1} />
-                  </span>
-                  <span className="mt-1 block text-[15px] text-ink-2">{option.detail}</span>
-                </span>
+                <span className="block p-4 font-medium">{option.label}</span>
               </button>
             </li>
           ) : (
@@ -96,9 +87,10 @@ export function QuestionScreen({
                   <span className={`block font-medium ${chosen ? "text-accent-text" : ""}`}>
                     {option.label}
                   </span>
-                  <span className="mt-1 block text-ink-2">{option.detail}</span>
+                  {option.detail ? (
+                    <span className="mt-1 block text-ink-2">{option.detail}</span>
+                  ) : null}
                 </span>
-                <Key n={i + 1} />
               </button>
             </li>
           );
@@ -142,7 +134,6 @@ export function QuestionScreen({
             className="flex w-full items-center justify-between gap-6 py-[16px] text-left text-ink-2"
           >
             <span>{question.other.label}</span>
-            <Key n={otherKey} />
           </button>
         )}
       </div>
@@ -153,16 +144,7 @@ export function QuestionScreen({
         </p>
       ) : null}
 
-      {aside ? <div className="mt-14">{aside}</div> : null}
     </section>
-  );
-}
-
-function Key({ n }: { n: number }) {
-  return (
-    <kbd className="num hidden shrink-0 rounded-[6px] border border-hairline px-[7px] py-[1px] font-sans text-[12px] text-ink-2 sm:inline-block">
-      {n}
-    </kbd>
   );
 }
 

@@ -25,13 +25,13 @@ import {
  *
  *   website  →  image  →  voice  →  goal  →  sample (waits, then the offer)
  *
+ * The research is never shown while it runs. Every screen is one question and
+ * its answers, and the wait is one line, because each extra row is something
+ * to read instead of something to answer.
+ *
  * Each answer is saved as it is given, so a member who leaves comes back to
  * the question they left, with the research started again if it never landed.
  */
-
-type Work = "idle" | "running" | "done" | "failed";
-
-type Competitor = { name: string; posts: string };
 
 const FREE_STEPS: Step[] = ["website", "image", "voice", "goal"];
 
@@ -45,14 +45,12 @@ export function FunnelFlow({
   initial,
   emailDomain,
   brandReady,
-  themes: initialThemes,
 }: {
   initial: Funnel;
-  /** A website read off the member's email, offered as the first option. */
+  /** A website read off the member's email, offered as the first answer. */
   emailDomain: string | null;
   /** Principles and themes exist, so the website does not need reading again. */
   brandReady: boolean;
-  themes: string[];
 }) {
   const router = useRouter();
   const site0 = initial.site ?? null;
@@ -65,15 +63,7 @@ export function FunnelFlow({
   );
   const [answers, setAnswers] = useState(initial.answers);
   const [site, setSite] = useState(site0);
-  const [brand, setBrand] = useState<Work>(brandReady ? "done" : resumeBrand ? "running" : "idle");
-  const [rivals, setRivals] = useState<Work>(
-    initial.research ? "done" : resumeRivals ? "running" : "idle",
-  );
-  const [themes, setThemes] = useState<string[]>(initialThemes);
-  const [competitors, setCompetitors] = useState<Competitor[]>(
-    initial.research?.competitors ?? [],
-  );
-  const [gap, setGap] = useState<string | null>(initial.research?.gap ?? null);
+  const [brandFailed, setBrandFailed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sampleError, setSampleError] = useState<string | null>(null);
 
@@ -86,36 +76,24 @@ export function FunnelFlow({
     void trackView(step);
   }, [step]);
 
-  /**
-   * The two reads. Each sets state only when its request answers, and the
-   * caller marks it running, so both can start from an event or on mount.
-   */
+  /** The two reads. Each sets state only when its request answers. */
   const readBrand = useCallback((next: NonNullable<Funnel["site"]>, source?: string) => {
     brandJob.current = fetch("/api/onboarding/research", post({ ...body(next), source }))
       .then(async (res) => {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? "We could not read that page.");
-        setThemes(data.themes ?? []);
-        setBrand("done");
         return true;
       })
       .catch((cause: unknown) => {
-        setBrand("failed");
+        setBrandFailed(true);
         setError(cause instanceof Error ? cause.message : "We could not read that page.");
         return false;
       });
   }, []);
 
   const readRivals = useCallback((next: NonNullable<Funnel["site"]>) => {
-    rivalsJob.current = fetch("/api/onboarding/competitors", post(body(next)))
-      .then(async (res) => {
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
-        setCompetitors(data.competitors ?? []);
-        setGap(data.gap ?? null);
-        setRivals("done");
-      })
-      .catch(() => setRivals("failed"));
+    // Failure is fine here: the sample route researches again without search.
+    rivalsJob.current = fetch("/api/onboarding/competitors", post(body(next))).catch(() => null);
   }, []);
 
   const writeSample = useCallback(async () => {
@@ -129,7 +107,7 @@ export function FunnelFlow({
         return;
       }
       // Competitors are worth waiting for, because the sample is aimed at the
-      // gap they leave. If they failed the sample route researches again.
+      // gap they leave.
       if (rivalsJob.current) await Promise.allSettled([rivalsJob.current]);
 
       const res = await fetch("/api/onboarding/sample", { method: "POST" });
@@ -164,20 +142,10 @@ export function FunnelFlow({
   const position = FREE_STEPS.indexOf(step);
   const header = position >= 0 ? `${position + 1} of ${FREE_STEPS.length}` : null;
 
-  const background = (
-    <Background
-      site={site}
-      brand={brand}
-      rivals={rivals}
-      themes={themes}
-      competitors={competitors}
-    />
-  );
-
   return (
     <>
       <FunnelHeader label={header} />
-      <main className="mx-auto w-full max-w-[760px] px-6 pb-24 pt-16">
+      <main className="mx-auto w-full max-w-[640px] px-6 pb-24 pt-20">
         {step === "website" ? (
           <WebsiteScreen
             emailDomain={emailDomain}
@@ -185,9 +153,8 @@ export function FunnelFlow({
             error={error}
             onSubmit={(next, source) => {
               setError(null);
+              setBrandFailed(false);
               setSite(next);
-              setBrand("running");
-              setRivals("running");
               readBrand(next, source);
               readRivals(next);
               setStep("image");
@@ -196,8 +163,8 @@ export function FunnelFlow({
           />
         ) : step === "image" || step === "voice" || step === "goal" ? (
           <>
-            {brand === "failed" ? (
-              <p role="alert" className="mb-10 border-y border-hairline py-[14px]">
+            {brandFailed ? (
+              <p role="alert" className="mb-10">
                 {error}{" "}
                 <button type="button" className="underline" onClick={() => setStep("website")}>
                   Change the website
@@ -209,17 +176,10 @@ export function FunnelFlow({
               question={BY_STEP[step]}
               initial={answers[step]}
               onAnswer={(value) => answer(step, value)}
-              aside={background}
             />
           </>
         ) : (
           <Waiting
-            site={site}
-            brand={brand}
-            rivals={rivals}
-            themes={themes}
-            competitors={competitors}
-            gap={gap}
             error={sampleError}
             onRetry={() => {
               setSampleError(null);
@@ -248,16 +208,9 @@ function post(payload: unknown): RequestInit {
   };
 }
 
-function hostOf(site: Funnel["site"] | null): string {
-  if (!site?.url) return "what you do";
-  try {
-    return new URL(site.url).hostname.replace(/^www\./, "");
-  } catch {
-    return site.url;
-  }
-}
+const ROW = "flex w-full items-center justify-between gap-6 py-[18px] text-left font-medium";
 
-/** The website question. Same shape as the others, with a field behind two rows. */
+/** The website question, in the same shape as the others: three answers. */
 function WebsiteScreen({
   emailDomain,
   current,
@@ -275,31 +228,16 @@ function WebsiteScreen({
   const [url, setUrl] = useState(current?.url ?? "");
   const [description, setDescription] = useState(current?.description ?? "");
   const field = useRef<HTMLInputElement & HTMLTextAreaElement>(null);
+  const enough = description.trim().length >= 60;
 
   useEffect(() => {
     if (mode !== "pick") field.current?.focus();
   }, [mode]);
 
-  useEffect(() => {
-    function onKey(event: KeyboardEvent) {
-      const target = event.target as HTMLElement | null;
-      if (target?.tagName === "INPUT" || target?.tagName === "TEXTAREA") return;
-      if (event.key === "1" && emailDomain) onSubmit({ url: `https://${emailDomain}` }, "email");
-      if (event.key === "2") setMode("url");
-      if (event.key === "3") setMode("none");
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [emailDomain, onSubmit]);
-
   return (
     <section>
-      <h1 className="max-w-[22ch] text-[clamp(30px,4.6vw,48px)] font-semibold leading-[1.04] tracking-[-0.03em]">
-        <span>Which website is yours?</span>{" "}
-        <span className="text-ink-3">
-          We read it to learn what you do and who else writes to your buyers. Your first post is
-          ready in about a minute.
-        </span>
+      <h1 className="text-[clamp(30px,4.6vw,48px)] font-semibold leading-[1.04] tracking-[-0.03em]">
+        Which website is yours?
       </h1>
 
       <ul className="mt-10">
@@ -308,13 +246,9 @@ function WebsiteScreen({
             <button
               type="button"
               onClick={() => onSubmit({ url: `https://${emailDomain}` }, "email")}
-              className="flex w-full items-start justify-between gap-6 py-[16px] text-left"
+              className={ROW}
             >
-              <span>
-                <span className="block font-medium">{emailDomain}</span>
-                <span className="mt-1 block text-ink-2">From your email address</span>
-              </span>
-              <Key n={1} />
+              {emailDomain}
             </button>
           </li>
         ) : null}
@@ -346,22 +280,12 @@ function WebsiteScreen({
                 disabled={!url.trim()}
                 className="btn-ink rounded-[var(--r-btn)] bg-ink px-5 py-3 font-semibold text-paper disabled:opacity-40"
               >
-                Read it
+                Continue
               </button>
             </form>
           ) : (
-            <button
-              type="button"
-              onClick={() => setMode("url")}
-              className="flex w-full items-start justify-between gap-6 py-[16px] text-left"
-            >
-              <span>
-                <span className="block font-medium">
-                  {emailDomain ? "Another website" : "Type your website"}
-                </span>
-                <span className="mt-1 block text-ink-2">The page that says what you do.</span>
-              </span>
-              <Key n={2} />
+            <button type="button" onClick={() => setMode("url")} className={ROW}>
+              {emailDomain ? "Another website" : "Type your website"}
             </button>
           )}
         </li>
@@ -372,13 +296,11 @@ function WebsiteScreen({
               className="py-[14px]"
               onSubmit={(event) => {
                 event.preventDefault();
-                if (description.trim().length >= 60) {
-                  onSubmit({ url: null, description: description.trim() }, "none");
-                }
+                if (enough) onSubmit({ url: null, description: description.trim() }, "none");
               }}
             >
-              <label htmlFor="site-none" className="block font-medium">
-                Say what you do in two sentences
+              <label htmlFor="site-none" className="sr-only">
+                What you do
               </label>
               <textarea
                 ref={field}
@@ -387,32 +309,24 @@ function WebsiteScreen({
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
                 maxLength={1200}
-                placeholder="I help B2B founders price their first product. Most of my clients sell software to finance teams."
-                className="mt-3 w-full rounded-[var(--r-sm)] border border-hairline bg-surface px-4 py-3 text-ink outline-none focus:border-ink-3"
+                placeholder="Two sentences. What you do, and who it is for."
+                className="w-full rounded-[var(--r-sm)] border border-hairline bg-surface px-4 py-3 text-ink outline-none focus:border-ink-3"
               />
-              <div className="mt-3 flex items-center justify-between gap-4">
-                <span className="num text-[13px] text-ink-2">
-                  {description.trim().length < 60
-                    ? `${60 - description.trim().length} more characters`
-                    : "Enough to start"}
-                </span>
-                <button
-                  type="submit"
-                  disabled={description.trim().length < 60}
-                  className="btn-ink rounded-[var(--r-btn)] bg-ink px-5 py-3 font-semibold text-paper disabled:opacity-40"
-                >
-                  Continue
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={!enough}
+                className="btn-ink mt-3 rounded-[var(--r-btn)] bg-ink px-5 py-3 font-semibold text-paper disabled:opacity-40"
+              >
+                Continue
+              </button>
             </form>
           ) : (
             <button
               type="button"
               onClick={() => setMode("none")}
-              className="flex w-full items-start justify-between gap-6 py-[16px] text-left text-ink-2"
+              className={`${ROW} font-normal text-ink-2`}
             >
-              <span>I do not have one</span>
-              <Key n={3} />
+              I do not have one
             </button>
           )}
         </li>
@@ -423,92 +337,15 @@ function WebsiteScreen({
           {error}
         </p>
       ) : null}
-
-      <p className="mt-10 text-[13px] text-ink-2">
-        We read one page, once. Nothing is posted until you approve it.
-      </p>
     </section>
   );
 }
 
-function Key({ n }: { n: number }) {
-  return (
-    <kbd className="num hidden shrink-0 rounded-[6px] border border-hairline px-[7px] py-[1px] font-sans text-[12px] text-ink-2 sm:inline-block">
-      {n}
-    </kbd>
-  );
-}
-
-function state(work: Work, done: string): string {
-  if (work === "done") return done;
-  if (work === "failed") return "skipped";
-  if (work === "running") return "working";
-  return "";
-}
-
-/** What is running behind the questions, in rows that tick off. */
-function Background({
-  site,
-  brand,
-  rivals,
-  themes,
-  competitors,
-}: {
-  site: Funnel["site"] | null;
-  brand: Work;
-  rivals: Work;
-  themes: string[];
-  competitors: Competitor[];
-}) {
-  return (
-    <div>
-      <h2 className="text-[13px] font-medium text-ink-2">While you answer</h2>
-      <ul className="mt-2 text-[15px]">
-        <Row label={`Reading ${hostOf(site)}`} value={state(brand, `${themes.length} themes`)} />
-        <Row
-          label="Finding who else writes to your buyers"
-          value={state(rivals, competitors.length ? `${competitors.length} found` : "done")}
-        />
-      </ul>
-    </div>
-  );
-}
-
-function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
-  return (
-    <li className="flex items-center justify-between gap-6 border-b border-hairline py-[12px]">
-      <span className={strong || value ? "text-ink" : "text-ink-3"}>{label}</span>
-      <span className={`num shrink-0 text-[13px] ${value === "working" ? "text-accent-text" : "text-ink-2"}`}>
-        {value}
-      </span>
-    </li>
-  );
-}
-
 /**
- * The minute after the last question. The research that already landed is
- * the thing to read while the post is written, because it is the first proof
- * that we looked at their market and not only at their homepage.
+ * The minute after the last question. One sentence and a clock. The clock is
+ * the accent because it is the one thing on the screen that moves.
  */
-function Waiting({
-  site,
-  brand,
-  rivals,
-  themes,
-  competitors,
-  gap,
-  error,
-  onRetry,
-}: {
-  site: Funnel["site"] | null;
-  brand: Work;
-  rivals: Work;
-  themes: string[];
-  competitors: Competitor[];
-  gap: string | null;
-  error: string | null;
-  onRetry: () => void;
-}) {
+function Waiting({ error, onRetry }: { error: string | null; onRetry: () => void }) {
   const [seconds, setSeconds] = useState(0);
   useEffect(() => {
     if (error) return;
@@ -518,29 +355,12 @@ function Waiting({
 
   return (
     <section>
-      <h1 className="max-w-[22ch] text-[clamp(30px,4.6vw,48px)] font-semibold leading-[1.04] tracking-[-0.03em]">
-        <span>Writing your first post.</span>{" "}
-        <span className="text-ink-3">
-          In your voice, aimed at what nobody else in your market is saying, with its picture.
-        </span>
+      <h1 className="text-[clamp(30px,4.6vw,48px)] font-semibold leading-[1.04] tracking-[-0.03em]">
+        Writing your first post.
       </h1>
 
-      <ul className="mt-10">
-        <Row label={`Read ${hostOf(site)}`} value={state(brand, "done")} />
-        <Row label="Wrote four themes" value={themes.length ? "done" : state(brand, "done")} />
-        <Row
-          label="Found who else writes to your buyers"
-          value={state(rivals, competitors.length ? `${competitors.length} found` : "done")}
-        />
-        <Row
-          label="Writing the post and drawing its picture"
-          value={error ? "stopped" : "working"}
-          strong
-        />
-      </ul>
-
       {error ? (
-        <div className="mt-6 flex flex-wrap items-center gap-4">
+        <div className="mt-8 flex flex-wrap items-center gap-4">
           <p role="alert">{error}</p>
           <button
             type="button"
@@ -551,45 +371,13 @@ function Waiting({
           </button>
         </div>
       ) : (
-        <p className="num mt-6 text-[13px] text-ink-2">
+        <p className="num mt-6 text-ink-2">
           <span className="text-accent-text">
             {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, "0")}
           </span>{" "}
-          · usually about a minute. Leaving this page stops it.
+          About a minute.
         </p>
       )}
-
-      {themes.length ? (
-        <div className="mt-14">
-          <h2 className="text-[13px] font-medium text-ink-2">What you will be known for</h2>
-          <ul className="mt-2">
-            {themes.map((title) => (
-              <li key={title} className="border-b border-hairline py-[12px]">
-                {title}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-
-      {competitors.length ? (
-        <div className="mt-14">
-          <h2 className="text-[13px] font-medium text-ink-2">Who else writes to your buyers</h2>
-          <ul className="mt-2">
-            {competitors.map((c) => (
-              <li key={c.name} className="border-b border-hairline py-[12px]">
-                <span className="font-medium">{c.name}</span>{" "}
-                <span className="text-ink-2">{c.posts}</span>
-              </li>
-            ))}
-          </ul>
-          {gap ? (
-            <p className="mt-6">
-              <span className="font-medium">The gap.</span> <span className="text-ink-2">{gap}</span>
-            </p>
-          ) : null}
-        </div>
-      ) : null}
     </section>
   );
 }
