@@ -6,6 +6,7 @@ import { factsBrief, type FactRow } from "@/lib/integrations/facts";
 import type { Principles } from "./principles";
 import type { Goal, PostKind } from "./ideas";
 import type { Research } from "./competitors";
+import { THIRD_PERSON } from "./person";
 
 /**
  * One idea becomes one finished post. The draft is publishable as written: no
@@ -36,7 +37,7 @@ const KIND_BRIEF: Record<PostKind, string> = {
   data:
     "Lead with the finding and name where it came from in the same breath: the organisation, and the report or the year. Then exactly three things it means for the reader, each one a short paragraph of its own, each one a claim the finding supports rather than a restatement of it. If the source was not given to you, do not name one. End on the third takeaway.",
   receipt:
-    "The number is the first sentence, with the period it covers. Then what you changed or what you learned from it, in plain language, with no lesson drawn for the reader that the number does not carry. This post is believed because it is specific and because it is theirs, so no rounding for effect and no second number that was not given to you. End where the evidence ends.",
+    "The number is the first sentence, with the period it covers. Then what the company changed or what the number showed, in plain language, with no lesson drawn for the reader that the number does not carry. This post is believed because it is specific and because the number belongs to the business it names, so no rounding for effect and no second number that was not given to you. End where the evidence ends.",
   finding:
     "Open with the substance. The first sentence is the finding, not a tease of it.",
 };
@@ -51,17 +52,19 @@ const GOAL_BRIEF: Record<Goal, string> = {
   engagement:
     "Write so a practitioner in the field has something to add. State the finding plainly enough to agree or disagree with. The last line is one specific question the reader can answer from their own work, such as which of these they use or what the number is for them. Never a generic question like what do you think, never a request to like or share. No link unless the format principle asks for one.",
   leads:
-    "Write for the one reader who has this problem right now. The last line says, in one plain sentence, who the author helps with this and that a message is welcome. No link unless the format principle asks for one, no offer, no urgency, and never a question asking for comments.",
+    "Write for the one reader who has this problem right now. The last line says, in one plain sentence, who the business helps with this, named by its name, and that messages are welcome. No link unless the format principle asks for one, no offer, no urgency, and never a question asking for comments.",
 };
 
 const SYSTEM = `You write one LinkedIn post from one idea, in the voice of the person whose brand principles you are given.
 
-The register is a researcher, not a seller. The post reports something the author found out and can point to. It informs, it does not persuade, and it never manipulates.
+The register is a researcher, not a seller. The post reports something true that a reader can check. It informs, it does not persuade, and it never manipulates.
 
 Banned outright, because they are what makes LinkedIn unreadable:
 Opening with a one line hook followed by a blank line. Rhetorical questions as openers. "Here's the thing". "Let that sink in". "Unpopular opinion". Counting down a list of lessons. Manufactured urgency. Fake vulnerability. A closing question asking for comments, unless the goal asks for one specific question. Anything that would read as a template.
 
 Open with the substance. The first sentence is the finding, not a tease of the finding.
+
+${THIRD_PERSON}
 
 Evidence rules, not negotiable, because this publishes under a real person's name.
 
@@ -154,11 +157,11 @@ export async function generateDraft(opts: {
   return finish(response.parsed_output.post, opts.goal);
 }
 
-const MARKET_BRIEF = `Build it as a map of the field. One opening sentence naming the field and that this is what customers say about the companies in it. Then one short block per company, the author's own company included and written about in the same plain register as the others: the name, what it offers, what customers like, what they dislike, and where that was said. Where a company has no reviews, say only what it offers and nothing about opinion. Report the reviews as reviews, never as your own verdict, and never rank the companies. End on the last company, or on one sentence from the author about why they wrote the list down. No brackets, because nothing here needs a number from the author.`;
+const MARKET_BRIEF = `Build it as a map of the field. One opening sentence naming the field and that this is what customers say about the companies in it. Then one short block per company, the author's own company included, named by its name and written about in the same plain register as the others: the name, what it offers, what customers like, what they dislike, and where that was said. Where a company has no reviews, say only what it offers and nothing about opinion. Report the reviews as reviews, never as your own verdict, and never rank the companies. End on the last company, or on one sentence saying what the list shows about the field as a whole. No brackets, because nothing here needs a number from the author.`;
 
-const JOBS_BRIEF = `Build it as the jobs customers hire a product in this field to do. One opening sentence naming the field and that this is why people buy in it, as they said it themselves. Then one short block per job: the progress the customer wanted, what they used before where they said it, and where it was said. Write each job as a situation and an outcome, never as a feature, and never claim the author's product does any of them. Report what customers wrote as what customers wrote, never as your own verdict. End on the last job, or on one sentence from the author about which job they see most. No brackets, because nothing here needs a number from the author.`;
+const JOBS_BRIEF = `Build it as the jobs customers hire a product in this field to do. One opening sentence naming the field and that this is why people buy in it, as they said it themselves. Then one short block per job: the progress the customer wanted, what they used before where they said it, and where it was said. Write each job as a situation and an outcome, never as a feature, and never claim the author's product does any of them. Report what customers wrote as what customers wrote, never as your own verdict. End on the last job, or on one sentence saying which job comes up most often in what customers wrote. No brackets, because nothing here needs a number from the author.`;
 
-const HISTORY_BRIEF = `Build it as a short history of the field. One opening sentence naming the field and when it started. Then the moments in order, one short line each: when, what happened, and who did it. Use only the dates and names given, never add one, and never round a date to make it tidier. The author's company is part of the story only if it is in the list. End on where the field is now, in one sentence from the author, without predicting where it goes next. No brackets, because nothing here needs a number from the author.`;
+const HISTORY_BRIEF = `Build it as a short history of the field. One opening sentence naming the field and when it started. Then the moments in order, one short line each: when, what happened, and who did it. Use only the dates and names given, never add one, and never round a date to make it tidier. The author's company is part of the story only if it is in the list. End on where the field is now, in one sentence, without predicting where it goes next. No brackets, because nothing here needs a number from the author.`;
 
 /** The idea behind each sample, as the card shows it. */
 export function sampleIdea(content: SampleContent, field: string): string {

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { anthropic, MODEL, recordSpend } from "./client";
+import { THIRD_PERSON } from "./person";
 import type { SiteText } from "./site";
 
 /**
@@ -35,6 +36,8 @@ You are reading one page from a company's website. From it, work out who posts o
 The register is a researcher, not a seller. This person informs, they do not persuade. They report what they found, they name where it came from, and they let the reader draw the conclusion. They never manipulate: no engagement bait, no manufactured urgency, no rhetorical questions used as hooks, no claims that sound bigger than the evidence behind them. Credibility is built by being checkable, not by being confident.
 
 Write the principles as instructions to a writer, not as a description of the company. "Short declarative sentences, no hedging, willing to name a number and say where it came from" is useful. "Professional yet approachable" is not.
+
+Every post is written in the third person, and the voice principle has to agree. Describe how the posts sound, never tell the writer to speak as "I" or "we". ${THIRD_PERSON}
 
 Be specific to this business. If the principles you write would fit any company in the same industry, they are too general and you should look harder at the page.
 

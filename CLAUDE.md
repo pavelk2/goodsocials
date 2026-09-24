@@ -270,6 +270,7 @@ Applies to landing copy, buttons, empty states, error messages, emails, and gene
 - No filler words. No "actually", "really", "simply", "just", "basically".
 - Never the "this is not X, this is Y" construction.
 - Sentence case. Plain words. Say the price in the button.
+- Generated posts are third person. No "I", "we", "our": the agent writes them, so a first person claim is one nobody made. Name the company, the source, the customers. The rule is `THIRD_PERSON` in `lib/agent/person.ts` and it outranks a voice principle or a revise comment.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
