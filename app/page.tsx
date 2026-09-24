@@ -8,14 +8,17 @@ import { Streak, StepDots } from "@/components/marketing/streak";
 import { Reactions } from "@/components/marketing/reactions";
 import { BoardPreview } from "@/components/board/board-preview";
 import { CardShell, CardComment } from "@/components/board/card-shell";
-import { AGENCY_SEATS } from "@/lib/legal";
+import { AGENCY_SEATS, SUPPORT } from "@/lib/legal";
 import {
   PLANS,
   DEFAULT_PLAN,
   HERO_CTA,
+  SIGNED_IN_CTA,
   TRIAL_DAYS,
   TRIAL_LINE,
+  planHref,
 } from "@/lib/plans";
+import { isSignedIn } from "@/lib/viewer";
 
 /**
  * The offer copy is verbatim from CLAUDE.md. Do not improve it, derive from it.
@@ -175,10 +178,18 @@ function Check() {
   );
 }
 
-export default function Home() {
+/**
+ * The page reads the session cookie, so it renders per request rather than at
+ * build. One cookie read and no query: the price of a member never being shown
+ * a button that offers them a trial they are already past. Everything that
+ * changes is a label and an href, so a stranger sees the page unchanged.
+ */
+export default async function Home() {
+  const signedIn = await isSignedIn();
+
   return (
     <>
-      <SiteNav overlay />
+      <SiteNav overlay signedIn={signedIn} />
       <main className="bg-paper">
         {/* The hero is one screen of footage and nothing else. DESIGN.md
             section 8: the page a stranger lands on has to say what this is in
@@ -215,21 +226,26 @@ export default function Home() {
 
           <div className="mt-9 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
             <Link
-              href={`/signin?plan=${DEFAULT_PLAN.slug}`}
+              href={planHref(DEFAULT_PLAN.slug, signedIn)}
               className={heroPrimary}
             >
-              {HERO_CTA}
+              {signedIn ? SIGNED_IN_CTA : HERO_CTA}
             </Link>
             <Link href="#how" className={heroSecondary}>
               See how it works
             </Link>
           </div>
-          <p
-            className="num mt-4 font-mono text-[12px]"
-            style={{ color: "rgba(255, 255, 255, 0.8)" }}
-          >
-            {TRIAL_LINE}
-          </p>
+          {/* The trial line is what makes a stranger press the button. A
+              member who is signed in has spent it, so the slot closes rather
+              than repeating an offer that has already been taken. */}
+          {signedIn ? null : (
+            <p
+              className="num mt-4 font-mono text-[12px]"
+              style={{ color: "rgba(255, 255, 255, 0.8)" }}
+            >
+              {TRIAL_LINE}
+            </p>
+          )}
 
           {/* A full screen of video says nothing about what is under it, so
               the hero has to. One arrow, 6px of travel, and it is a real link
@@ -501,29 +517,52 @@ export default function Home() {
                     ))}
                   </ul>
 
-                  <Link
-                    href={`/signin?plan=${plan.slug}`}
-                    className={`pill num mt-9 block px-5 py-[13px] text-center text-[15px] ${
-                      plan.featured
-                        ? "btn-paper"
-                        : "btn-outline border border-hairline bg-surface"
-                    }`}
-                  >
-                    {plan.cta}
-                  </Link>
-                  <p
-                    className="num mt-3 text-center font-mono text-[12px]"
-                    style={{
-                      color: plan.featured
-                        ? "var(--panel-ink-2)"
-                        : "var(--ink-3)",
-                    }}
-                  >
-                    {TRIAL_LINE}
-                  </p>
+                  {/* The prices stay on the card for a signed in reader,
+                      because this is the price list and it is what they came
+                      back to check. The buttons go. All three would have to
+                      say the same thing, since every one of them opens the
+                      same board, and three identical buttons under three
+                      different prices reads as a fault. The one line under the
+                      grid says what to do instead. */}
+                  {signedIn ? null : (
+                    <>
+                      <Link
+                        href={planHref(plan.slug, signedIn)}
+                        className={`pill num mt-9 block px-5 py-[13px] text-center text-[15px] ${
+                          plan.featured
+                            ? "btn-paper"
+                            : "btn-outline border border-hairline bg-surface"
+                        }`}
+                      >
+                        {plan.cta}
+                      </Link>
+                      <p
+                        className="num mt-3 text-center font-mono text-[12px]"
+                        style={{
+                          color: plan.featured
+                            ? "var(--panel-ink-2)"
+                            : "var(--ink-3)",
+                        }}
+                      >
+                        {TRIAL_LINE}
+                      </p>
+                    </>
+                  )}
                 </li>
               ))}
             </ul>
+
+            {/* Changing plan is a mail to us until Stripe is wired. Saying so
+                beats a button that opens a board the reader is already on. */}
+            {signedIn ? (
+              <p className="mt-8 text-center text-[15px] text-ink-2">
+                You are signed in. To change plan, email{" "}
+                <a href={`mailto:${SUPPORT}`} className="underline">
+                  {SUPPORT}
+                </a>
+                .
+              </p>
+            ) : null}
           </div>
         </section>
 
@@ -568,23 +607,31 @@ export default function Home() {
               Ready when you are
             </Eyebrow>
 
+            {/* The close is the one place the copy has to change with the
+                reader and not only the button. A member who is signed in has
+                already done the 90 seconds, and a panel that sells them the
+                sign up under a button that opens their board reads as a page
+                that does not know who it is talking to. */}
             <h2 className="mx-auto mt-8 max-w-[22ch] text-balance text-[clamp(34px,5vw,58px)] font-semibold leading-[1.04] tracking-[-0.04em]">
-              Your board is full in 90 seconds.
+              {signedIn
+                ? "Your board is waiting."
+                : "Your board is full in 90 seconds."}
             </h2>
             <p
               className="mx-auto mt-6 max-w-[54ch] text-balance text-[17px] leading-[1.5]"
               style={{ color: "var(--panel-ink-2)" }}
             >
-              Sign in with LinkedIn, paste your website, and seven posts are
-              waiting before you have paid anything.
+              {signedIn
+                ? "Approve what you like, revise what you do not, and the queue publishes at the time you set."
+                : "Sign in with LinkedIn, paste your website, and seven posts are waiting before you have paid anything."}
             </p>
 
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
-                href={`/signin?plan=${DEFAULT_PLAN.slug}`}
+                href={planHref(DEFAULT_PLAN.slug, signedIn)}
                 className="pill btn-paper num inline-block w-full px-7 py-[14px] text-center text-[16px] sm:w-auto"
               >
-                {DEFAULT_PLAN.cta}
+                {signedIn ? SIGNED_IN_CTA : DEFAULT_PLAN.cta}
               </Link>
               <Link
                 href="#pricing"
@@ -597,12 +644,14 @@ export default function Home() {
                 See all three prices
               </Link>
             </div>
-            <p
-              className="num mt-4 font-mono text-[12px]"
-              style={{ color: "var(--panel-ink-2)" }}
-            >
-              {TRIAL_LINE}
-            </p>
+            {signedIn ? null : (
+              <p
+                className="num mt-4 font-mono text-[12px]"
+                style={{ color: "var(--panel-ink-2)" }}
+              >
+                {TRIAL_LINE}
+              </p>
+            )}
 
             {/* A full month, drawn on ink. The cells the page has been filling
                 the whole way down, finished. */}
@@ -625,7 +674,7 @@ export default function Home() {
           </div>
         </section>
       </main>
-      <SiteFooter />
+      <SiteFooter signedIn={signedIn} />
     </>
   );
 }

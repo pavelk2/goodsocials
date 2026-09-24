@@ -174,3 +174,22 @@ export function planForPriceId(priceId: string | null | undefined): Plan | null 
   if (!priceId) return null;
   return PLANS.find((plan) => plan.priceId === priceId) ?? null;
 }
+
+/** Where every landing page button points once the reader has a session. */
+export const BOARD_HREF = "/board";
+
+/**
+ * What the landing page's two big buttons say once the reader has a session.
+ *
+ * The same label on both, because signed in they do the same thing: the plan
+ * is picked, the board exists, and /signin sends a member who already has a
+ * session straight to it anyway. A button that quotes a price and lands on a
+ * board is a lie the reader catches on the first click, and the landing page
+ * is the one surface a returning member arrives at by accident.
+ */
+export const SIGNED_IN_CTA = "Open your board";
+
+/** The href a plan's button carries, which is the board once there is one. */
+export function planHref(slug: PlanSlug, signedIn: boolean): string {
+  return signedIn ? BOARD_HREF : `/signin?plan=${slug}`;
+}

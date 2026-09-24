@@ -52,3 +52,18 @@ export async function loadViewer(): Promise<Viewer | null> {
     plan: planForColumn(row.plan),
   };
 }
+
+/**
+ * Whether this request carries a session, without touching the database.
+ *
+ * What the landing page needs and all it needs. loadViewer costs an indexed
+ * read for a name, a face and a plan, and the marketing page has no slot for
+ * any of them: the only thing it changes on is whether the reader has a board
+ * to go back to. The cookie read makes the page dynamic, so keeping the query
+ * out of it is the difference between a render and a render plus a round trip
+ * to Neon on every visit.
+ */
+export async function isSignedIn(): Promise<boolean> {
+  const session = await auth();
+  return Boolean(session?.memberId);
+}
