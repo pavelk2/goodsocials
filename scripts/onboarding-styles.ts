@@ -4,13 +4,9 @@
  *
  *   OPENROUTER_API_KEY=... npx tsx scripts/onboarding-styles.ts
  *
- * Same model and tier the product uses, so the pictures are an honest preview
- * of what a post gets and not a better-looking promise. Run once, commit the
- * three files, run again only if a recipe in lib/agent/image-styles.ts
- * changes. About 0.09
- * USD a run.
- *
- * Until it has been run the question still works: each tile shows its label.
+ * The committed pictures were picked by hand, so running this overwrites
+ * them. Run it only to replace them with drafts from the product's own model
+ * and tier, the honest preview of what a post gets. About 0.09 USD a run.
  */
 import { mkdir, writeFile } from "node:fs/promises";
 import { IMAGE_QUESTION } from "../lib/funnel-steps";
