@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { signOutAction } from "@/app/actions";
+import { manageBilling } from "@/app/billing/actions";
 
 /**
  * One row shape for every item in the panel, so a later item reads as the
@@ -13,10 +15,13 @@ const ITEM =
   "flex w-full items-baseline justify-between gap-4 rounded-[8px] px-3 py-[7px] text-left text-[13px] text-ink transition-colors duration-150 hover:bg-paper";
 
 /**
- * Name and picture, and the way out. Nothing else, because every other door
- * here led somewhere the board already has a door to: Profile opened Settings,
- * and Change plan opened what the billing row in Settings opens. One
- * destination, one door, one name.
+ * Name and picture, the plan, and three doors: settings, billing, out. The
+ * account menu is where people look for all three, so the plan is named here
+ * even though the settings screen names it too.
+ *
+ * Billing opens the Stripe portal for a live subscription. Without one it goes
+ * to the settings billing row, which carries the plan picked on the way in and
+ * its price in the button; the prices belong there, not in a 280px panel.
  *
  * Not a native element. A <details> would close on Escape and on nothing else,
  * and the popover API positions against the viewport unless anchor positioning
@@ -28,10 +33,16 @@ export function UserMenu({
   name,
   email,
   avatarUrl,
+  planLabel,
+  billing,
+  managing,
 }: {
   name: string;
   email: string | null;
   avatarUrl: string | null;
+  planLabel: string | null;
+  billing: string;
+  managing: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
@@ -85,7 +96,7 @@ export function UserMenu({
       {open ? (
         <div
           id="user-menu"
-          className="absolute right-0 top-[calc(100%+6px)] z-50 w-[248px] rounded-[14px] border border-hairline bg-surface p-[6px] shadow-[var(--shadow)]"
+          className="absolute right-0 top-[calc(100%+6px)] z-50 w-[280px] rounded-[14px] border border-hairline bg-surface p-[6px] shadow-[var(--shadow)]"
         >
           <div className="px-3 pb-[6px] pt-[5px]">
             <p className="truncate text-[13px] font-medium">{name}</p>
@@ -93,6 +104,33 @@ export function UserMenu({
               <p className="truncate text-[13px] text-ink-2">{email}</p>
             ) : null}
           </div>
+
+          <div className="my-[5px] border-t border-hairline" />
+
+          <div className="px-3 pb-[6px] pt-[5px]">
+            <p className="text-[13px] font-medium">{planLabel ?? "No plan"}</p>
+            <p className="num text-[13px] leading-[1.4] text-ink-2">{billing}</p>
+          </div>
+
+          {managing ? (
+            <form action={manageBilling}>
+              <button type="submit" className={ITEM}>
+                Change plan or billing
+              </button>
+            </form>
+          ) : (
+            <Link
+              href="/settings#billing"
+              className={ITEM}
+              onClick={() => setOpen(false)}
+            >
+              Choose a plan
+            </Link>
+          )}
+
+          <Link href="/settings" className={ITEM} onClick={() => setOpen(false)}>
+            Settings
+          </Link>
 
           <div className="my-[5px] border-t border-hairline" />
 

@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { getDb } from "@/db";
 import { account as accountTable, profile as profileTable } from "@/db/schema";
+import { billingLine, canManageBilling, canPublish } from "@/lib/billing";
 import { planForColumn, type Plan } from "@/lib/plans";
 
 /**
@@ -15,12 +16,21 @@ import { planForColumn, type Plan } from "@/lib/plans";
  * The owner's profile can sit on somebody else's account, which is the agency
  * case in lib/profiles.ts. The join is by member id, so the name and picture
  * are still theirs while the plan stays the one they pay for.
+ *
+ * The billing fields are the settings row's words, from the same functions, so
+ * the menu and the settings screen cannot disagree about what somebody pays.
  */
 export type Viewer = {
   name: string;
   email: string | null;
   avatarUrl: string | null;
   plan: Plan;
+  /** Null when nothing is running, so a cancelled plan is never named as current. */
+  planLabel: string | null;
+  /** billingLine(), the sentence the settings billing row shows. */
+  billing: string;
+  /** A live subscription, so the menu opens the portal rather than the prices. */
+  managing: boolean;
 };
 
 export async function loadViewer(): Promise<Viewer | null> {
@@ -33,8 +43,7 @@ export async function loadViewer(): Promise<Viewer | null> {
       name: profileTable.name,
       email: profileTable.email,
       avatarUrl: profileTable.avatarUrl,
-      accountEmail: accountTable.email,
-      plan: accountTable.plan,
+      account: accountTable,
     })
     .from(accountTable)
     .leftJoin(
@@ -45,11 +54,15 @@ export async function loadViewer(): Promise<Viewer | null> {
     .limit(1);
   if (!row) return null;
 
+  const plan = planForColumn(row.account.plan);
   return {
-    name: row.name ?? row.accountEmail ?? "Your account",
-    email: row.email ?? row.accountEmail,
+    name: row.name ?? row.account.email ?? "Your account",
+    email: row.email ?? row.account.email,
     avatarUrl: row.avatarUrl,
-    plan: planForColumn(row.plan),
+    plan,
+    planLabel: canPublish(row.account) ? `${plan.name} plan` : null,
+    billing: billingLine(row.account),
+    managing: canManageBilling(row.account),
   };
 }
 
