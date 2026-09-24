@@ -210,19 +210,24 @@ export default async function Home() {
           <Logo size={74} tile="#ffffff" cell="#0c0c0d" />
 
           <span className="eyebrow-video mt-8">
-            AI social media manager for LinkedIn
+            Written by AI, in your voice
           </span>
 
           <h1 className="mx-auto mt-6 max-w-[16ch] text-balance text-[clamp(40px,6.6vw,78px)] font-semibold leading-[1.02] tracking-[-0.045em]">
-            Post on LinkedIn{" "}
-            {/* The one coloured word on the site. On footage the plum has to
-                be the lighter one, the same swap --accent-text makes in dark
-                mode, because #a61e4d on a dark frame is 2.3:1. */}
-            <span className="whitespace-nowrap" style={{ color: "var(--accent-panel)" }}>
-              daily
-            </span>{" "}
-            without writing any of it.
+            Hire a social media manager for LinkedIn.
           </h1>
+
+          <p className="mx-auto mt-6 max-w-[44ch] text-balance text-[clamp(18px,1.9vw,24px)] leading-[1.35]">
+            Publishes for you{" "}
+            {/* The one coloured phrase on the site, and it is the cadence,
+                which is the outcome sold. On footage the plum has to be the
+                lighter one, the same swap --accent-text makes in dark mode,
+                because #a61e4d on a dark frame is 2.3:1. */}
+            <span className="whitespace-nowrap font-semibold" style={{ color: "var(--accent-panel)" }}>
+              5 times a week
+            </span>{" "}
+            after your approval.
+          </p>
 
           <div className="mt-9 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
             <Link
@@ -285,7 +290,7 @@ export default async function Home() {
             An agent writes the posts. You approve them on a board.
           </h2>
           <p className="mt-6 max-w-[56ch] text-[clamp(17px,1.5vw,21px)] leading-[1.45] text-ink-2">
-            It publishes at the time you set, close to daily, and every
+            It publishes at the time you set, five times a week, and every
             correction you make sticks to the card after it. Five minutes a
             week, and the month fills in.
           </p>
