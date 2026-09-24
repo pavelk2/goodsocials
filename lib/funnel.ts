@@ -3,6 +3,7 @@ import { getDb } from "@/db";
 import { board as boardTable, brandPrinciple } from "@/db/schema";
 import type { Goal } from "@/lib/agent/ideas";
 import {
+  CONTENT_QUESTION,
   GOAL_QUESTION,
   IMAGE_QUESTION,
   answerLine,
@@ -68,10 +69,16 @@ export async function applyAnswers(
         ) ?? null
       : null;
 
+  const contentNote =
+    answerLine(CONTENT_QUESTION, funnel.answers.content)?.replace(
+      "asked for this in their own words",
+      "wants their posts to be about this, in their own words",
+    ) ?? null;
+
   const next = {
     voice: principles.voice,
     visual: appendLine(principles.visual, answerLine(IMAGE_QUESTION, funnel.answers.image)),
-    format: appendLine(principles.format, goalNote),
+    format: appendLine(appendLine(principles.format, contentNote), goalNote),
   };
 
   await Promise.all(

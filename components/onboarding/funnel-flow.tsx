@@ -6,6 +6,7 @@ import { saveAnswer, trackView } from "@/app/onboarding/actions";
 import { FunnelHeader } from "@/components/onboarding/funnel-header";
 import { QuestionScreen } from "@/components/onboarding/question-screen";
 import {
+  CONTENT_QUESTION,
   GOAL_QUESTION,
   IMAGE_QUESTION,
   NEXT_STEP,
@@ -18,11 +19,11 @@ import {
 
 /**
  * The free half of the funnel, in one client component, because its point is
- * that two things happen at once: the member answers two questions while
+ * that two things happen at once: the member answers three questions while
  * the website and the competitors are read behind them. Splitting it across
  * pages would stop the reads on every navigation.
  *
- *   website  →  image  →  goal  →  sample (waits, then the offer)
+ *   website  →  image  →  content  →  goal  →  sample (waits, then the offer)
  *
  * The research is never shown while it runs. Every screen is one question and
  * its answers, and the wait is one line, because each extra row is something
@@ -32,10 +33,11 @@ import {
  * the question they left, with the research started again if it never landed.
  */
 
-const FREE_STEPS: Step[] = ["website", "image", "goal"];
+const FREE_STEPS: Step[] = ["website", "image", "content", "goal"];
 
-const BY_STEP: Record<"image" | "goal", Question> = {
+const BY_STEP: Record<"image" | "content" | "goal", Question> = {
   image: IMAGE_QUESTION,
+  content: CONTENT_QUESTION,
   goal: GOAL_QUESTION,
 };
 
@@ -158,7 +160,7 @@ export function FunnelFlow({
               window.scrollTo({ top: 0 });
             }}
           />
-        ) : step === "image" || step === "goal" ? (
+        ) : step === "image" || step === "content" || step === "goal" ? (
           <>
             {brandFailed ? (
               <p role="alert" className="mb-10">

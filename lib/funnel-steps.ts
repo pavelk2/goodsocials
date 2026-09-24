@@ -13,8 +13,8 @@ import type { Research } from "@/lib/agent/competitors";
  *
  *   website   Which website is yours. Research starts the moment it is answered.
  *   image     Which pictures fit you.        } answered while the research runs,
- *   goal      What should posts get you.     } so the minute it takes is spent
- *                                              on the member's own choices.
+ *   content   What the posts are about.      } so the minute it takes is spent
+ *   goal      What should posts get you.     } on the member's own choices.
  *   sample    Their first post, drawn the way LinkedIn draws it.
  *   offer     The same post, the week it starts, and the price.
  *   refine    After paying: what to change about the pictures.
@@ -34,6 +34,7 @@ import type { Research } from "@/lib/agent/competitors";
 export const STEPS = [
   "website",
   "image",
+  "content",
   "goal",
   "sample",
   "offer",
@@ -53,6 +54,7 @@ export type Funnel = {
   site?: { url: string | null; description?: string };
   answers: {
     image?: Answer;
+    content?: Answer;
     goal?: Answer;
     refine?: Answer;
   };
@@ -73,8 +75,9 @@ export function emptyFunnel(): Funnel {
 export function parseFunnel(value: unknown): Funnel | null {
   if (!value || typeof value !== "object") return null;
   const raw = value as Partial<Funnel>;
-  // The voice question was removed. A member saved on it resumes at goal.
-  const step = (raw.step as string) === "voice" ? "goal" : raw.step;
+  // The voice question was replaced by the content question, which sits in
+  // its place. A member saved on it resumes there.
+  const step = (raw.step as string) === "voice" ? "content" : raw.step;
   if (!step || !STEPS.includes(step)) return null;
   return { ...raw, step, answers: raw.answers ?? {} };
 }
@@ -140,6 +143,41 @@ export const IMAGE_QUESTION: Question = {
   other: { label: "Other", placeholder: "Black and white photos of cities" },
 };
 
+/**
+ * What the first posts are about. Each option is one the research can write
+ * from public sources, because at this point we know the website and nothing
+ * the member has done. The answer decides the sample post and goes into the
+ * format principle, so the ideas after it lean the same way.
+ */
+export const CONTENT_QUESTION: Question = {
+  step: "content",
+  title: "What should your posts be about?",
+  options: [
+    {
+      id: "competitors",
+      label: "Your market",
+      detail: "Each company in your field, yours included, and what its customers like and dislike.",
+      principle:
+        "The author asked for posts about their market: the companies in their field, their own included, and what customers say about each, reported as reviews and never ranked.",
+    },
+    {
+      id: "jobs",
+      label: "Why people buy",
+      detail: "The jobs customers hire a product like yours to do, in their own words.",
+      principle:
+        "The author asked for posts about why people buy in their field: the job a customer hires the product to do, the situation they were in when they went looking, and what they were using before.",
+    },
+    {
+      id: "history",
+      label: "How your industry started",
+      detail: "Where your field came from, from the first company to now.",
+      principle:
+        "The author asked for posts about the history of their field: who started it, when, what changed since and why, each date and name one the author can check.",
+    },
+  ],
+  other: { label: "Other", placeholder: "Mistakes founders make in their first year" },
+};
+
 export const GOAL_QUESTION: Question = {
   step: "goal",
   title: "What are your posts for?",
@@ -184,6 +222,7 @@ export const REFINE_QUESTION: Question = {
 
 export const QUESTIONS = {
   image: IMAGE_QUESTION,
+  content: CONTENT_QUESTION,
   goal: GOAL_QUESTION,
   refine: REFINE_QUESTION,
 } as const;
@@ -196,7 +235,8 @@ export function isQuestionStep(value: string): value is QuestionStep {
 
 /** The step after a question, which is where saving an answer moves the member. */
 export const NEXT_STEP: Record<QuestionStep, Step> = {
-  image: "goal",
+  image: "content",
+  content: "goal",
   goal: "sample",
   refine: "ideas",
 };
@@ -216,6 +256,14 @@ export function answerLine(question: Question, answer: Answer | undefined): stri
     return text ? `The author asked for this in their own words: "${text}".` : null;
   }
   return question.options.find((o) => o.id === answer.choice)?.principle ?? null;
+}
+
+export type ContentChoice = "competitors" | "jobs" | "history";
+
+/** The sample an answer asks for. `other` and no answer get the market map. */
+export function contentFor(answer: Answer | undefined): ContentChoice {
+  const id = answer?.choice;
+  return id === "jobs" || id === "history" ? id : "competitors";
 }
 
 /** The board goal an answer maps to. `other` keeps the default and is noted. */

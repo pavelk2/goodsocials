@@ -154,22 +154,46 @@ export async function generateDraft(opts: {
 
 const MARKET_BRIEF = `Build it as a map of the field. One opening sentence naming the field and that this is what customers say about the companies in it. Then one short block per company, the author's own company included and written about in the same plain register as the others: the name, what it offers, what customers like, what they dislike, and where that was said. Where a company has no reviews, say only what it offers and nothing about opinion. Report the reviews as reviews, never as your own verdict, and never rank the companies. End on the last company, or on one sentence from the author about why they wrote the list down. No brackets, because nothing here needs a number from the author.`;
 
+const JOBS_BRIEF = `Build it as the jobs customers hire a product in this field to do. One opening sentence naming the field and that this is why people buy in it, as they said it themselves. Then one short block per job: the progress the customer wanted, what they used before where they said it, and where it was said. Write each job as a situation and an outcome, never as a feature, and never claim the author's product does any of them. Report what customers wrote as what customers wrote, never as your own verdict. End on the last job, or on one sentence from the author about which job they see most. No brackets, because nothing here needs a number from the author.`;
+
+const HISTORY_BRIEF = `Build it as a short history of the field. One opening sentence naming the field and when it started. Then the moments in order, one short line each: when, what happened, and who did it. Use only the dates and names given, never add one, and never round a date to make it tidier. The author's company is part of the story only if it is in the list. End on where the field is now, in one sentence from the author, without predicting where it goes next. No brackets, because nothing here needs a number from the author.`;
+
+/** The idea behind each sample, as the card shows it. */
+export function sampleIdea(content: SampleContent, field: string): string {
+  if (content === "jobs") return `Why people buy in ${field}, in their own words.`;
+  if (content === "history") return `How ${field} started, and what changed since.`;
+  return `Who operates in ${field}, and what their customers say about each.`;
+}
+
+export type SampleContent = "competitors" | "jobs" | "history";
+
 /**
- * The onboarding sample. At that point we know the member's website and
- * nothing they have done, so the post is built only from what the research
- * read in public: who operates in the field and what their customers say.
- *
- * No thinking. The facts arrive laid out and the job is to set them in the
- * member's voice, and on the waiting screen every second is counted.
+ * The research a sample is written from, laid out for the model, or null
+ * when the research found nothing of that kind. A null here is the route's
+ * cue to write the market map instead, which every research result can.
  */
-export async function generateMarketPost(opts: {
-  research: Research;
-  principles: Principles;
-  goal: Goal;
-  siteUrl: string | null;
-  profileId: string;
-}): Promise<string> {
-  const companies = opts.research.companies.map((c) =>
+function sampleFacts(content: SampleContent, research: Research): string | null {
+  if (content === "jobs") {
+    if (research.jobs.length === 0) return null;
+    return [
+      "The jobs, as customers described them in public. Use nothing else:",
+      research.jobs
+        .map((j) =>
+          [`Job: ${j.job}`, j.before ? `Before: ${j.before}` : "", `Said on: ${j.source}`]
+            .filter(Boolean)
+            .join("\n"),
+        )
+        .join("\n\n"),
+    ].join("\n");
+  }
+  if (content === "history") {
+    if (research.history.length === 0) return null;
+    return [
+      "The moments, as read in public sources. Use nothing else:",
+      research.history.map((m) => `${m.when}. ${m.what} (${m.source})`).join("\n"),
+    ].join("\n");
+  }
+  const companies = research.companies.map((c) =>
     [
       `${c.name}${c.own ? " (the author's own company)" : ""}. Offers: ${c.offers}`,
       c.praised ? `Customers like: ${c.praised}` : "",
@@ -180,6 +204,42 @@ export async function generateMarketPost(opts: {
       .filter(Boolean)
       .join("\n"),
   );
+  return [
+    "The companies, as read from their sites and from public reviews. Use nothing else:",
+    companies.join("\n\n"),
+  ].join("\n");
+}
+
+const BRIEF: Record<SampleContent, string> = {
+  competitors: MARKET_BRIEF,
+  jobs: JOBS_BRIEF,
+  history: HISTORY_BRIEF,
+};
+
+/** Which sample the research can write: the one asked for, or the market map. */
+export function sampleContent(asked: SampleContent, research: Research): SampleContent {
+  return sampleFacts(asked, research) ? asked : "competitors";
+}
+
+/**
+ * The onboarding sample. At that point we know the member's website and
+ * nothing they have done, so the post is built only from what the research
+ * read in public: the companies in the field, the jobs customers hire them
+ * for, or how the field started, whichever the member picked.
+ *
+ * No thinking. The facts arrive laid out and the job is to set them in the
+ * member's voice, and on the waiting screen every second is counted.
+ */
+export async function generateSamplePost(opts: {
+  content: SampleContent;
+  research: Research;
+  principles: Principles;
+  goal: Goal;
+  siteUrl: string | null;
+  profileId: string;
+}): Promise<string> {
+  const content = sampleContent(opts.content, opts.research);
+  const facts = sampleFacts(content, opts.research);
 
   const response = await anthropic().messages.parse({
     model: MODEL,
@@ -191,12 +251,11 @@ export async function generateMarketPost(opts: {
       {
         role: "user",
         content: [
-          `Idea: who operates in ${opts.research.field}, and what their customers say about each.`,
+          `Idea: ${sampleIdea(content, opts.research.field)}`,
           "",
-          `Shape. ${MARKET_BRIEF}`,
+          `Shape. ${BRIEF[content]}`,
           "",
-          "The companies, as read from their sites and from public reviews. Use nothing else:",
-          companies.join("\n\n"),
+          facts,
           "",
           "Brand principles:",
           `Voice. ${opts.principles.voice}`,
@@ -211,7 +270,12 @@ export async function generateMarketPost(opts: {
     ],
   });
 
-  recordSpend({ profileId: opts.profileId, operation: "draft_market", usage: response.usage });
+  recordSpend({
+    profileId: opts.profileId,
+    // draft_market predates the other two and is kept, so spend charts stay continuous.
+    operation: content === "competitors" ? "draft_market" : `draft_${content}`,
+    usage: response.usage,
+  });
 
   if (!response.parsed_output) {
     throw new Error("The model did not return a draft in the expected shape.");

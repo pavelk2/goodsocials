@@ -3,11 +3,21 @@ import { eq } from "drizzle-orm";
 import { after } from "next/server";
 import { getDb } from "@/db";
 import { board as boardTable, card as cardTable } from "@/db/schema";
-import { isResearch, researchCompetitors, type Research } from "@/lib/agent/competitors";
-import { generateMarketPost } from "@/lib/agent/drafts";
+import {
+  isResearch,
+  researchCompetitors,
+  withDefaults,
+  type Research,
+} from "@/lib/agent/competitors";
+import {
+  generateSamplePost,
+  sampleContent,
+  sampleIdea,
+  type SampleContent,
+} from "@/lib/agent/drafts";
 import { generateImage } from "@/lib/agent/images";
 import { funnelActor, readBrand, siteFor } from "@/lib/funnel-context";
-import { advance, applyAnswers, readFunnel, updateFunnel } from "@/lib/funnel";
+import { advance, applyAnswers, contentFor, readFunnel, updateFunnel } from "@/lib/funnel";
 import { planWeek } from "@/lib/funnel-plan";
 import { track } from "@/lib/track";
 
@@ -15,11 +25,13 @@ import { track } from "@/lib/track";
  * The payoff screen of the free half of the funnel: one finished post with its
  * picture.
  *
- * The post is a map of the member's field: the companies in it, theirs among
- * them, and what customers say about each, read from public reviews by the
- * research that ran while the questions were answered. At this point we know
- * the website and nothing the member has done, so this is the one post we can
- * write without inventing anything.
+ * The post is about what the member picked on the content screen: a map of
+ * their field and what customers say about each company, the jobs customers
+ * hire products in the field to do, or how the field started. All three are
+ * read from public sources by the research that ran while the questions were
+ * answered. At this point we know the website and nothing the member has
+ * done, so these are the posts we can write without inventing anything. When
+ * the research found no jobs or no history, the post is the market map.
  *
  * The draft and the picture run side by side. The picture is prompted from
  * the field rather than from the finished text, so it does not wait on it.
@@ -63,7 +75,7 @@ export async function POST() {
   // Research normally landed while the questions were answered. If the member
   // reloaded before it did, it runs here, and it has its own fallback. Research
   // stored before the market map had another shape and is read again.
-  let research: Research | null = isResearch(funnel.research) ? funnel.research : null;
+  let research: Research | null = isResearch(funnel.research) ? withDefaults(funnel.research) : null;
   if (!research) {
     try {
       research = await researchCompetitors({ site, profileId, personName: actor.profile.name });
@@ -86,15 +98,18 @@ export async function POST() {
   const applied = await applyAnswers(profileId, funnel, brand.principles);
   const principles = { voice: applied.voice, visual: applied.visual, format: applied.format };
   const theme = brand.themes[0];
-  const idea = `Who operates in ${research.field}, and what their customers say about each.`;
+  const asked = contentFor(funnel.answers.content);
+  const content = sampleContent(asked, research);
+  const idea = sampleIdea(content, research.field);
 
   // The id is chosen here so the picture can be stored under it before the
   // row exists. The row is written once, with both halves, so a failed draft
   // leaves nothing half made on the board.
   const cardId = randomUUID();
-  const names = research.companies.map((c) => c.name).join(", ");
+  const picture = pictureBrief(content, research);
   const [drafted, drawn] = await Promise.allSettled([
-    generateMarketPost({
+    generateSamplePost({
+      content,
       research,
       principles,
       goal: applied.goal,
@@ -104,7 +119,7 @@ export async function POST() {
     generateImage({
       profileId,
       cardId,
-      postText: `A LinkedIn post comparing the companies in ${research.field}: ${names}. What their customers like about each and what they do not.`,
+      postText: picture,
       visualPrinciple: principles.visual,
     }),
   ]);
@@ -127,7 +142,7 @@ export async function POST() {
     id: cardId,
     boardId: brd.id,
     idea,
-    kind: "data",
+    kind: content === "competitors" ? "data" : "finding",
     themeId: theme.id,
     draftText: drafted.value,
     state: image ? "image" : "draft",
@@ -149,6 +164,8 @@ export async function POST() {
       reviewed: market.companies.filter((c) => c.praised || c.criticised).length,
       searched: market.searched,
       goal: applied.goal,
+      content,
+      asked,
     });
     // Not fatal. The ideas step writes them again if the column is empty.
     try {
@@ -167,4 +184,16 @@ export async function POST() {
   });
 
   return Response.json({ ok: true });
+}
+
+/** What the picture shows, prompted from the research so it does not wait on the text. */
+function pictureBrief(content: SampleContent, research: Research): string {
+  if (content === "jobs") {
+    return `A LinkedIn post about why people buy in ${research.field}: ${research.jobs.map((j) => j.job).join("; ")}.`;
+  }
+  if (content === "history") {
+    return `A LinkedIn post about how ${research.field} started and changed: ${research.history.map((m) => `${m.when}, ${m.what}`).join("; ")}.`;
+  }
+  const names = research.companies.map((c) => c.name).join(", ");
+  return `A LinkedIn post comparing the companies in ${research.field}: ${names}. What their customers like about each and what they do not.`;
 }
