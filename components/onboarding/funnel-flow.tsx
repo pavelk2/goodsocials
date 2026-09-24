@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { saveAnswer, trackView } from "@/app/onboarding/actions";
+import { burstConfetti } from "@/components/onboarding/confetti";
 import { FunnelHeader } from "@/components/onboarding/funnel-header";
 import { QuestionScreen } from "@/components/onboarding/question-screen";
 import {
@@ -66,6 +67,7 @@ export function FunnelFlow({
   const [brandFailed, setBrandFailed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sampleError, setSampleError] = useState<string | null>(null);
+  const [sampleReady, setSampleReady] = useState(false);
 
   const brandJob = useRef<Promise<boolean> | null>(null);
   const rivalsJob = useRef<Promise<unknown> | null>(null);
@@ -112,6 +114,11 @@ export function FunnelFlow({
       const res = await fetch("/api/onboarding/sample", { method: "POST" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "Your first post did not write.");
+      // Confetti first, then the post. The burst lives on document.body, so it
+      // keeps falling over the offer after this screen is replaced.
+      setSampleReady(true);
+      burstConfetti();
+      await new Promise((resolve) => window.setTimeout(resolve, CELEBRATE_MS));
       router.refresh();
     } catch (cause) {
       setSampleError(cause instanceof Error ? cause.message : "Your first post did not write.");
@@ -179,6 +186,7 @@ export function FunnelFlow({
           </>
         ) : (
           <Waiting
+            ready={sampleReady}
             error={sampleError}
             onRetry={() => {
               setSampleError(null);
@@ -206,6 +214,9 @@ function post(payload: unknown): RequestInit {
     body: JSON.stringify(payload),
   };
 }
+
+/** How long the confetti has the screen to itself before the post appears. */
+const CELEBRATE_MS = 1200;
 
 const ROW = "flex w-full items-center justify-between gap-6 py-[18px] text-left font-medium";
 
@@ -340,22 +351,35 @@ function WebsiteScreen({
   );
 }
 
+/** Where the countdown starts. The sample takes about this long. */
+const COUNTDOWN_FROM = 30;
+
 /**
- * The half minute after the last question. One sentence and a clock. The clock is
- * the accent because it is the one thing on the screen that moves.
+ * The half minute after the last question. One sentence and a countdown set
+ * large enough to be the screen, because it is the one thing on it that moves.
+ * At zero it holds and the line under it changes, so a slow write reads as
+ * nearly done rather than broken.
  */
-function Waiting({ error, onRetry }: { error: string | null; onRetry: () => void }) {
-  const [seconds, setSeconds] = useState(0);
+function Waiting({
+  ready,
+  error,
+  onRetry,
+}: {
+  ready: boolean;
+  error: string | null;
+  onRetry: () => void;
+}) {
+  const [left, setLeft] = useState(COUNTDOWN_FROM);
   useEffect(() => {
-    if (error) return;
-    const timer = window.setInterval(() => setSeconds((s) => s + 1), 1000);
+    if (error || ready) return;
+    const timer = window.setInterval(() => setLeft((s) => Math.max(0, s - 1)), 1000);
     return () => window.clearInterval(timer);
-  }, [error]);
+  }, [error, ready]);
 
   return (
     <section>
       <h1 className="text-[clamp(30px,4.6vw,48px)] font-semibold leading-[1.04] tracking-[-0.03em]">
-        Writing your first post.
+        {ready ? "Your first post is ready." : "Writing your first post."}
       </h1>
 
       {error ? (
@@ -363,19 +387,27 @@ function Waiting({ error, onRetry }: { error: string | null; onRetry: () => void
           <p role="alert">{error}</p>
           <button
             type="button"
-            onClick={onRetry}
+            onClick={() => {
+              setLeft(COUNTDOWN_FROM);
+              onRetry();
+            }}
             className="btn-ink rounded-[var(--r-btn)] bg-ink px-5 py-3 font-semibold text-paper"
           >
             Try again
           </button>
         </div>
       ) : (
-        <p className="num mt-6 text-ink-2">
-          <span className="text-accent-text">
-            {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, "0")}
-          </span>{" "}
-          About half a minute.
-        </p>
+        <div className="mt-10">
+          <p
+            aria-hidden="true"
+            className="num text-[clamp(160px,34vw,320px)] font-semibold leading-[0.85] tracking-[-0.06em] text-accent-text"
+          >
+            {ready ? 0 : left}
+          </p>
+          <p className="mt-6 text-ink-2" aria-live="polite">
+            {ready ? "Here it comes." : left > 0 ? "Seconds to go." : "Nearly there."}
+          </p>
+        </div>
       )}
     </section>
   );

@@ -119,6 +119,9 @@ export default async function OnboardingPage({
         <>
           <TrackView step="refine" />
           <Refine
+            name={name}
+            avatarUrl={seat.profile.avatarUrl}
+            text={sample?.draftText ?? null}
             imageUrl={sample?.imageUrl ?? null}
             imageAlt={sample?.imageAlt ?? null}
             initial={funnel.answers.refine}
