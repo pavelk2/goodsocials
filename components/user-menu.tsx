@@ -1,12 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { signOutAction } from "@/app/actions";
-import { manageBilling } from "@/app/billing/actions";
 
 /**
- * One row shape for every item in the panel, so the three read as one list.
+ * One row shape for every item in the panel, so a later item reads as the
+ * same list.
  * The wash on hover is --paper over --surface, which is the same pair the card
  * uses against the column, so nothing new enters the palette.
  */
@@ -14,9 +13,10 @@ const ITEM =
   "flex w-full items-baseline justify-between gap-4 rounded-[8px] px-3 py-[7px] text-left text-[13px] text-ink transition-colors duration-150 hover:bg-paper";
 
 /**
- * Name and picture, and the three things that are about the account rather
- * than about this board: whose profile we post as, what it costs, and the way
- * out.
+ * Name and picture, and the way out. Nothing else, because every other door
+ * here led somewhere the board already has a door to: Profile opened Settings,
+ * and Change plan opened what the billing row in Settings opens. One
+ * destination, one door, one name.
  *
  * Not a native element. A <details> would close on Escape and on nothing else,
  * and the popover API positions against the viewport unless anchor positioning
@@ -28,12 +28,10 @@ export function UserMenu({
   name,
   email,
   avatarUrl,
-  planName,
 }: {
   name: string;
   email: string | null;
   avatarUrl: string | null;
-  planName: string;
 }) {
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
@@ -95,25 +93,6 @@ export function UserMenu({
               <p className="truncate text-[13px] text-ink-2">{email}</p>
             ) : null}
           </div>
-
-          <div className="my-[5px] border-t border-hairline" />
-
-          {/* Which LinkedIn profile this account posts as, and how long its
-              connection has left. Settings is where that lives. */}
-          <Link href="/settings" className={ITEM} onClick={() => setOpen(false)}>
-            Profile
-          </Link>
-
-          {/* Stripe's portal, where the plan is changed, the card is updated
-              and the subscription is cancelled. An account that has never
-              checked out is sent to the prices instead, which the action
-              decides from a column rather than from this component. */}
-          <form action={manageBilling}>
-            <button type="submit" className={ITEM}>
-              <span>Change plan</span>
-              <span className="num shrink-0 text-ink-2">{planName}</span>
-            </button>
-          </form>
 
           <div className="my-[5px] border-t border-hairline" />
 
