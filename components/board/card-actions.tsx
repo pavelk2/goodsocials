@@ -13,7 +13,11 @@ import { Working } from "@/components/ui/working";
  * to card_action still says "approve".
  *
  * Rendered twice per card: once in the card footer on the board, once at the
- * bottom of the card dialog. Each copy keeps its own pending state, which is
+ * bottom of the card dialog. The card footer is compact: the approve button
+ * alone, filled, because it is the one decision a column asks for and three
+ * underlined links of one weight on every card made fifty links a screen.
+ * Revise and Reject are in the dialog, one click away, which is where the
+ * text they are about can be read in full. Each copy keeps its own pending state, which is
  * correct, because the server revalidates the board and both redraw from the
  * same row afterwards.
  */
@@ -35,10 +39,13 @@ type ActionResult = { ok: boolean; message?: string; error?: string };
 export function CardActions({
   id,
   state,
+  compact,
   onAdvance,
 }: {
   id: string;
   state: Column;
+  /** Approve only. The card on the board; the dialog carries all three. */
+  compact?: boolean;
   /**
    * Called after an approve or a reject, the two that take the card out of the
    * column it is in. The dialog closes on them rather than sitting open over a
@@ -56,6 +63,8 @@ export function CardActions({
   const [doing, setDoing] = useState<string>("Working");
 
   const approveLabel = APPROVE_LABEL[state];
+  // Scheduled and posted cards have no next step to press from the board.
+  if (compact && !approveLabel) return null;
 
   function run(
     work: () => Promise<ActionResult>,
@@ -134,33 +143,45 @@ export function CardActions({
               <button
                 type="button"
                 onClick={() =>
-                  run(() => approve(id), true, WORKING_LABEL[state] ?? "Working")
+                  run(
+                    () => approve(id),
+                    true,
+                    WORKING_LABEL[state] ?? "Working",
+                  )
                 }
-                className="font-medium text-ink underline"
+                className={
+                  compact
+                    ? "btn-ink rounded-[8px] bg-ink px-3 py-[6px] font-medium text-paper"
+                    : "font-medium text-ink underline"
+                }
               >
                 {approveLabel}
               </button>
             ) : null}
-            <button
-              type="button"
-              onClick={() => setCommenting(true)}
-              className="text-ink-2 underline"
-            >
-              Revise
-            </button>
-            {/* Two clicks, because a rejected card leaves the board and the undo
+            {compact ? null : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setCommenting(true)}
+                  className="text-ink-2 underline"
+                >
+                  Revise
+                </button>
+                {/* Two clicks, because a rejected card leaves the board and the undo
                 for a mis-click is regenerating it. No modal for that. */}
-            <button
-              type="button"
-              onClick={() =>
-                confirmingReject
-                  ? run(() => reject(id), true, "Rejecting")
-                  : setConfirmingReject(true)
-              }
-              className="ml-auto text-ink-2 underline"
-            >
-              {confirmingReject ? "Sure?" : "Reject"}
-            </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    confirmingReject
+                      ? run(() => reject(id), true, "Rejecting")
+                      : setConfirmingReject(true)
+                  }
+                  className="ml-auto text-ink-2 underline"
+                >
+                  {confirmingReject ? "Sure?" : "Reject"}
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}

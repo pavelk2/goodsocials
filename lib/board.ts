@@ -28,6 +28,17 @@ export const COLUMN_LABEL: Record<Column, string> = {
   posted: "Posted",
 };
 
+/**
+ * What pressing approve does in each column, said in the column header so the
+ * board reads as a list of things waiting on the member. The column names stay
+ * the card states; this is the verb that moves a card out of one.
+ */
+export const COLUMN_NEXT: Partial<Record<Column, string>> = {
+  idea: "approve to draft",
+  draft: "approve to add image",
+  image: "approve to schedule",
+};
+
 export type BoardCard = typeof cardTable.$inferSelect;
 export type BoardTheme = typeof themeTable.$inferSelect;
 
@@ -38,8 +49,15 @@ export type BoardView = {
   /** What this profile posts about. Ordered, editable, four to start with. */
   themes: BoardTheme[];
   cards: Record<Column, BoardCard[]>;
-  /** Days of near-daily posting the approved queue can sustain. */
+  /**
+   * Days the publish queue can sustain, from scheduled posts only. A card in
+   * the Image column is approved text and picture but has no slot, and the
+   * cron publishes nothing it was not handed, so counting it here showed nine
+   * days of runway over an empty Scheduled column.
+   */
   runwayDays: number;
+  /** Finished posts one approve away from the queue, said beside the runway. */
+  readyToSchedule: number;
   /**
    * True while the principles are still the placeholders from sign in, or
    * while the onboarding funnel on this board is not finished.
@@ -137,10 +155,10 @@ export async function loadBoard(profileId: string): Promise<BoardView | null> {
     cards[row.state].push(row);
   }
 
-  // Approved work only. A draft nobody has approved cannot sustain anything.
-  const ready = cards.image.length + cards.scheduled.length;
+  // Scheduled work only. Anything short of a slot publishes nothing.
   const perDay = brd.targetCadence / 7;
-  const runwayDays = perDay > 0 ? Math.floor(ready / perDay) : 0;
+  const runwayDays =
+    perDay > 0 ? Math.floor(cards.scheduled.length / perDay) : 0;
 
   const brandWritten = !Object.values(principles).every(
     (t) => t === "" || t.startsWith(PLACEHOLDER_PREFIX),
@@ -153,6 +171,7 @@ export async function loadBoard(profileId: string): Promise<BoardView | null> {
     themes: themeRows,
     cards,
     runwayDays,
+    readyToSchedule: cards.image.length,
     // Placeholders mean nothing was ever read. A funnel that is not done means
     // the member left partway, and comes back to the screen they left. A
     // board from before the funnel has none, and is never sent back into it.

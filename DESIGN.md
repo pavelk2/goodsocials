@@ -68,6 +68,8 @@ Inside the dialog the picture opens full size in a second native `<dialog>`: dar
 
 The cost is a taller column, three or four cards visible instead of six. That is the correct trade: a column of cards nobody can decide on is not denser, it is longer.
 
+**Revised in September 2026, after a real board read as noise.** The image on the card is a full-width strip 120px tall, `object-cover`, enough to know which picture it is; the full-size judgement happens in the dialog, which was always one click away. At 4:3 two cards filled the Image column. `Read it` is out of sight until it has keyboard focus: the whole card is the pointer target, and a link on every card was the loudest line on the board. The card footer carries the approve button alone, filled ink, and Revise and Reject live in the dialog with the full text they are about. A card waiting on the author, by a `needs` line or a bracketed gap in its draft, shows one ink line with a dot, `Needs a detail from you`, and the dialog says what. Column headers carry what approve does there, `Image · approve to schedule`, so the board reads as a list of what is waiting. Scheduled and Posted are 200px while empty, and Posted starts folded to its last date, because nothing in either is a decision. Runway counts scheduled posts only, with finished posts still needing a day said beside it, never added to it.
+
 Drag uses `--shadow` and only while a card is actually in the air, because at that moment it is genuinely floating. It lands flat.
 
 The board scrolls horizontally on a phone, one column at a time with snap. It is not a squeeze of the desktop layout and it is not a different information architecture. Approving from a phone is three taps and that path is tested.

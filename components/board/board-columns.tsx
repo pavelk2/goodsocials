@@ -16,11 +16,13 @@ import { move } from "@/app/board/actions";
 import {
   COLUMNS,
   COLUMN_LABEL,
+  COLUMN_NEXT,
   type BoardCard,
   type BoardTheme,
   type Column,
 } from "@/lib/board";
 import { cardLabel } from "@/lib/post-kind";
+import { formatSlot } from "@/lib/time";
 import { Column as ColumnShell } from "./column";
 import { Card } from "./card";
 import { CardShell } from "./card-shell";
@@ -29,7 +31,7 @@ import { IdeaControls } from "./idea-controls";
 const EMPTY_LINE: Record<Column, string> = {
   idea: "Ideas land here first.",
   draft: "Approved ideas become drafts.",
-  image: "Drafts that need a picture wait here.",
+  image: "Finished posts wait here for a day.",
   scheduled: "Approved posts wait for their time.",
   posted: "Published posts stay here.",
 };
@@ -81,6 +83,8 @@ export function BoardColumns({
   );
 
   const [dragging, setDragging] = useState<BoardCard | null>(null);
+  // Posted only grows, and nothing in it can be decided, so it starts folded.
+  const [showPosted, setShowPosted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
@@ -128,30 +132,42 @@ export function BoardColumns({
       ) : null}
 
       <div className="flex snap-x gap-4 overflow-x-auto pb-4">
-        {COLUMNS.map((state) => (
-          <Dropzone
-            key={state}
-            state={state}
-            head={state === "idea" ? <IdeaControls themes={themes} /> : null}
-          >
-            {optimistic[state].map((card) => (
-              <Card
-                key={card.id}
-                id={card.id}
-                state={state}
-                body={bodyOf(card, state)}
-                label={labelOf(card)}
-                // Only while the card is still a question. Once a draft is
-                // written the gap is a bracket in the text the reader can see,
-                // and saying it twice reads as an unanswered one.
-                needs={state === "idea" ? card.needs : null}
-                imageUrl={card.imageUrl}
-                scheduledAt={card.scheduledAt}
-                timeZone={timeZone}
-              />
-            ))}
-          </Dropzone>
-        ))}
+        {COLUMNS.map((state) => {
+          const list = optimistic[state];
+          const folded = state === "posted" && list.length > 0 && !showPosted;
+          const outcome = state === "scheduled" || state === "posted";
+          return (
+            <Dropzone
+              key={state}
+              state={state}
+              count={list.length}
+              narrow={outcome && (list.length === 0 || folded)}
+              head={state === "idea" ? <IdeaControls themes={themes} /> : null}
+            >
+              {folded ? (
+                <PostedFold
+                  last={latest(list)}
+                  timeZone={timeZone}
+                  onShow={() => setShowPosted(true)}
+                />
+              ) : (
+                list.map((card) => (
+                  <Card
+                    key={card.id}
+                    id={card.id}
+                    state={state}
+                    body={bodyOf(card, state)}
+                    label={labelOf(card)}
+                    needs={card.needs}
+                    imageUrl={card.imageUrl}
+                    scheduledAt={card.scheduledAt}
+                    timeZone={timeZone}
+                  />
+                ))
+              )}
+            </Dropzone>
+          );
+        })}
       </div>
 
       <DragOverlay>
@@ -172,12 +188,16 @@ export function BoardColumns({
 
 function Dropzone({
   state,
+  count,
+  narrow,
   head,
   children,
 }: {
   state: Column;
+  count: number;
+  narrow: boolean;
   head?: React.ReactNode;
-  children: React.ReactNode[];
+  children: React.ReactNode;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: state });
 
@@ -186,11 +206,50 @@ function Dropzone({
       dropRef={setNodeRef}
       over={isOver}
       name={COLUMN_LABEL[state]}
-      count={children.length}
+      next={COLUMN_NEXT[state]}
+      count={count}
+      narrow={narrow}
       emptyLine={EMPTY_LINE[state]}
       head={head}
     >
       {children}
     </ColumnShell>
+  );
+}
+
+/** Cards sit in position order, so the most recent post is found by its date. */
+function latest(cards: BoardCard[]): Date | null {
+  let best: Date | null = null;
+  for (const c of cards) {
+    if (c.scheduledAt && (!best || c.scheduledAt > best)) best = c.scheduledAt;
+  }
+  return best;
+}
+
+/**
+ * Posted, folded: when the last one went out and a way to see them all. The
+ * cards are a record by now, and the columns before it are where the work is.
+ */
+function PostedFold({
+  last,
+  timeZone,
+  onShow,
+}: {
+  last: Date | null;
+  timeZone: string;
+  onShow: () => void;
+}) {
+  return (
+    <div className="px-2 py-3 text-[13px] leading-[1.4]">
+      {last ? (
+        <p className="text-ink-2">
+          Last one{" "}
+          <span className="num">{formatSlot(last, timeZone)}</span>
+        </p>
+      ) : null}
+      <button type="button" onClick={onShow} className="mt-2 text-ink underline">
+        Show them
+      </button>
+    </div>
   );
 }

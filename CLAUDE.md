@@ -156,7 +156,7 @@ Log token and image spend per account so cost per customer is visible in PostHog
 - `fact` One reading from a source, upserted on `(source_id, key)` and never appended. This is what makes a receipt post a receipt. A sync replaces the set, so a reading that stops coming back is deleted: nobody posts last March's churn, and a year of daily MRR rows in every draft prompt is how a 0.15 USD post becomes a 0.60 USD one. `value` is text because the model reads it and "4,210 EUR" is what belongs in a sentence; the arithmetic happens in the adapter where the currency and the period are still in scope.
 - `linkedin_call_budget` Per member per UTC day. Claimed before every LinkedIn call, so the 150 a day limit is a limit rather than a report.
 - `image_quota` Per profile per calendar month. `generated_count` against a hard cap of 200. Regenerations increment it. Checked before the image call, not after.
-- `queue_runway` Derived, not stored: approved and scheduled cards divided by target cadence, in days. Under 3 days triggers idea generation and a board warning.
+- `queue_runway` Derived, not stored: scheduled cards divided by target cadence, in days. Cards in the Image column are not counted, since the cron publishes nothing without a slot; the header says how many are ready to schedule beside it. Under 3 days triggers idea generation and a board warning.
 
 ## Environment variables
 
