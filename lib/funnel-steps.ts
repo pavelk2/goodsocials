@@ -144,35 +144,36 @@ export const IMAGE_QUESTION: Question = {
 };
 
 /**
- * What the first posts are about. Each option is one the research can write
+ * What the first post is about. Each option is one the research can write
  * from public sources, because at this point we know the website and nothing
  * the member has done. The answer decides the sample post and goes into the
- * format principle, so the ideas after it lean the same way.
+ * format principle as where the board started, so the ideas after it lean the
+ * same way without every card being about it.
  */
 export const CONTENT_QUESTION: Question = {
   step: "content",
-  title: "What should your posts be about?",
+  title: "What should your first post be about?",
   options: [
     {
       id: "competitors",
       label: "Your market",
       detail: "Each company in your field, yours included, and what its customers like and dislike.",
       principle:
-        "The author asked for posts about their market: the companies in their field, their own included, and what customers say about each, reported as reviews and never ranked.",
+        "The author chose to start with posts about their market: the companies in their field, their own included, and what customers say about each, reported as reviews and never ranked.",
     },
     {
       id: "jobs",
       label: "Why people buy",
       detail: "The jobs customers hire a product like yours to do, in their own words.",
       principle:
-        "The author asked for posts about why people buy in their field: the job a customer hires the product to do, the situation they were in when they went looking, and what they were using before.",
+        "The author chose to start with posts about why people buy in their field: the job a customer hires the product to do, the situation they were in when they went looking, and what they were using before.",
     },
     {
       id: "history",
       label: "How your industry started",
       detail: "Where your field came from, from the first company to now.",
       principle:
-        "The author asked for posts about the history of their field: who started it, when, what changed since and why, each date and name one the author can check.",
+        "The author chose to start with posts about the history of their field: who started it, when, what changed since and why, each date and name one the author can check.",
     },
   ],
   other: { label: "Other", placeholder: "Mistakes founders make in their first year" },
