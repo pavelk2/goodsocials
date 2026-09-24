@@ -232,6 +232,12 @@ export const card = pgTable(
     }),
     idea: text("idea").notNull(),
     /**
+     * The idea in under seven words, for lists a member scans rather than
+     * reads, like the picker after payment. The draft still works from `idea`.
+     * Null on cards written before it existed and on ideas the member typed.
+     */
+    title: text("title"),
+    /**
      * The one number only the author has, named in their own words. Written on
      * receipt cards, where the post is worthless without it and inventing it
      * would be worse. Shown on the card so the gap is visible before anyone

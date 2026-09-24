@@ -80,6 +80,11 @@ const IdeasSchema = z.object({
   ideas: z
     .array(
       z.object({
+        title: z
+          .string()
+          .describe(
+            "The idea in six words or fewer, sentence case, no full stop. A label a member can scan in a list, naming the subject rather than the claim.",
+          ),
         idea: z
           .string()
           .describe(
@@ -207,6 +212,7 @@ export async function generateIdeas(opts: {
   // a card labelled slightly wrong.
   return response.parsed_output.ideas.map((idea, i) => ({
     ...idea,
+    title: idea.title.trim().replace(/\.$/, ""),
     kind: KIND_MIX[i] ?? idea.kind,
     needs: idea.needs?.trim() ? idea.needs.trim() : null,
   }));

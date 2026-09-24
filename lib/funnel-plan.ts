@@ -45,6 +45,7 @@ export async function planWeek(opts: {
     ideas.map((idea, i) => ({
       boardId: opts.boardId,
       idea: idea.idea,
+      title: idea.title || null,
       kind: idea.kind,
       themeId: byTitle.get(idea.theme.trim().toLowerCase()) ?? null,
       needs: idea.needs,
