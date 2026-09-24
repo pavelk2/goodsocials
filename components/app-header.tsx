@@ -7,8 +7,9 @@ import { loadViewer } from "@/lib/viewer";
  * The chrome over every signed in screen. Mark and wordmark left, whoever is
  * signed in right, hairline under it, and nothing else.
  *
- * It carries account level things only. What this board is about stays on the
- * board's own header a line below: runway, brand principles, settings. A user
+ * It carries who is signed in and the way out, nothing more. What this board is
+ * about stays on the board's own header a line below: runway, brand
+ * principles, settings. Settings has that one door and no second one here. A user
  * approving a week of posts reads down, so the account sits above the work and
  * never inside it.
  *
@@ -34,7 +35,6 @@ export async function AppHeader() {
             name={viewer.name}
             email={viewer.email}
             avatarUrl={viewer.avatarUrl}
-            planName={viewer.plan.name}
           />
         ) : null}
       </div>
