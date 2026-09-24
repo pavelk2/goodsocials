@@ -35,5 +35,25 @@ ads = {
                  '<div class="g">' + '<i></i>' * 12 + '</div>'
                  '<div class="h">12 clients<br><span class="soft">on LinkedIn</span></div>'),
 }
+# More ideas in the pattern of 2-voice: the thing people are tired of,
+# crossed out, and the fix as a two-line headline.
+STRIKE = """.x{font-size:44px;font-weight:600;letter-spacing:-.03em;line-height:1.1;color:#f2a8c0;
+text-decoration:line-through;text-decoration-thickness:5px;text-decoration-color:#fff}"""
+
+def strike(x, top, soft):
+    return (STRIKE, f'<div class="x">{x}</div>'
+            f'<div class="h">{top}<br><span class="soft">{soft}</span></div>')
+
+ads.update({
+    '05-cringe': strike('Thrilled to<br>announce', 'LinkedIn,', 'minus cringe'),
+    '06-delve': strike('Let\'s delve in', 'No AI tells', 'on LinkedIn'),
+    '07-tomorrow': strike('Post tomorrow', 'Out today', 'on LinkedIn'),
+    '08-lastpost': strike('Last post:<br>4 months ago', 'Back on', 'LinkedIn'),
+    '09-blank': strike('Blank page', '7 LinkedIn', 'posts, ready'),
+    '10-ghost': strike('Ghostwriter', 'LinkedIn for', '100 USD'),
+    '11-logins': strike('12 logins', '12 clients', 'one board'),
+    '12-sunday': strike('Sunday nights<br>writing posts', 'LinkedIn,', 'handled'),
+})
+
 for k, (css, body) in ads.items():
     open(f'{k}.html', 'w').write(BASE % (FONT, css, body))
