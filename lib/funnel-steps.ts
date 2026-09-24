@@ -113,7 +113,7 @@ export type Question = {
 
 export const IMAGE_QUESTION: Question = {
   step: "image",
-  title: "Which pictures should your posts have?",
+  title: "What visual content do you like?",
   options: [
     {
       id: "abstract",
