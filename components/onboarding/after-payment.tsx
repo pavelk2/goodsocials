@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { pickIdeas, saveAnswer } from "@/app/onboarding/actions";
 import { FunnelHeader } from "@/components/onboarding/funnel-header";
+import { PostPreview } from "@/components/onboarding/post-preview";
 import { QuestionScreen } from "@/components/onboarding/question-screen";
 import { OTHER_MAX, REFINE_QUESTION, type Answer } from "@/lib/funnel-steps";
 import type { PostKind } from "@/lib/post-kind";
@@ -17,10 +18,18 @@ import { Working } from "@/components/ui/working";
  */
 
 export function Refine({
+  name,
+  avatarUrl,
+  text,
   imageUrl,
   imageAlt,
   initial,
 }: {
+  name: string;
+  avatarUrl: string | null;
+  /** The sample's text. A member who already pays skips the offer, so this is
+   *  the first place they see their post, and it has to be the whole post. */
+  text: string | null;
   imageUrl: string | null;
   imageAlt: string | null;
   initial?: Answer;
@@ -29,33 +38,50 @@ export function Refine({
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
+  const question = (
+    <QuestionScreen
+      question={REFINE_QUESTION}
+      initial={initial}
+      busy={pending}
+      error={error}
+      onAnswer={(answer) =>
+        start(async () => {
+          const result = await saveAnswer("refine", answer);
+          if (!result.ok) setError(result.error);
+          else router.refresh();
+        })
+      }
+    />
+  );
+
   return (
     <>
       <FunnelHeader label="1 of 2" />
-      <main className="mx-auto w-full max-w-[640px] px-6 pb-24 pt-20">
-        {imageUrl ? (
-          // The picture on their first post, from Vercel Blob.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={imageUrl}
-            alt={imageAlt ?? ""}
-            className="mb-10 aspect-[4/3] w-full max-w-[420px] rounded-[var(--r-md)] object-cover"
+      {text ? (
+        <main className="mx-auto grid w-full max-w-[1000px] items-start gap-12 px-6 pb-24 pt-12 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] lg:gap-16">
+          <PostPreview
+            name={name}
+            avatarUrl={avatarUrl}
+            text={text}
+            imageUrl={imageUrl}
+            imageAlt={imageAlt}
           />
-        ) : null}
-        <QuestionScreen
-          question={REFINE_QUESTION}
-          initial={initial}
-          busy={pending}
-          error={error}
-          onAnswer={(answer) =>
-            start(async () => {
-              const result = await saveAnswer("refine", answer);
-              if (!result.ok) setError(result.error);
-              else router.refresh();
-            })
-          }
-        />
-      </main>
+          <div className="lg:pt-8">{question}</div>
+        </main>
+      ) : (
+        <main className="mx-auto w-full max-w-[640px] px-6 pb-24 pt-20">
+          {imageUrl ? (
+            // The picture on their first post, from Vercel Blob.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={imageUrl}
+              alt={imageAlt ?? ""}
+              className="mb-10 aspect-[4/3] w-full max-w-[420px] rounded-[var(--r-md)] object-cover"
+            />
+          ) : null}
+          {question}
+        </main>
+      )}
     </>
   );
 }
