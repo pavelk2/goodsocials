@@ -8,13 +8,13 @@ import { SettingsBody } from "@/components/settings/settings-body";
 export default async function SettingsSheet({
   searchParams,
 }: {
-  searchParams: Promise<{ linked?: string }>;
+  searchParams: Promise<{ linked?: string; billing?: string; why?: string }>;
 }) {
-  const linked = (await searchParams).linked;
+  const { linked, billing, why } = await searchParams;
 
   return (
     <RouteSheet title="Settings">
-      <SettingsBody linked={linked} />
+      <SettingsBody linked={linked} billing={billing} why={why} />
     </RouteSheet>
   );
 }

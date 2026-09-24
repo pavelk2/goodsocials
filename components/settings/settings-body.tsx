@@ -1,8 +1,16 @@
 import { eq } from "drizzle-orm";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getDb } from "@/db";
 import { board as boardTable } from "@/db/schema";
+import {
+  billingLine,
+  canManageBilling,
+  canPublish,
+  planOf,
+  type Account,
+} from "@/lib/billing";
 import { loadAccess, seatName } from "@/lib/profiles";
 import { readQuota } from "@/lib/quota";
 import { boardZone, spacingDays } from "@/lib/schedule";
@@ -11,7 +19,14 @@ import { summarisePastPosts } from "@/lib/history-store";
 import { PAST_POST_LIMIT } from "@/db/schema";
 import { connectionLine, needsReconnect } from "@/lib/token-expiry";
 import { AGENCY_SEATS } from "@/lib/legal";
-import { PRICE_AGENCY, PRICE_SOLO, planFromSlug } from "@/lib/plans";
+import {
+  PLAN_COOKIE,
+  PRICE_AGENCY,
+  PRICE_SOLO,
+  planFromSlug,
+  type Plan,
+} from "@/lib/plans";
+import { manageBilling, startPlanCheckout } from "@/app/billing/actions";
 import { saveCadence, saveGoal, saveTimezone } from "@/app/settings/actions";
 import { ChoiceRow } from "@/components/settings/choice-row";
 import { HistoryImport } from "@/components/settings/history-import";
@@ -31,6 +46,21 @@ const LINK_OUTCOME: Record<string, string> = {
   stale: "That link had expired. Start again from this page.",
   failed: "LinkedIn accepted the sign in but we could not read the profile. Try again.",
   misconfigured: "LinkedIn is not configured on this deployment.",
+};
+
+/**
+ * What came back from Stripe. Checkout and the portal both leave the app and
+ * come back, so the same rule as LINK_OUTCOME applies: one line each, saying
+ * what happened, because the user has no other way to tell.
+ *
+ * There is no "you are now subscribed" line. The plan row below says that, and
+ * it says it from the webhook rather than from a query parameter anyone could
+ * type. A success line that disagreed with the row under it would be worse
+ * than no line at all.
+ */
+const BILLING_OUTCOME: Record<string, string> = {
+  started: "Stripe has your payment. The plan below updates the moment Stripe confirms it, usually within seconds.",
+  cancelled: "Checkout closed. Nothing was charged.",
 };
 
 const GOAL_OPTIONS = [
@@ -54,7 +84,17 @@ const CADENCE_OPTIONS = [1, 2, 3, 4, 5, 6, 7].map((n) => ({
  * the top rather than buried: an agency approving a week of posts onto the
  * wrong client's feed is the worst thing this product can do.
  */
-export async function SettingsBody({ linked }: { linked?: string }) {
+export async function SettingsBody({
+  linked,
+  billing,
+  why,
+}: {
+  linked?: string;
+  /** What Stripe came back with: `started`, `cancelled` or `error`. */
+  billing?: string;
+  /** The sentence a failed checkout or portal call wrote onto the URL. */
+  why?: string;
+}) {
   const session = await auth();
   if (!session?.memberId) redirect("/signin");
 
@@ -92,19 +132,34 @@ export async function SettingsBody({ linked }: { linked?: string }) {
     active: seat.profile.id === profile.id,
   }));
 
-  // The plan column is solo or agency; the names and prices are lib/plans.ts,
-  // so a price written once on the landing page is the price written here.
-  const agency = access.account.plan === "agency";
-  const plan = planFromSlug(agency ? "agency" : "pro");
-  const planLine = agency
-    ? `All ${access.account.seatLimit} seats are in use.`
+  // The plan column and its seat limit are written by the Stripe webhook, so
+  // what this screen says about the plan is what Stripe last said about the
+  // subscription. The names and prices are lib/plans.ts, so a price written
+  // once on the landing page is the price written here.
+  const account = access.account;
+  const plan = planOf(account);
+  const multi = plan.seats > 1;
+  const planLine = multi
+    ? `All ${account.seatLimit} seats are in use.`
     : `${plan.name} covers one profile at ${PRICE_SOLO}. Agency is ${PRICE_AGENCY} for up to ${AGENCY_SEATS}.`;
+
+  // Somebody who has never checked out sees the plan they picked on the way
+  // in, carried in the cookie the sign in page wrote. That choice survived a
+  // trip through LinkedIn and should not be asked for twice.
+  const picked = await pickedPlan(plan);
+  const outcome = billing === "error" ? why : BILLING_OUTCOME[billing ?? ""];
 
   return (
     <>
       {linked && LINK_OUTCOME[linked] ? (
         <p className="mb-6 max-w-[760px] text-[13px] text-ink" role="status">
           {LINK_OUTCOME[linked]}
+        </p>
+      ) : null}
+
+      {outcome ? (
+        <p className="mb-6 max-w-[760px] text-[13px] text-ink" role="status">
+          {outcome}
         </p>
       ) : null}
 
@@ -161,13 +216,27 @@ export async function SettingsBody({ linked }: { linked?: string }) {
           <Row
             label="Plan"
             value={
-              agency
-                ? `${plan.name}, ${access.account.seatLimit} profiles, ${plan.priceLine}`
-                : `${plan.name}, one profile, ${plan.priceLine}`
+              // What this account is entitled to right now, which for a
+              // cancelled one is nothing. Naming the plan they used to be on
+              // next to a price they are not paying is the kind of row
+              // somebody reads as still being charged.
+              !canPublish(account)
+                ? "None"
+                : multi
+                  ? `${plan.name}, ${account.seatLimit} profiles, ${plan.priceLine}`
+                  : `${plan.name}, one profile, ${plan.priceLine}`
             }
           />
+          <BillingRow account={account} picked={picked} />
         </ul>
       </section>
+
+      {canPublish(account) ? null : (
+        <p className="mt-6 max-w-[560px] text-[13px] leading-[1.4] text-ink-2">
+          Approved posts stay where they are while billing is stopped. They
+          publish at the times they already hold as soon as a plan is running.
+        </p>
+      )}
 
       <section className="mt-8 max-w-[760px]">
         <h2 className="text-[13px] font-medium text-ink-2">
@@ -193,6 +262,55 @@ export async function SettingsBody({ linked }: { linked?: string }) {
       </p>
     </>
   );
+}
+
+/**
+ * The one row with a button in it. Which button depends on a column rather
+ * than on a screen: an account with a Stripe customer manages its subscription
+ * in the portal, and one without starts the plan it picked on the way in.
+ *
+ * Stripe hosts both destinations, which is why cancelling, upgrading and
+ * updating a card are three flows this repo does not implement.
+ */
+function BillingRow({
+  account,
+  picked,
+}: {
+  account: Account;
+  picked: Plan;
+}) {
+  const managing = canManageBilling(account);
+
+  return (
+    <li className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-b border-hairline py-[14px]">
+      <span className="text-[13px] font-medium text-ink-2">Billing</span>
+      <span className="flex flex-wrap items-baseline justify-end gap-x-4 gap-y-2 text-right">
+        <span className="num text-[15px]">{billingLine(account)}</span>
+        <form
+          action={
+            managing ? manageBilling : startPlanCheckout.bind(null, picked.slug)
+          }
+        >
+          <button
+            type="submit"
+            className="shrink-0 text-[13px] text-ink-2 underline underline-offset-2"
+          >
+            {managing ? "Manage billing" : picked.cta}
+          </button>
+        </form>
+      </span>
+    </li>
+  );
+}
+
+/**
+ * The plan the visitor clicked on the way in, which the sign in page wrote to
+ * a cookie so it would survive the trip through LinkedIn. Falls back to the
+ * plan the account is already on, which for a new account is the entry plan.
+ */
+async function pickedPlan(current: Plan): Promise<Plan> {
+  const chosen = (await cookies()).get(PLAN_COOKIE)?.value;
+  return chosen ? planFromSlug(chosen) : current;
 }
 
 function Row({ label, value }: { label: string; value: string }) {

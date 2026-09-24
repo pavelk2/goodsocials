@@ -12,9 +12,9 @@ export const metadata = { title: "Settings" };
 export default async function SettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ linked?: string }>;
+  searchParams: Promise<{ linked?: string; billing?: string; why?: string }>;
 }) {
-  const linked = (await searchParams).linked;
+  const { linked, billing, why } = await searchParams;
 
   return (
     <main className="px-6 py-10">
@@ -25,7 +25,7 @@ export default async function SettingsPage({
         </Link>
       </header>
 
-      <SettingsBody linked={linked} />
+      <SettingsBody linked={linked} billing={billing} why={why} />
     </main>
   );
 }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { signOutAction } from "@/app/actions";
+import { manageBilling } from "@/app/billing/actions";
 
 /**
  * One row shape for every item in the panel, so the three read as one list.
@@ -103,12 +104,16 @@ export function UserMenu({
             Profile
           </Link>
 
-          {/* Checkout is not wired yet, so this goes to the only place the
-              three prices are written. Replace the href when Stripe lands. */}
-          <Link href="/#pricing" className={ITEM} onClick={() => setOpen(false)}>
-            <span>Change plan</span>
-            <span className="num shrink-0 text-ink-2">{planName}</span>
-          </Link>
+          {/* Stripe's portal, where the plan is changed, the card is updated
+              and the subscription is cancelled. An account that has never
+              checked out is sent to the prices instead, which the action
+              decides from a column rather than from this component. */}
+          <form action={manageBilling}>
+            <button type="submit" className={ITEM}>
+              <span>Change plan</span>
+              <span className="num shrink-0 text-ink-2">{planName}</span>
+            </button>
+          </form>
 
           <div className="my-[5px] border-t border-hairline" />
 
