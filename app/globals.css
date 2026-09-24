@@ -408,3 +408,84 @@ body:has(dialog[open]) {
   border-radius: var(--r-pill);
   background: var(--accent-panel);
 }
+
+/* ---------------------------------------------------------------------------
+   The hero on footage. DESIGN.md section 8.
+
+   One screen of video, then the page. Everything in this block exists because
+   type over a moving frame cannot borrow the page's tokens: paper and ink both
+   invert with the reader's system theme and the footage is dark either way, so
+   the hero pins its own two colours and spends the plum where it always does,
+   on the control that starts a board.
+   ------------------------------------------------------------------------ */
+
+/* The label over footage. Same shape as .eyebrow, on a ground it can have. */
+.eyebrow-video {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  border-radius: var(--r-pill);
+  padding: 7px 16px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* The nav links while the bar is still on the footage. */
+.nav-link-video {
+  transition: color 150ms var(--ease);
+}
+
+@media (hover: hover) {
+  .nav-link-video:hover {
+    color: #ffffff;
+  }
+}
+
+/* The hero's secondary. It separates from the footage by hairline the way
+   .btn-outline separates from paper, and the blur is what keeps it readable
+   when a swimmer drifts under it. */
+.btn-glass {
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
+  transition:
+    background 180ms var(--ease),
+    border-color 180ms var(--ease),
+    transform 180ms var(--ease);
+}
+
+@media (hover: hover) {
+  .btn-glass:hover {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.6);
+  }
+}
+
+.btn-glass:active {
+  transform: scale(0.985);
+}
+
+/* The one moving thing on the page that is not the footage. It says the screen
+   continues, which a full-bleed hero has to say out loud, and it is 6px of
+   travel rather than a bounce. Reduced motion stops it with the global rule at
+   the top of this file. */
+.scroll-cue {
+  animation: cue 2.4s var(--ease) infinite;
+}
+
+@keyframes cue {
+  0%,
+  72%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.55;
+  }
+  86% {
+    transform: translateY(6px);
+    opacity: 0.9;
+  }
+}

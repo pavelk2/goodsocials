@@ -1,5 +1,11 @@
 /**
- * Three reactions parked around the hero. Static: no float, no drift, no
+ * Three reactions parked in the white space beside the opening claim.
+ *
+ * They were in the hero until the hero became a screen of footage. DESIGN.md
+ * section 8: a white chip over moving water is a sticker, and the first screen
+ * now holds one idea and one button. The claim under it is ragged left and
+ * leaves the right half of the line empty, which is the shape they were drawn
+ * for in the first place. Static: no float, no drift, no
  * hover. DESIGN.md section 5 bans animation that is there to be noticed, and a
  * reaction that moves is a reaction that is performing.
  *
@@ -25,7 +31,7 @@ const CHIPS = [
     key: "thumb",
     glyph: "👍",
     label: "Like",
-    className: "left-0 top-[148px] rotate-[-8deg] xl:left-[22px]",
+    className: "right-[196px] top-[92px] rotate-[-8deg]",
     size: 64,
   },
   {
@@ -34,14 +40,14 @@ const CHIPS = [
        black heart glyph instead of the red emoji. */
     glyph: "❤️",
     label: "Love",
-    className: "right-0 top-[92px] rotate-[10deg] xl:right-[16px]",
+    className: "right-[20px] top-[160px] rotate-[10deg]",
     size: 70,
   },
   {
     key: "laugh",
     glyph: "😂",
     label: "Funny",
-    className: "right-[108px] top-[402px] rotate-[-6deg] xl:right-[150px]",
+    className: "right-[128px] top-[276px] rotate-[-6deg]",
     size: 62,
   },
 ];

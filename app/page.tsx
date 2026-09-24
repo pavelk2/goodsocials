@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { SiteNav } from "@/components/marketing/site-nav";
+import { HeroVideo } from "@/components/marketing/hero-video";
+import { Logo } from "@/components/marketing/logo";
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { Eyebrow, SectionHead } from "@/components/marketing/section-head";
 import { Streak, StepDots } from "@/components/marketing/streak";
@@ -138,10 +140,17 @@ const PERMISSIONS = [
   },
 ];
 
+/**
+ * The hero's pair, on footage. The primary is the same plum it is everywhere
+ * else: plum means now, and nothing is more now than a board that has not been
+ * started. The secondary cannot be .btn-outline here, because a hairline in
+ * --hairline over dark water is not a border, so it separates by a white edge
+ * and a blur instead.
+ */
 const heroPrimary =
   "pill btn-accent num inline-block w-full text-balance px-7 py-[14px] text-center text-[16px] leading-[1.3] sm:w-auto";
 const heroSecondary =
-  "pill btn-outline inline-block w-full border border-hairline bg-surface px-7 py-[14px] text-center text-[16px] sm:w-auto";
+  "pill btn-glass inline-block w-full px-7 py-[14px] text-center text-[16px] sm:w-auto";
 
 /** The one mark in a feature list. Plum is spent on time, so this is ink. */
 function Check() {
@@ -169,33 +178,42 @@ function Check() {
 export default function Home() {
   return (
     <>
-      <SiteNav />
+      <SiteNav overlay />
       <main className="bg-paper">
-        {/* Hero. Centred, and the only headline on the site that colours a
-            word. The word is daily, which is the thing being sold, and the dot
-            in front of it is today's cell at headline size. */}
-        <section className={`${wrap} relative pt-[84px] pb-[64px] text-center`}>
-          <Reactions />
-          <Eyebrow>AI social media manager for LinkedIn</Eyebrow>
+        {/* The hero is one screen of footage and nothing else. DESIGN.md
+            section 8: the page a stranger lands on has to say what this is in
+            one breath, and the argument, the board and the prices all live a
+            scroll below where a reader who is still deciding will not meet
+            them. The type is pinned white because the ground is dark in both
+            system themes, and the plum stays where it always is, on the one
+            control that starts a board. */}
+        <section
+          className="relative isolate -mt-[var(--nav-h)] flex min-h-[600px] flex-col items-center justify-center px-6 pt-[var(--nav-h)] text-center"
+          style={{ height: "100svh", color: "#ffffff" }}
+        >
+          <HeroVideo />
 
-          <h1 className="mx-auto mt-8 max-w-[17ch] text-[clamp(44px,7.4vw,86px)] font-semibold leading-[1.02] tracking-[-0.045em]">
+          {/* The mark at the size it was drawn for. Pinned to the white tile
+              rather than the token pair, because the footage under it is dark
+              whatever the reader's system is set to. */}
+          <Logo size={74} tile="#ffffff" cell="#0c0c0d" />
+
+          <span className="eyebrow-video mt-8">
+            AI social media manager for LinkedIn
+          </span>
+
+          <h1 className="mx-auto mt-6 max-w-[16ch] text-balance text-[clamp(40px,6.6vw,78px)] font-semibold leading-[1.02] tracking-[-0.045em]">
             Post on LinkedIn{" "}
-            {/* No dot in front of the word. Two passes tried one, as today's
-                cell at headline size, and at this scale the word-space is wide
-                enough that it always lands mid-gap and reads as a middot
-                separating two words. The plum is the whole signal. */}
-            <span className="whitespace-nowrap" style={{ color: "var(--accent-text)" }}>
+            {/* The one coloured word on the site. On footage the plum has to
+                be the lighter one, the same swap --accent-text makes in dark
+                mode, because #a61e4d on a dark frame is 2.3:1. */}
+            <span className="whitespace-nowrap" style={{ color: "var(--accent-panel)" }}>
               daily
             </span>{" "}
             without writing any of it.
           </h1>
 
-          <p className="mx-auto mt-7 max-w-[56ch] text-balance text-[clamp(17px,1.5vw,21px)] leading-[1.45] text-ink-2">
-            An agent writes the posts. You approve them on a board. It publishes
-            at the time you set.
-          </p>
-
-          <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <div className="mt-9 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
             <Link
               href={`/signin?plan=${DEFAULT_PLAN.slug}`}
               className={heroPrimary}
@@ -206,11 +224,57 @@ export default function Home() {
               See how it works
             </Link>
           </div>
-          <p className="num mt-4 font-mono text-[12px] text-ink-2">
+          <p
+            className="num mt-4 font-mono text-[12px]"
+            style={{ color: "rgba(255, 255, 255, 0.8)" }}
+          >
             {TRIAL_LINE}
           </p>
 
-          <ul className="mt-14 flex flex-wrap items-center justify-center gap-x-10 gap-y-3 text-[14px] text-ink-2">
+          {/* A full screen of video says nothing about what is under it, so
+              the hero has to. One arrow, 6px of travel, and it is a real link
+              to the first section rather than a decoration. */}
+          <Link
+            href="#how"
+            aria-label="Skip to how it works"
+            className="absolute bottom-8 left-1/2 -translate-x-1/2"
+            style={{ color: "rgba(255, 255, 255, 0.8)" }}
+          >
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 22 22"
+              fill="none"
+              aria-hidden="true"
+              className="scroll-cue"
+            >
+              <path
+                d="M5.5 8.5L11 14l5.5-5.5"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </Link>
+        </section>
+
+        {/* The page proper starts here, and it starts the way the rest of the
+            site reads: ragged left, black first clause, grey remainder. The
+            hero sold the idea in six words; this is the first screen that owes
+            the reader a mechanism. */}
+        <section className={`${wrap} relative pt-[104px] pb-[56px]`}>
+          <Reactions />
+          <h2 className="max-w-[20ch] text-[clamp(34px,4.6vw,62px)] font-semibold leading-[1.04] tracking-[-0.04em]">
+            An agent writes the posts. You approve them on a board.
+          </h2>
+          <p className="mt-6 max-w-[56ch] text-[clamp(17px,1.5vw,21px)] leading-[1.45] text-ink-2">
+            It publishes at the time you set, close to daily, and every
+            correction you make sticks to the card after it. Five minutes a
+            week, and the month fills in.
+          </p>
+
+          <ul className="mt-12 flex flex-wrap items-center gap-x-10 gap-y-3 text-[14px] text-ink-2">
             {PROOF.map((fact) => (
               <li key={fact} className="num">
                 {fact}
