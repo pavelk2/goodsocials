@@ -350,7 +350,10 @@ function BillingRow({
   const managing = canManageBilling(account);
 
   return (
-    <li className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-b border-hairline py-[14px]">
+    <li
+      id="billing"
+      className="scroll-mt-[calc(var(--nav-h)+24px)] flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-b border-hairline py-[14px]"
+    >
       <span className="text-[13px] font-medium text-ink-2">Billing</span>
       <span className="flex flex-wrap items-baseline justify-end gap-x-4 gap-y-2 text-right">
         <span className="num text-[15px]">{billingLine(account)}</span>
