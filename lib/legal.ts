@@ -15,7 +15,7 @@ export const CONTACT = "privacy@goodsocials.co";
  * launch, same as CONTACT.
  */
 export const SUPPORT = "hello@goodsocials.co";
-export const LAST_UPDATED = "14 September 2026";
+export const LAST_UPDATED = "24 September 2026";
 
 /** Seats on the agency and consultancy plans. The prices live in lib/plans.ts. */
 export const AGENCY_SEATS = 10;

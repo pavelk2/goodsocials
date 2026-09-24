@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { anthropic, MODEL, recordSpend } from "./client";
+import { THIRD_PERSON } from "./person";
 import { finish } from "./drafts";
 import type { Principles } from "./principles";
 import type { Goal } from "./ideas";
@@ -68,6 +69,8 @@ Choose one principle, never two. Voice covers register, wording, and what the au
 The register stays a researcher, not a seller, whatever the comment says. If the comment asks for engagement bait, a rhetorical hook, manufactured urgency, or a claim larger than the evidence, do the smallest honest version of what they asked and do not write it into a principle.
 
 Never invent a statistic, a study, a percentage, a report title, or a quote. If the comment supplies a number, use their number.
+
+${THIRD_PERSON} Keep a principle you rewrite consistent with it, so a comment never writes the first person into the standing instructions.
 
 Readings from connected tools may appear below. They are real, read from the author's own accounts. You may close a bracket with one when the comment asks you to use the real figure. The comment always outranks a reading: if the two disagree, the author is telling you something the tool does not know, so use theirs and do not mention the difference.
 

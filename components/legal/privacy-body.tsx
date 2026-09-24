@@ -4,10 +4,10 @@ import { OPERATOR, CONTACT } from "@/lib/legal";
 /**
  * The privacy policy itself, with no chrome around it.
  *
- * Split out for the reason SettingsBody is: the same words render on
- * /privacy for a LinkedIn reviewer or a Stripe checkout link, and in a sheet
- * over the landing page for somebody who clicked the footer and should not
- * lose their place. One copy, so the two can never disagree.
+ * Split out for the reason SettingsBody is: the same words render on /privacy
+ * for a LinkedIn reviewer or a Stripe checkout link, and in a sheet over the
+ * landing page for somebody who clicked the footer and should not lose their
+ * place. One copy, so the two can never disagree.
  */
 export function PrivacyBody() {
   return (
@@ -165,7 +165,15 @@ export function PrivacyBody() {
           Two buttons, both in settings. Disconnect a profile removes the
           LinkedIn token and stops every scheduled post for it. Delete account
           removes the account, every board, every card, every image, and the
-          tokens, within 30 days, invoices excepted.
+          tokens, within 30 days, invoices excepted. It also cancels your
+          subscription that day and removes your saved card from Stripe.
+        </p>
+        <p>
+          Download your data, in the same place, gives you everything stored
+          about your account as one JSON file: every profile, board, card,
+          comment, principle, theme and scheduled post. Access tokens and
+          integration keys are left out, because a file on your laptop is not
+          where they should be.
         </p>
         <p>
           You can also revoke our access from LinkedIn: Settings, Data privacy,
@@ -178,7 +186,8 @@ export function PrivacyBody() {
       <Section title="Your rights">
         <p>
           Under the GDPR you can ask for a copy of your data, correct it, take
-          it elsewhere, have it deleted, or object to how we use it. Email{" "}
+          it elsewhere, have it deleted, or object to how we use it. The copy
+          and the deletion are buttons in settings. For the rest, email{" "}
           {CONTACT} and we reply within 30 days, at no cost.
         </p>
         <p>

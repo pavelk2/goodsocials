@@ -7,10 +7,10 @@ import { loadViewer } from "@/lib/viewer";
  * The chrome over every signed in screen. Mark and wordmark left, whoever is
  * signed in right, hairline under it, and nothing else.
  *
- * It carries account level things only. What this board is about stays on the
- * board's own header a line below: runway, brand principles, settings. A user
- * approving a week of posts reads down, so the account sits above the work and
- * never inside it.
+ * It carries who is signed in, what they pay for, and the way to settings,
+ * billing and out. What this board is about stays on the board's own header a
+ * line below: runway, brand principles. A user approving a week of posts reads
+ * down, so the account sits above the work and never inside it.
  *
  * Same height, same hairline and same backdrop as the marketing nav, because
  * signing in should not feel like arriving at a different product.
@@ -34,7 +34,9 @@ export async function AppHeader() {
             name={viewer.name}
             email={viewer.email}
             avatarUrl={viewer.avatarUrl}
-            planName={viewer.plan.name}
+            planLabel={viewer.planLabel}
+            billing={viewer.billing}
+            managing={viewer.managing}
           />
         ) : null}
       </div>

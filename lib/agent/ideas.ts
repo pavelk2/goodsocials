@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { anthropic, MODEL, recordSpend } from "./client";
+import { THIRD_PERSON } from "./person";
 import type { Principles } from "./principles";
 import { KIND_LABEL, type PostKind } from "@/lib/post-kind";
 import { factsBrief, type FactRow } from "@/lib/integrations/facts";
@@ -60,7 +61,7 @@ const KIND_BRIEF: Record<PostKind, string> = {
     "Something the author found out and can point to. A decision and what it cost, a number from their own data nobody else publishes, or something they measured that contradicted what they expected. Not a summary of received wisdom.",
 };
 
-export type Goal = "interesting" | "followers" | "traffic";
+export type Goal = "interesting" | "followers" | "traffic" | "leads" | "engagement";
 
 /**
  * The goal changes what gets written, not a setting appended to the end of it.
@@ -72,12 +73,21 @@ const GOAL_BRIEF: Record<Goal, string> = {
     "The goal is growing the audience. Favour findings a stranger can follow without context, stated plainly enough that a reader could disagree with the evidence rather than the tone. Broader than the day to day, still specific enough to be checkable.",
   traffic:
     "The goal is sending readers to the website. Each idea should name something specific the reader would find there, usually the fuller version of the finding the post reports. The post has to stand on its own whether or not anyone clicks, and it is never an advert.",
+  engagement:
+    "The goal is comments and reactions. Favour ideas people in the field hold a view on: a claim with evidence behind it that a practitioner could agree or disagree with from their own experience, or a comparison where readers will have a favourite. Specific enough that a reply can add a case, never a hot take made to provoke.",
+  leads:
+    "The goal is that the right buyer thinks of this person the week they have the problem this business solves. Favour ideas that show the work: a problem a customer brought, how it was diagnosed, what it cost them before and after. Each idea should make it obvious who the post is for without naming a product. Never a pitch, never a discount.",
 };
 
 const IdeasSchema = z.object({
   ideas: z
     .array(
       z.object({
+        title: z
+          .string()
+          .describe(
+            "The idea in six words or fewer, sentence case, no full stop. A label a member can scan in a list, naming the subject rather than the claim.",
+          ),
         idea: z
           .string()
           .describe(
@@ -112,7 +122,7 @@ Every idea belongs to one of the themes you were given. Spread them: no theme ta
 
 The register is a researcher, not a seller. Each idea reports something the author found out and can point to. It informs; it does not persuade, and it never manipulates. No engagement bait, no rhetorical question used as a hook, no manufactured urgency, no claim larger than the evidence behind it.
 
-An idea is the specific thing a post asserts. "Why hiring is hard" is not an idea. "We rejected 40 candidates before changing the job description, and the change was removing the years-of-experience line" is an idea.
+An idea is the specific thing a post asserts. "Why hiring is hard" is not an idea. "Acme rejected 40 candidates before changing the job description, and the change was removing the years-of-experience line" is an idea.
 
 Evidence rules, and they are not negotiable. This is published under a real person's name.
 
@@ -129,6 +139,8 @@ Readings change that calculation. When readings from connected tools appear belo
 Seven ideas, seven different shapes. Do not write seven variations of one thought.
 
 Do not write the posts. Do not write hooks. Do not number them.
+
+${THIRD_PERSON} The ideas are the start of the posts, so they follow the same rule.
 
 Never use em dashes. Never use "seamless", "leverage", "unlock", "supercharge", "effortless", or "game-changer". Never use "actually", "really", "simply", "just", or "basically". Never write "this is not X, this is Y".`;
 
@@ -151,9 +163,15 @@ export async function generateIdeas(opts: {
    * precondition for a board filling up.
    */
   facts?: FactRow[];
+  /**
+   * Ideas this board already holds or turned down. Empty on the first plan.
+   * On every plan after it, this is what stops week four reading like week one.
+   */
+  avoid?: string[];
   profileId: string;
 }): Promise<GeneratedIdea[]> {
   const readings = factsBrief(opts.facts ?? []);
+  const avoid = (opts.avoid ?? []).map((idea) => `- ${idea.slice(0, 240)}`);
 
   const response = await anthropic().messages.parse({
     model: MODEL,
@@ -178,12 +196,25 @@ export async function generateIdeas(opts: {
           // Readings before the slate, so the planner knows which receipts it
           // already has a number for before it is told to write two of them.
           ...(readings ? [readings, ""] : []),
+          ...(avoid.length > 0
+            ? [
+                "Already on the board or turned down. Do not repeat any of these or write a close variation:",
+                ...avoid,
+                "",
+              ]
+            : []),
           "The slate. One idea per slot, in this order:",
           slate(),
-          "",
-          `Website: ${opts.siteUrl}`,
-          "What the business does, from its own page:",
-          opts.siteText.slice(0, 6000),
+          // A board whose site could not be read this time still plans from
+          // its principles and themes, which were written from that site.
+          ...(opts.siteText.trim()
+            ? [
+                "",
+                `Website: ${opts.siteUrl}`,
+                "What the business does, from its own page:",
+                opts.siteText.slice(0, 6000),
+              ]
+            : []),
         ].join("\n"),
       },
     ],
@@ -205,6 +236,7 @@ export async function generateIdeas(opts: {
   // a card labelled slightly wrong.
   return response.parsed_output.ideas.map((idea, i) => ({
     ...idea,
+    title: idea.title.trim().replace(/\.$/, ""),
     kind: KIND_MIX[i] ?? idea.kind,
     needs: idea.needs?.trim() ? idea.needs.trim() : null,
   }));

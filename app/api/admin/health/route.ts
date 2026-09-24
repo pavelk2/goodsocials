@@ -30,17 +30,27 @@ const REQUIRED = [
   "CRON_SECRET",
 ] as const;
 
+/**
+ * Every table db/schema.ts declares. Kept complete on purpose: this endpoint
+ * exists to answer "has the migration run", and a list that is missing the
+ * newest tables answers yes while the screens that need them throw. The board
+ * reads `source` on every render to draw the header glyphs, so a missing one
+ * there is not a broken settings page, it is a broken board.
+ */
 const EXPECTED_TABLES = [
   "account",
   "board",
   "brand_principle",
   "card",
   "card_action",
+  "fact",
   "image_quota",
   "linkedin_call_budget",
   "linkedin_connection",
+  "past_post",
   "profile",
   "scheduled_post",
+  "source",
   "theme",
 ];
 

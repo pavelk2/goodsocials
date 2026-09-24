@@ -8,6 +8,7 @@ import {
   timestamp,
   uniqueIndex,
   index,
+  jsonb,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -53,6 +54,8 @@ export const boardGoal = pgEnum("board_goal", [
   "interesting",
   "followers",
   "traffic",
+  "leads",
+  "engagement",
 ]);
 export const cardState = pgEnum("card_state", [
   "idea",
@@ -198,6 +201,13 @@ export const board = pgTable("board", {
    * what lets the board ask the browser once instead of assuming UTC forever.
    */
   timezone: text("timezone"),
+  /**
+   * Where this board is in the onboarding funnel, and what the member answered
+   * on the way. Null on every board created before the funnel, which is what
+   * keeps them out of it. Shape and meaning live in lib/funnel.ts, the only
+   * file that reads or writes it.
+   */
+  funnel: jsonb("funnel"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -222,6 +232,12 @@ export const card = pgTable(
       onDelete: "set null",
     }),
     idea: text("idea").notNull(),
+    /**
+     * The idea in under seven words, for lists a member scans rather than
+     * reads, like the picker after payment. The draft still works from `idea`.
+     * Null on cards written before it existed and on ideas the member typed.
+     */
+    title: text("title"),
     /**
      * The one number only the author has, named in their own words. Written on
      * receipt cards, where the post is worthless without it and inventing it

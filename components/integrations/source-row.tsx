@@ -6,6 +6,7 @@ import { SourceIcon } from "@/components/integrations/source-icon";
 import { KIND_LABEL } from "@/lib/post-kind";
 import type { SourceDefinition } from "@/lib/integrations/types";
 import type { SourceResult } from "@/app/integrations/actions";
+import { Working } from "@/components/ui/working";
 
 /**
  * One integration, as a row.
@@ -130,7 +131,7 @@ export function SourceRow({
                   onClick={() => run(() => refresh(definition.kind))}
                   className="btn-quiet text-[13px] font-medium text-ink-2 disabled:opacity-50"
                 >
-                  {pending ? "Working" : "Read now"}
+                  {pending ? <Working label="Reading" /> : "Read now"}
                 </button>
                 <button
                   type="button"
@@ -365,7 +366,7 @@ function ConnectForm({
             disabled={pending}
             className="btn-ink rounded-[14px] bg-ink px-5 py-[10px] text-[15px] font-semibold text-paper disabled:opacity-50"
           >
-            {pending ? "Checking the key" : `Connect ${definition.name}`}
+            {pending ? <Working label="Checking the key" /> : `Connect ${definition.name}`}
           </button>
           <span className="text-[13px] text-ink-3">
             We read it once before saving, so a wrong key fails here.

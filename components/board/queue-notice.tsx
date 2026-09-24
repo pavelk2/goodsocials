@@ -63,7 +63,10 @@ function noticeFor(
   // subscription is what stopped the queue costs them a reconnect and changes
   // nothing, and they find out from the client whose feed stayed quiet.
   if (billing) {
-    return { text: billing, action: { href: "/settings", label: "Billing" } };
+    // Named for where it goes. The billing row is in Settings, and a link
+    // called Billing that opens a sheet called Settings is a second name for
+    // one screen.
+    return { text: billing, action: { href: "/settings", label: "Settings" } };
   }
 
   // Our own sign in page, not the Auth.js route. It names the four scopes and

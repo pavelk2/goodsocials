@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "GoodSocials",
   description:
-    "AI social media manager for LinkedIn. Writes high quality content, you approve it in a kanban board, it schedules so you post regularly, close to daily.",
+    "Hire a social media manager for LinkedIn for $100 instead of $3,000. Publishes for you 5 times a week after your approval.",
 };
 
 /**
