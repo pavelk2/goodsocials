@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CardActions } from "./card-actions";
 import { ImageLightbox } from "./image-lightbox";
+import { PostText } from "@/components/post-text";
 import { COLUMN_LABEL, type Column } from "@/lib/board";
 
 const IMAGE_ALT = "The image generated for this post";
@@ -106,7 +107,7 @@ export function CardModal({
         </div>
 
         <p className="mt-4 whitespace-pre-line text-[17px] leading-[1.5] text-ink">
-          {body}
+          <PostText text={body} />
         </p>
 
         {imageUrl ? (

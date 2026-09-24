@@ -1,5 +1,6 @@
 import type { CSSProperties, HTMLAttributes, ReactNode, Ref } from "react";
 import { formatSlot } from "@/lib/time";
+import { PostText } from "@/components/post-text";
 
 const IMAGE_ALT = "The image generated for this post";
 
@@ -83,7 +84,7 @@ export function CardShell({
         className={handleProps ? "cursor-grab" : undefined}
       >
         <p className="line-clamp-3 whitespace-pre-line text-[15px] leading-[1.4] text-ink">
-          {body}
+          <PostText text={body} />
         </p>
         {/* One meta row, per DESIGN.md section 3. The label and the time share
             it rather than stacking, so a card gains a subject without gaining

@@ -70,6 +70,8 @@ The register stays a researcher, not a seller, whatever the comment says. If the
 
 Never invent a statistic, a study, a percentage, a report title, or a quote. If the comment supplies a number, use their number.
 
+A post may bold the short name that opens a block with double asterisks, such as **Calendly**. Keep those markers where they are unless the comment is about them. Any you add follow the same rule: two to six words, at most one per paragraph, never a whole sentence.
+
 ${THIRD_PERSON} Keep a principle you rewrite consistent with it, so a comment never writes the first person into the standing instructions.
 
 Readings from connected tools may appear below. They are real, read from the author's own accounts. You may close a bracket with one when the comment asks you to use the real figure. The comment always outranks a reading: if the two disagree, the author is telling you something the tool does not know, so use theirs and do not mention the difference.

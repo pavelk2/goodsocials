@@ -33,7 +33,7 @@ const MAX_COMMENTARY = 3000;
  */
 const KIND_BRIEF: Record<PostKind, string> = {
   framework:
-    "Build it as a reference. Name the method in the first sentence, then the steps or parts, each one on its own line with a short name and a sentence saying what it is. Three to six of them. No narrative opener, no story about how you discovered it, no numbered lessons. It ends on the last step. The reader should be able to skim it, save it, and use it a month from now without the context.",
+    "Build it as a reference. Name the method in the first sentence, then the steps or parts, each one on its own line with a short bold name and a sentence saying what it is. Three to six of them. No narrative opener, no story about how you discovered it, no numbered lessons. It ends on the last step. The reader should be able to skim it, save it, and use it a month from now without the context.",
   data:
     "Lead with the finding and name where it came from in the same breath: the organisation, and the report or the year. Then exactly three things it means for the reader, each one a short paragraph of its own, each one a claim the finding supports rather than a restatement of it. If the source was not given to you, do not name one. End on the third takeaway.",
   receipt:
@@ -73,6 +73,8 @@ Never invent a statistic, a study, a percentage, a survey, a report title, a cus
 If the idea calls for a number that only the author has, write the sentence around the number and mark the gap in square brackets, for example [your number here], and keep it to one bracket in the whole post. Everything else must be true as written or general enough to be uncontroversial.
 
 Readings are the exception to the bracket. When readings from connected tools appear below, they were read from the author's own accounts and they are already true. Use the figure exactly as it is written, with the period it covers, and never write a bracket for a number that is sitting in front of you. Do not round one for effect, do not convert a currency, and do not put a second number beside one that was not given to you.
+
+Bold, so a reader skimming the feed sees the structure. Wrap the short name that opens a block in double asterisks, for example **Calendly** or **Avoid double bookings**: a company, a step, a job, a year. Two to six words, at most one per paragraph, never a whole sentence, and nothing else in the post uses asterisks. A post with no blocks has no bold. LinkedIn shows these as bold letters that search cannot read, which is why they stay short.
 
 Never refer to an attached chart, image, graph, table, or screenshot. The picture beside a post is abstract and it is not always there, so a post that says "see the chart below" is a post that is wrong in the feed.
 
@@ -157,14 +159,29 @@ export async function generateDraft(opts: {
   return finish(response.parsed_output.post, opts.goal);
 }
 
-const MARKET_BRIEF = `Build it as a map of the field. One opening sentence naming the field and that this is what customers say about the companies in it. Then one short block per company, the author's own company included, named by its name and written about in the same plain register as the others: the name, what it offers, what customers like, what they dislike, and where that was said. A company listed without opinions gets what it offers and nothing else. Never write that reviews are missing, thin or hard to find, and never mention searching: the list is what was read, not what was looked for. Report the reviews as reviews, never as your own verdict, and never rank the companies. End on the last company, or on one sentence saying what the list shows about the field as a whole. No brackets, because nothing here needs a number from the author.`;
+const MARKET_BRIEF = `Build it as a map of the field. One opening sentence naming the field and that this is what customers say about the companies in it. Then one short block per company, the author's own company included, named by its name and written about in the same plain register as the others: the name in bold, what it offers, what customers like, what they dislike, and where that was said. A company listed without opinions gets what it offers and nothing else. Never write that reviews are missing, thin or hard to find, and never mention searching: the list is what was read, not what was looked for. Report the reviews as reviews, never as your own verdict, and never rank the companies. End on the last company, or on one sentence saying what the list shows about the field as a whole. No brackets, because nothing here needs a number from the author.`;
 
 /**
  * The market map when too few reviews were read to compare: what each company
  * sells, from its own site. A post saying nobody reviewed Calendly would be
  * false, and the reader would know it.
  */
-const OFFERS_BRIEF = `Build it as a map of the field. One opening sentence naming the field and how many companies sell in it to these buyers. Then one short block per company, the author's own company included, named by its name and written about in the same plain register as the others: what it sells and to whom, as its own site puts it. Never say what customers think of any of them, never mention reviews, and never mention searching. Never rank the companies. End on one sentence saying where the companies differ most. No brackets, because nothing here needs a number from the author.`;
+const OFFERS_BRIEF = `Build it as a map of the field. One opening sentence naming the field and how many companies sell in it to these buyers. Then one short block per company, the author's own company included, named by its name and written about in the same plain register as the others: the name in bold, then what it sells and to whom, as its own site puts it. Never say what customers think of any of them, never mention reviews, and never mention searching. Never rank the companies. End on one sentence saying where the companies differ most. No brackets, because nothing here needs a number from the author.`;
+
+/**
+ * What the research opened, for the one sentence that tells the reader how
+ * much was read and where. Counted in code, so the number in the post is the
+ * number of pages, not the model's impression of it. Null when nothing was
+ * counted, which leaves the sentence out rather than guessing it.
+ */
+function readingLine(research: Research): string | null {
+  const read = research.read;
+  if (!read || read.pages < 3) return null;
+  return [
+    `What was read for this post: ${read.pages} public pages. The sites opened most often: ${read.sites.join(", ")}.`,
+    "Right after the opening sentence, say this in one plain sentence: the number of pages exactly as given, and the sites among those a reader would recognise as sources, such as review sites, forums and reference sites, named as people know them (G2, not g2.com). Leave out the companies' own sites. No judgement of the sources, no word like thorough or comprehensive. The sentence tells the reader where the post comes from.",
+  ].join("\n");
+}
 
 /** Reviewed companies below this, and the market map compares offers instead. */
 const MIN_REVIEWED = 2;
@@ -177,9 +194,9 @@ function marketBrief(research: Research): string {
   return research.companies.filter(reviewed).length >= MIN_REVIEWED ? MARKET_BRIEF : OFFERS_BRIEF;
 }
 
-const JOBS_BRIEF = `Build it as the jobs customers hire a product in this field to do. One opening sentence naming the field and that this is why people buy in it, as they said it themselves. Then one short block per job: the progress the customer wanted, what they used before where they said it, and where it was said. Write each job as a situation and an outcome, never as a feature, and never claim the author's product does any of them. Report what customers wrote as what customers wrote, never as your own verdict. End on the last job, or on one sentence saying which job comes up most often in what customers wrote. No brackets, because nothing here needs a number from the author.`;
+const JOBS_BRIEF = `Build it as the jobs customers hire a product in this field to do. One opening sentence naming the field and that this is why people buy in it, as they said it themselves. Then one short block per job: the job as a bold label of a few words, then the progress the customer wanted, what they used before where they said it, and where it was said. Write each job as a situation and an outcome, never as a feature, and never claim the author's product does any of them. Report what customers wrote as what customers wrote, never as your own verdict. End on the last job, or on one sentence saying which job comes up most often in what customers wrote. No brackets, because nothing here needs a number from the author.`;
 
-const HISTORY_BRIEF = `Build it as a short history of the field. One opening sentence naming the field and when it started. Then the moments in order, one short line each: when, what happened, and who did it. Use only the dates and names given, never add one, and never round a date to make it tidier. The author's company is part of the story only if it is in the list. End on where the field is now, in one sentence, without predicting where it goes next. No brackets, because nothing here needs a number from the author.`;
+const HISTORY_BRIEF = `Build it as a short history of the field. One opening sentence naming the field and when it started. Then the moments in order, one short line each: when, in bold, then what happened and who did it. Use only the dates and names given, never add one, and never round a date to make it tidier. The author's company is part of the story only if it is in the list. End on where the field is now, in one sentence, without predicting where it goes next. No brackets, because nothing here needs a number from the author.`;
 
 /** The idea behind each sample, as the card shows it. */
 export function sampleIdea(content: SampleContent, field: string): string {
@@ -270,6 +287,10 @@ export async function generateSamplePost(opts: {
 }): Promise<string> {
   const content = sampleContent(opts.content, opts.research);
   const facts = sampleFacts(content, opts.research);
+  const brief = content === "competitors" ? marketBrief(opts.research) : BRIEF[content];
+  // The offers map is written because the reviews were too thin to compare,
+  // and it never mentions reviews, so it never points at review sites either.
+  const read = brief === OFFERS_BRIEF ? null : readingLine(opts.research);
 
   const response = await anthropic().messages.parse({
     model: MODEL,
@@ -283,10 +304,11 @@ export async function generateSamplePost(opts: {
         content: [
           `Idea: ${sampleIdea(content, opts.research.field)}`,
           "",
-          `Shape. ${content === "competitors" ? marketBrief(opts.research) : BRIEF[content]}`,
+          `Shape. ${brief}`,
           "",
           facts,
           "",
+          ...(read ? [read, ""] : []),
           "Brand principles:",
           `Voice. ${opts.principles.voice}`,
           `Format. ${opts.principles.format}`,

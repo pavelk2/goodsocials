@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
 /**
- * The short white line across the top of a post's picture, drawn by us after
+ * The short white line across the middle of a post's picture, drawn by us after
  * the generator has finished.
  *
  * Drawn rather than prompted, because the image prompt forbids text for a
@@ -67,24 +67,32 @@ export async function drawHeadline(opts: {
         style: { position: "absolute", top: 0, left: 0, objectFit: "cover" },
       }),
       // A scrim under the words, so a white line stays readable over a white
-      // sky. Fades out by mid frame so the picture keeps its own light.
+      // sky. Darkest behind the line and gone by the edges, so the corners
+      // keep the picture's own light.
       el("div", {
         style: {
           position: "absolute",
           top: 0,
           left: 0,
           width: WIDTH,
-          height: HEIGHT * 0.5,
-          backgroundImage: "linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0))",
+          height: HEIGHT,
+          backgroundImage:
+            "radial-gradient(ellipse 70% 45% at 50% 50%, rgba(0,0,0,0.5), rgba(0,0,0,0))",
         },
       }),
       el("div", {
         style: {
           position: "absolute",
-          top: 64,
-          left: 72,
-          width: WIDTH * 0.78,
+          top: 0,
+          left: 0,
+          width: WIDTH,
+          height: HEIGHT,
           display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "0 120px",
+          textAlign: "center",
+          textWrap: "balance",
           color: "white",
           fontFamily: "Geist",
           fontWeight: 600,

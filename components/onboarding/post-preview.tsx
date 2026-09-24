@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PostText } from "@/components/post-text";
 
 /**
  * The sample post the way it will sit in a feed: author, text cut at the fold
@@ -50,7 +51,7 @@ export function PostPreview({
       </header>
 
       <div className="whitespace-pre-line px-5 pb-4 pt-3 text-[15px] leading-[1.45]">
-        {shown}
+        <PostText text={shown} />
         {folded ? (
           <>
             {"… "}
