@@ -85,6 +85,13 @@
       "when": 1790251727624,
       "tag": "0011_goal_engagement",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1790261712599,
+      "tag": "0012_card_quality",
+      "breakpoints": true
     }
   ]
 }

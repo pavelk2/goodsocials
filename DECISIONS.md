@@ -507,3 +507,29 @@ Changing the free days is then one edit in `lib/plans.ts` rather than three new 
 Rejected: prorating both ways on the spot.
 An immediate downgrade hands back money for a month already half used and drops the seats under an agency mid-week, and Stripe's portal does the scheduling for us.
 
+
+## Decided the quality gate
+
+**Every post passes a quality gate before it takes a slot.**
+Rejected: trusting the approval click, checking at publish time only.
+The member approves a draft in a 320px column between meetings, and an agency approves twelve people's weeks at once. The approval is a decision about the idea, not a proofread, so a bracket nobody filled or a number the model made up would publish under a client's name. The gate sits in `lib/cards.ts` where Approve, a drag and a calendar drop all ask for a slot, so there is no route into the queue around it.
+
+**Rules in code first, the editor only on what passes them.**
+Rejected: one model call that checks everything.
+A bracket, a long dash, a banned word or "we" is certain and free to find, and paying an editor to point at a bracket is waste. The editor in `lib/agent/review.ts` is told to hold only for failures a pattern cannot see: invented evidence, an unsupported claim about a named company, a post that says nothing, one that does not hold together, one that manipulates. About two cents a post against the 0.15 USD the draft costs.
+
+**It holds for failures, never for taste.**
+Rejected: a quality score with a threshold.
+A score invites tuning a number nobody can explain, and a gate that holds good posts is a gate the member learns to fight while the cadence slips. Each hold names the words at fault and carries the revise comment that fixes it, one press from the revise box.
+
+**The verdict is stored against a hash of the text, and a revise clears it.**
+Rejected: re-running the editor on every Schedule press.
+Pressing Schedule again on the same text returns the same answer, so asking until the editor relents is not a route around it. A revise comment is, on purpose: it clears the verdict and the editor reads the comment next time, so "the 40% is from our Q2 board report" overrules a hold on that number. The member is the approver; the gate makes sure they saw the problem.
+
+**An editor that cannot be reached schedules nothing.**
+Rejected: failing open.
+Holding a good post for a minute costs less than publishing a bad one on a client's feed.
+
+**The cron repeats only the rules that make a post broken.**
+Rejected: the full rule set at publish time, or none.
+Posts queued before the gate existed never passed it. A bracket, a cut-off post or a reference to a chart that is not there is wrong in the feed and is handed back to Ready to schedule with the reason. A banned word is not worth losing the day's slot over at 09:00, so the cron lets it through.

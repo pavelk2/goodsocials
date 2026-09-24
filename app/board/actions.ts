@@ -33,6 +33,14 @@ const KINDS = new Set(["voice", "visual", "format"]);
  * rewrote refresh together.
  */
 
+/**
+ * A held card was refused, and still changed: it now carries the reasons the
+ * quality gate gave, and the board has to redraw to show them.
+ */
+function changed(result: CardResult): boolean {
+  return result.ok || result.held === true;
+}
+
 /** Session plus the account and the profile it is looking at. */
 async function actor(): Promise<Actor | null> {
   const session = await auth();
@@ -45,7 +53,7 @@ export async function approve(cardId: string): Promise<CardResult> {
   if (!who) return { ok: false, error: "Sign in first." };
 
   const result = await approveCard(who, cardId);
-  if (result.ok) revalidatePath("/board");
+  if (changed(result)) revalidatePath("/board");
   return result;
 }
 
@@ -81,7 +89,7 @@ export async function move(
   }
 
   const result = await moveCard(who, cardId, target as Column);
-  if (result.ok) revalidatePath("/board");
+  if (changed(result)) revalidatePath("/board");
   return result;
 }
 
@@ -101,7 +109,7 @@ export async function scheduleOn(
   if (!isDayKey(day)) return { ok: false, error: "That is not a day." };
 
   const result = await scheduleCardOn(who, cardId, day);
-  if (result.ok) revalidatePath("/board");
+  if (changed(result)) revalidatePath("/board");
   return result;
 }
 

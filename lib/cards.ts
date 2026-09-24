@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, inArray, ne } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   board as boardTable,
@@ -13,6 +13,9 @@ import type { Actor } from "@/lib/profiles";
 import { generateDraft } from "@/lib/agent/drafts";
 import { generateImage } from "@/lib/agent/images";
 import { reviseCardBody } from "@/lib/agent/revise";
+import { reviewPost } from "@/lib/agent/review";
+import { checkPost, isVerdict, type QualityIssue, type QualityVerdict } from "@/lib/quality";
+import { textHash } from "@/lib/quality-hash";
 import { generateIdeas, type Goal } from "@/lib/agent/ideas";
 import { fetchSiteText } from "@/lib/agent/site";
 import { parseFunnel } from "@/lib/funnel-steps";
@@ -30,7 +33,11 @@ import { readFacts, type FactRow } from "@/lib/integrations/facts";
 
 export type CardResult =
   | { ok: true; message?: string }
-  | { ok: false; error: string };
+  /**
+   * `held` when the quality gate stopped the card. It is still a refusal, but
+   * the card changed: it now carries the reasons, so the board has to redraw.
+   */
+  | { ok: false; error: string; held?: boolean };
 
 type Loaded = {
   card: typeof cardTable.$inferSelect;
@@ -148,6 +155,12 @@ export async function approveCard(
     const text = card.draftText;
     if (!text) return { ok: false, error: "That card has no text to illustrate." };
 
+    // Before the picture, so a post that cannot be scheduled does not spend
+    // one of the 200. The verdict is cached on the text, so asking again at
+    // Schedule it costs nothing unless the text changed in between.
+    const stopped = await qualityGate(loaded);
+    if (stopped) return stopped;
+
     // A card dragged back from Image still has the picture it was given, and
     // nobody should pay for it twice to move it forward again.
     if (card.imageUrl) {
@@ -200,6 +213,9 @@ export async function approveCard(
   }
 
   if (card.state === "image") {
+    const stopped = await qualityGate(loaded);
+    if (stopped) return stopped;
+
     const slot = await schedule(
       card.id,
       profile.id,
@@ -211,6 +227,113 @@ export async function approveCard(
   }
 
   return { ok: false, error: "That card is already scheduled." };
+}
+
+/**
+ * The last thing between a draft and a slot. Two layers: the rules in
+ * lib/quality.ts, free and certain, then the editor in lib/agent/review.ts for
+ * what a pattern cannot see, which only runs on a post the rules passed. Null
+ * means the card may go on; anything else is the refusal to return.
+ *
+ * The verdict is written on the card against a hash of the text, so a held
+ * card says why on the board until somebody changes it, and a post that
+ * passed is never reviewed twice. Asking again with the same text returns the
+ * same answer: pressing Schedule until the editor relents is not a route
+ * around it. A revise comment is, because it clears the verdict and the next
+ * check reads the comment.
+ *
+ * If the editor cannot be reached nothing is scheduled. Holding a good post
+ * for a minute costs less than publishing a bad one under a client's name.
+ */
+async function qualityGate(loaded: Loaded): Promise<CardResult | null> {
+  const { card, profile, principles, facts } = loaded;
+  const text = card.draftText;
+  if (!text) return { ok: false, error: "That card has no text to publish." };
+
+  const hash = textHash(text);
+  if (isVerdict(card.quality) && card.quality.textHash === hash) {
+    return card.quality.passed ? null : held(card.quality.issues);
+  }
+
+  const db = getDb();
+  const queued = await db
+    .select({ text: cardTable.draftText })
+    .from(cardTable)
+    .where(
+      and(
+        eq(cardTable.boardId, card.boardId),
+        inArray(cardTable.state, ["scheduled", "posted"]),
+        ne(cardTable.id, card.id),
+      ),
+    );
+
+  let issues = checkPost(
+    text,
+    queued.flatMap((q) => (q.text ? [q.text] : [])),
+  );
+  const ruled = issues.length > 0;
+
+  if (!ruled) {
+    const comments = await db
+      .select({ comment: cardAction.comment })
+      .from(cardAction)
+      .where(and(eq(cardAction.cardId, card.id), eq(cardAction.action, "revise")))
+      .orderBy(asc(cardAction.createdAt));
+    try {
+      issues = await reviewPost({
+        post: text,
+        idea: card.idea,
+        kind: card.kind,
+        needs: card.needs,
+        comments: comments.flatMap((c) => (c.comment ? [c.comment] : [])),
+        facts,
+        principles,
+        profileId: profile.id,
+      });
+    } catch (cause) {
+      console.error("[cards] quality review failed:", cause);
+      return {
+        ok: false,
+        error: "The quality check did not run, so nothing was scheduled. Try again in a minute.",
+      };
+    }
+  }
+
+  const verdict: QualityVerdict = {
+    textHash: hash,
+    passed: issues.length === 0,
+    issues,
+    checkedAt: new Date().toISOString(),
+  };
+  await db
+    .update(cardTable)
+    .set({ quality: verdict })
+    .where(eq(cardTable.id, card.id));
+
+  // The hold rate is the number to watch: near zero means the gate is
+  // decoration, high means the drafts are the problem, not the gate.
+  console.log(
+    JSON.stringify({
+      event: "post_quality_checked",
+      profile_id: profile.id,
+      card_id: card.id,
+      passed: verdict.passed,
+      layer: ruled ? "rules" : "editor",
+      rules: issues.map((i) => i.rule),
+    }),
+  );
+
+  return verdict.passed ? null : held(issues);
+}
+
+function held(issues: QualityIssue[]): CardResult {
+  const more =
+    issues.length > 1 ? ` And ${issues.length - 1} more.` : "";
+  return {
+    ok: false,
+    held: true,
+    error: `Held back before scheduling. ${issues[0]?.problem ?? ""}${more} Open the card for the fix.`,
+  };
 }
 
 /**
@@ -290,6 +413,13 @@ export async function scheduleCardOn(
       ok: false,
       error: "Only a post with a picture can take a day. Approve it first.",
     };
+  }
+
+  // A card already in the queue passed on its way in and is only changing
+  // day. One arriving from Ready to schedule is asking for a slot.
+  if (card.state === "image") {
+    const stopped = await qualityGate(loaded);
+    if (stopped) return stopped;
   }
 
   const zone = boardZone(board.timezone);
@@ -373,6 +503,10 @@ export async function reviseCard(
         ? {
             draftText: revision.body,
             needs: filled ? null : card.needs,
+            // Always cleared, even when the text came back unchanged. A comment
+            // saying why a held post is right is how a member overrules the
+            // editor, and the next check reads that comment.
+            quality: null,
             updatedAt: new Date(),
           }
         : { idea: revision.body, updatedAt: new Date() },

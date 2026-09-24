@@ -23,6 +23,7 @@ import type {
   HistoryPost,
 } from "@/lib/calendar";
 import { cardLabel } from "@/lib/post-kind";
+import { heldIssues, type QualityIssue } from "@/lib/quality";
 import { formatTime, publishSlot } from "@/lib/time";
 import { PostText } from "@/components/post-text";
 import { Card } from "./card";
@@ -74,6 +75,8 @@ type RailCard = {
   body: string;
   label: string | null;
   imageUrl: string | null;
+  /** The quality gate's reasons, when it kept this post off every day. */
+  held: QualityIssue[] | null;
 };
 
 type Model = { weeks: CalendarDay[][]; rail: RailCard[] };
@@ -99,6 +102,7 @@ export function BoardCalendar({
     body: card.draftText ?? card.idea,
     label: labelOf(card),
     imageUrl: card.imageUrl,
+    held: heldIssues(card.quality),
   }));
 
   const [model, placeOptimistic] = useOptimistic(
@@ -551,6 +555,7 @@ function Rail({
               state="image"
               body={card.body}
               label={card.label}
+              held={card.held}
               imageUrl={card.imageUrl}
               timeZone={timeZone}
             />
@@ -604,6 +609,8 @@ function applyPlacement(
           body: fromDay.body,
           label: fromDay.label,
           imageUrl: fromDay.imageUrl,
+          // It passed the gate to get its day.
+          held: null,
         },
       ],
     };

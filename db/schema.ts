@@ -256,6 +256,12 @@ export const card = pgTable(
      */
     imageAlt: text("image_alt"),
     scheduledAt: timestamp("scheduled_at", { withTimezone: true }),
+    /**
+     * What the quality gate last decided about this card's text, keyed by a
+     * hash of it. Shape in lib/quality.ts. Null until the card first asks for a
+     * slot. A held card shows the reasons until the text changes.
+     */
+    quality: jsonb("quality"),
     postUrn: text("post_urn"),
     /** Ordering within a column only. Never the column itself. */
     position: integer("position").notNull().default(0),
