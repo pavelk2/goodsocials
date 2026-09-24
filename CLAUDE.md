@@ -82,11 +82,14 @@ grant. Probed with a deliberately wrong credential on 19 September 2026:
   `POST https://api.notion.com/v1/search` with `Notion-Version: 2022-06-28`,
   `GET https://plausible.io/api/v1/stats/aggregate`,
   `GET https://api.stripe.com/v1/customers`.
-- Not verified from a container, because it needs a real token: every GitHub
-  call, and every authenticated response body shape. The GitHub search
-  qualifiers (`type:pr is:merged merged:>=DATE`, `author-date:>=DATE`) are
-  written from the documentation and are the first thing to check when a
-  GitHub sync comes back empty.
+- The three GitHub search queries were run against a real account on 24
+  September 2026 and all three return what they claim. One was wrong: the
+  commit count needs `merge:false`, because without it GitHub counts the merge
+  commits it writes when a pull request is squashed, which read 227 where the
+  real figure was 60. Commit search also reads the default branch only, so work
+  still on a branch is not counted, which is the right answer for a post about
+  what shipped. Authenticated response body shapes past those three are still
+  unverified.
 - Stripe filters subscriptions by when they were **created**, not by when they
   ended, so churn is counted from `customer.subscription.deleted` events. Those
   are retained 30 days, which is exactly the window every adapter reads.
@@ -101,6 +104,8 @@ Text generation runs about 0.15 USD per finished post including revisions. Not a
 Images are the margin risk. Hard cap of 200 generated images per profile per month, counted in the database, count visible in settings. Regeneration attempts count against it. A user at the cap sees a clear message, never a silent failure.
 
 Facts are the third thing that can move cost, because they go into every ideas, draft and revision prompt. `lib/integrations/facts.ts` caps them at 24 readings and 2,600 characters and sorts Notion excerpts last so they are cut first. A source that starts returning forty rows cannot spend money.
+
+Readings also expire. `FACT_SHELF_LIFE_DAYS` in `lib/integrations/facts.ts` is seven days, and past it a reading is dropped from every prompt and the draft goes back to bracketing the gap. A failing sync keeps its readings so the settings screen can show what the source last said, but the prompt calls them true as of the date beside them, so a revoked key must not still be publishing August's MRR in October under somebody's own name.
 
 Log token and image spend per account so cost per customer is visible in PostHog from launch day.
 
