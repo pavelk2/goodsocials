@@ -419,20 +419,6 @@ body:has(dialog[open]) {
    on the control that starts a board.
    ------------------------------------------------------------------------ */
 
-/* The label over footage. Same shape as .eyebrow, on a ground it can have. */
-.eyebrow-video {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(8px);
-  border-radius: var(--r-pill);
-  padding: 7px 16px;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.92);
-}
-
 /* The nav links while the bar is still on the footage. */
 .nav-link-video {
   transition: color 150ms var(--ease);
