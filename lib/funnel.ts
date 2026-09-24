@@ -72,7 +72,7 @@ export async function applyAnswers(
   const contentNote =
     answerLine(CONTENT_QUESTION, funnel.answers.content)?.replace(
       "asked for this in their own words",
-      "wants their posts to be about this, in their own words",
+      "wanted their first post to be about this, in their own words",
     ) ?? null;
 
   const next = {
