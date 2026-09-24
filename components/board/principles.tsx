@@ -81,7 +81,7 @@ function PrincipleRow({
               type="button"
               onClick={save}
               disabled={pending}
-              className="btn-quiet font-medium text-ink underline"
+              className="btn-quiet font-medium text-ink underline touch:-m-3 touch:p-3"
             >
               {pending ? <Working label="Saving" /> : "Save"}
             </button>
@@ -92,7 +92,7 @@ function PrincipleRow({
                 setError(null);
                 setEditing(false);
               }}
-              className="btn-quiet text-ink-2 underline"
+              className="btn-quiet text-ink-2 underline touch:-m-3 touch:p-3"
             >
               Cancel
             </button>
@@ -101,7 +101,7 @@ function PrincipleRow({
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="btn-quiet text-[13px] text-ink-2 underline"
+            className="btn-quiet text-[13px] text-ink-2 underline touch:-m-3 touch:p-3"
           >
             Edit
           </button>

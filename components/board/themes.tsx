@@ -95,14 +95,14 @@ function Row({ theme }: { theme: ThemeRow }) {
               type="button"
               onClick={save}
               disabled={pending}
-              className="btn-quiet font-medium text-ink underline"
+              className="btn-quiet font-medium text-ink underline touch:-m-3 touch:p-3"
             >
               {pending ? <Working label="Saving" /> : "Save"}
             </button>
             <button
               type="button"
               onClick={cancel}
-              className="btn-quiet text-ink-2 underline"
+              className="btn-quiet text-ink-2 underline touch:-m-3 touch:p-3"
             >
               Cancel
             </button>
@@ -111,7 +111,7 @@ function Row({ theme }: { theme: ThemeRow }) {
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="btn-quiet shrink-0 text-[13px] text-ink-2 underline"
+            className="btn-quiet shrink-0 text-[13px] text-ink-2 underline touch:-m-3 touch:p-3"
           >
             Edit
           </button>

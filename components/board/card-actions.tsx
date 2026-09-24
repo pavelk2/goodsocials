@@ -112,7 +112,7 @@ export function CardActions({
               className={
                 pending
                   ? ""
-                  : "font-medium text-ink underline disabled:text-ink-3 disabled:no-underline"
+                  : "font-medium text-ink underline disabled:text-ink-3 disabled:no-underline touch:min-h-11"
               }
             >
               {pending ? <Working label="Rewriting" /> : "Send it"}
@@ -124,7 +124,7 @@ export function CardActions({
                 setComment("");
                 setError(null);
               }}
-              className="text-ink-2 underline"
+              className="text-ink-2 underline touch:min-h-11"
             >
               Cancel
             </button>
@@ -154,8 +154,8 @@ export function CardActions({
                 }
                 className={
                   compact
-                    ? "btn-ink rounded-[8px] bg-ink px-3 py-[6px] font-medium text-paper"
-                    : "font-medium text-ink underline"
+                    ? "btn-ink rounded-[8px] bg-ink px-3 py-[6px] font-medium text-paper touch:min-h-11 touch:px-4"
+                    : "font-medium text-ink underline touch:min-h-11"
                 }
               >
                 {approveLabel}
@@ -166,7 +166,7 @@ export function CardActions({
                 <button
                   type="button"
                   onClick={() => setCommenting(true)}
-                  className="text-ink-2 underline"
+                  className="text-ink-2 underline touch:min-h-11"
                 >
                   Revise
                 </button>
@@ -179,7 +179,7 @@ export function CardActions({
                       ? run(() => reject(id), true, "Rejecting")
                       : setConfirmingReject(true)
                   }
-                  className="ml-auto text-ink-2 underline"
+                  className="ml-auto text-ink-2 underline touch:min-h-11"
                 >
                   {confirmingReject ? "Sure?" : "Reject"}
                 </button>

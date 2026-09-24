@@ -20,7 +20,7 @@ export async function AppHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-hairline bg-surface/85 backdrop-blur-[12px]">
-      <div className="flex h-[var(--nav-h)] items-center justify-between gap-6 px-6">
+      <div className="flex h-[var(--nav-h)] items-center justify-between gap-6 px-4 sm:px-6">
         <Link
           href="/board"
           className="flex shrink-0 items-center gap-[10px] text-[17px] font-semibold tracking-[-0.02em]"

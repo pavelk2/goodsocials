@@ -56,11 +56,11 @@ export function DayPicker({
       onClick={(event) => {
         if (!panel.current?.contains(event.target as Node)) ref.current?.close();
       }}
-      className="fixed inset-0 h-dvh max-h-dvh w-dvw max-w-dvw items-center justify-center bg-transparent p-4 backdrop:bg-black/70 open:flex"
+      className="dialog-fill fixed inset-0 h-dvh max-h-dvh w-dvw max-w-dvw items-center justify-center bg-transparent backdrop:bg-black/70 open:flex"
     >
       <div
         ref={panel}
-        className="max-h-[86dvh] w-full max-w-[460px] overflow-y-auto rounded-[20px] border border-hairline bg-surface p-6"
+        className="max-h-full w-full max-w-[460px] overflow-y-auto overscroll-contain rounded-[20px] border border-hairline bg-surface p-5 sm:max-h-[86dvh] sm:p-6"
       >
         <p className="text-[17px] font-semibold tracking-[-0.02em]">
           Schedule for {dayLabel}
@@ -106,9 +106,9 @@ export function DayPicker({
         <button
           type="button"
           onClick={() => ref.current?.close()}
-          className="mt-5 text-[13px] text-ink-2 underline"
+          className="mt-5 text-[13px] text-ink-2 underline touch:mt-3 touch:min-h-11"
         >
-          Close, or press Esc
+          Close<span className="touch:hidden">, or press Esc</span>
         </button>
       </div>
     </dialog>

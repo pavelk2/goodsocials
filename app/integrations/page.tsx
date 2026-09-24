@@ -11,7 +11,7 @@ export const metadata = { title: "Integrations" };
  */
 export default function IntegrationsPage() {
   return (
-    <main className="px-6 py-10">
+    <main className="px-4 py-8 sm:px-6 sm:py-10">
       <header className="mb-8 flex items-baseline justify-between">
         <h1 className="text-[28px] font-semibold tracking-[-0.03em]">
           Integrations

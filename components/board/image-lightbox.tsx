@@ -58,7 +58,7 @@ export function ImageLightbox({
       onClick={(event) => {
         if (!figure.current?.contains(event.target as Node)) ref.current?.close();
       }}
-      className="fixed inset-0 h-dvh max-h-dvh w-dvw max-w-dvw items-center justify-center bg-transparent p-4 backdrop:bg-black/70 open:flex"
+      className="dialog-fill fixed inset-0 h-dvh max-h-dvh w-dvw max-w-dvw items-center justify-center bg-transparent backdrop:bg-black/70 open:flex"
     >
       <figure ref={figure} className="m-0 flex flex-col items-center gap-3">
         {/* Not optimized: a Vercel Blob URL read once at full size by the one
@@ -67,14 +67,14 @@ export function ImageLightbox({
         <img
           src={src}
           alt={alt}
-          className="max-h-[80vh] min-h-0 rounded-[14px] object-contain"
+          className="max-h-[80dvh] min-h-0 rounded-[14px] object-contain"
         />
         <button
           type="button"
           onClick={() => ref.current?.close()}
-          className="text-[13px] text-white/70 underline"
+          className="text-[13px] text-white/70 underline touch:min-h-11"
         >
-          Close, or press Esc
+          Close<span className="touch:hidden">, or press Esc</span>
         </button>
       </figure>
     </dialog>
