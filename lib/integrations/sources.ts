@@ -96,6 +96,27 @@ export async function listSources(
   });
 }
 
+/**
+ * Just enough for the board header: which of the five are connected, and
+ * whether the last read of each one worked. One column-narrow query with no
+ * facts join, because this runs on every board render and the header draws
+ * five glyphs, not five readings.
+ */
+export type SourceState = "active" | "broken";
+
+export async function sourceStates(
+  profileId: string,
+): Promise<Partial<Record<SourceKind, SourceState>>> {
+  const rows = await getDb()
+    .select({ kind: sourceTable.kind, status: sourceTable.status })
+    .from(sourceTable)
+    .where(eq(sourceTable.profileId, profileId));
+
+  const states: Partial<Record<SourceKind, SourceState>> = {};
+  for (const row of rows) states[row.kind] = row.status;
+  return states;
+}
+
 export type ConnectInput = {
   profileId: string;
   kind: SourceKind;

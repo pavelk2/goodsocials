@@ -5,6 +5,9 @@ import { useState } from "react";
 import { PrinciplesPanel } from "@/components/board/principles";
 import { ThemesPanel, type ThemeRow } from "@/components/board/themes";
 import { Sheet } from "@/components/ui/sheet";
+import { SourceStrip } from "@/components/board/source-strip";
+import type { SourceState } from "@/lib/integrations/sources";
+import type { SourceKind } from "@/lib/integrations/types";
 
 /**
  * One shape for both controls: 30px tall, so 8px radius, same padding, same
@@ -41,6 +44,7 @@ export function BoardHeader({
   view,
   principles,
   themes,
+  sources,
 }: {
   seat: string | null;
   runwayDays: number;
@@ -48,14 +52,16 @@ export function BoardHeader({
   view: "board" | "calendar";
   principles: { voice: string; visual: string; format: string };
   themes: ThemeRow[];
+  /** What the agent can read about this business, as five glyphs. */
+  sources: Partial<Record<SourceKind, SourceState>>;
 }) {
   const [open, setOpen] = useState(false);
 
   return (
     <div className="mb-8">
-      {/* Wraps rather than overflows. The controls are four wide now that the
-          board has two readings, which is more than a phone fits on one line,
-          and a header that scrolls sideways takes the page with it. */}
+      {/* Wraps rather than overflows. The controls are five wide now that the
+          sources are on it, which is more than a phone fits on one line, and a
+          header that scrolls sideways takes the page with it. */}
       <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         <h1 className="text-[28px] font-semibold tracking-[-0.03em]">
           Board
@@ -81,6 +87,11 @@ export function BoardHeader({
               </span>
             </p>
           ) : null}
+
+          {/* Before the view switch, so the header reads left to right as
+              what the board knows, then how to look at it, then what to
+              change. */}
+          <SourceStrip states={sources} />
 
           <ViewSwitch view={view} />
 

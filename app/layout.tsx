@@ -23,7 +23,13 @@ export const metadata: Metadata = {
     "AI social media manager for LinkedIn. Writes high quality content, you approve it in a kanban board, it schedules so you post regularly, close to daily.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+/**
+ * The `@modal` slot holds the legal sheets. Privacy and terms are linked from
+ * a footer that sits on the landing page, the sign in page and every screen
+ * behind them, so the slot has to be at the root to intercept a click from any
+ * of them. Everything else renders nothing into it.
+ */
+export default function RootLayout({ children, modal }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
@@ -31,6 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         {children}
+        {modal}
         <CrispChat />
       </body>
     </html>

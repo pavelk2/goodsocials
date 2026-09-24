@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Sheet } from "@/components/ui/sheet";
 import { SourceIcon } from "@/components/integrations/source-icon";
 import { KIND_LABEL } from "@/lib/post-kind";
 import type { SourceDefinition } from "@/lib/integrations/types";
@@ -21,6 +20,9 @@ import type { SourceResult } from "@/app/integrations/actions";
  * shape: label left, value right, tabular numerals, hairline between. That list
  * is the one thing worth looking at on this screen, because it is literally what
  * the next post will be built from.
+ *
+ * Nothing here opens an overlay. The row is already inside one when this list
+ * is the sheet over the board, and the reason is in ConnectForm below.
  */
 
 export type Reading = {
@@ -47,6 +49,7 @@ export function SourceRow({
   definition,
   connected,
   readings,
+  openOnMount = false,
   connect,
   refresh,
   disconnect,
@@ -54,6 +57,8 @@ export function SourceRow({
   definition: SourceDefinition;
   connected: Connected | null;
   readings: Reading[];
+  /** Opens the connect form straight away, for a link that named this source. */
+  openOnMount?: boolean;
   connect: (
     kind: string,
     values: { credential: string; handle?: string; host?: string },
@@ -62,7 +67,7 @@ export function SourceRow({
   disconnect: (kind: string) => Promise<SourceResult>;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(openOnMount);
   const [note, setNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -145,7 +150,9 @@ export function SourceRow({
                 </button>
               </span>
             </>
-          ) : (
+          ) : open ? null : (
+            /* The open form carries the name and the way out of it, so the
+               button that opened it would be the same words twice. */
             <button
               type="button"
               onClick={() => setOpen(true)}
@@ -220,12 +227,12 @@ export function SourceRow({
       ) : null}
 
       {open ? (
-        <ConnectSheet
+        <ConnectForm
           definition={definition}
           existingHandle={connected?.handle ?? null}
           pending={pending}
           error={error}
-          onClose={() => setOpen(false)}
+          onCancel={() => setOpen(false)}
           onSubmit={(values) => run(() => connect(definition.kind, values))}
         />
       ) : null}
@@ -237,20 +244,28 @@ export function SourceRow({
  * The connect form. One field per thing the source needs, the credential first,
  * and a link to the page that issues it with the exact permission named. Nobody
  * should have to guess which of nine Stripe key types we want.
+ *
+ * It expands inside the row rather than opening over it, and that is a
+ * correctness decision before it is a taste one. This list renders inside a
+ * sheet on the board, and a second `<dialog showModal>` inside the first one
+ * breaks twice: Escape closes both, so cancelling the form throws the user back
+ * to the board, and React runs a child effect before its parent, so a form
+ * opened on mount by a header link calls `showModal` first and ends up under
+ * the sheet that holds it. One dialog at a time, and neither happens.
  */
-function ConnectSheet({
+function ConnectForm({
   definition,
   existingHandle,
   pending,
   error,
-  onClose,
+  onCancel,
   onSubmit,
 }: {
   definition: SourceDefinition;
   existingHandle: string | null;
   pending: boolean;
   error: string | null;
-  onClose: () => void;
+  onCancel: () => void;
   onSubmit: (values: {
     credential: string;
     handle?: string;
@@ -264,7 +279,18 @@ function ConnectSheet({
   });
 
   return (
-    <Sheet title={`Connect ${definition.name}`} onClose={onClose}>
+    <div className="mt-4 rounded-[12px] border border-hairline bg-surface px-4 py-4">
+      <div className="mb-4 flex items-baseline justify-between gap-6">
+        <h4 className="text-[15px] font-medium">Connect {definition.name}</h4>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="btn-quiet text-[13px] font-medium text-ink-2"
+        >
+          Cancel
+        </button>
+      </div>
+
       <form
         onSubmit={(event) => {
           event.preventDefault();
@@ -346,6 +372,6 @@ function ConnectSheet({
           </span>
         </div>
       </form>
-    </Sheet>
+    </div>
   );
 }

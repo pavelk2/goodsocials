@@ -6,6 +6,7 @@ import { readQuota } from "@/lib/quota";
 import { boardZone } from "@/lib/schedule";
 import { buildMonth } from "@/lib/calendar";
 import { readPastPosts } from "@/lib/history-store";
+import { sourceStates } from "@/lib/integrations/sources";
 import { BoardCalendar } from "@/components/board/board-calendar";
 import { BoardColumns } from "@/components/board/board-columns";
 import { BoardHeader } from "@/components/board/board-header";
@@ -39,7 +40,10 @@ export default async function BoardPage({
   const mode = params.view === "calendar" ? "calendar" : "board";
   const zone = boardZone(view.board.timezone);
 
-  const quota = await readQuota(view.profile.id);
+  const [quota, sources] = await Promise.all([
+    readQuota(view.profile.id),
+    sourceStates(view.profile.id),
+  ]);
   // Only the calendar draws these, and the columns are the common view.
   const history = mode === "calendar" ? await readPastPosts(view.profile.id) : [];
   const thin =
@@ -56,6 +60,7 @@ export default async function BoardPage({
         view={mode}
         principles={view.principles}
         themes={view.themes}
+        sources={sources}
       />
 
       <QueueNotice

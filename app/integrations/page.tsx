@@ -9,7 +9,13 @@ export const metadata = { title: "Integrations" };
  * reading a key off a phone, and a page they can navigate straight to is worth
  * more than a panel four clicks into another screen.
  */
-export default function IntegrationsPage() {
+export default async function IntegrationsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ open?: string }>;
+}) {
+  const { open } = await searchParams;
+
   return (
     <main className="px-6 py-10">
       <header className="mb-8 flex items-baseline justify-between">
@@ -21,7 +27,7 @@ export default function IntegrationsPage() {
         </Link>
       </header>
 
-      <IntegrationsBody />
+      <IntegrationsBody open={open} />
     </main>
   );
 }

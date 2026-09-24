@@ -5,6 +5,7 @@ import { loadAccess, seatName } from "@/lib/profiles";
 import { listSources } from "@/lib/integrations/sources";
 import { ago } from "@/lib/integrations/format";
 import { SourceRow, type Reading } from "@/components/integrations/source-row";
+import { isSourceKind } from "@/lib/integrations/catalog";
 import { connect, disconnect, refresh } from "@/app/integrations/actions";
 
 /**
@@ -15,8 +16,19 @@ import { connect, disconnect, refresh } from "@/app/integrations/actions";
  * two boxes. The qualification is the important half. Somebody is about to paste
  * a live Stripe key into a product they bought last week, and the sentence that
  * earns it is the one that says we only ever read.
+ *
+ * One body, two frames. On its own page it carries a heading and a way back to
+ * the board; in the sheet over the board the sheet already has both, so it
+ * drops them rather than saying the same thing twice a centimetre apart.
  */
-export async function IntegrationsBody() {
+export async function IntegrationsBody({
+  open,
+  inSheet = false,
+}: {
+  /** Which source to put the connect form on, from `?open=`. */
+  open?: string;
+  inSheet?: boolean;
+} = {}) {
   const session = await auth();
   if (!session?.memberId) redirect("/signin");
 
@@ -26,10 +38,19 @@ export async function IntegrationsBody() {
   const profile = access.active.profile;
   const sources = await listSources(profile.id);
   const connected = sources.filter((s) => s.connected !== null).length;
+  // An unknown slug opens nothing rather than erroring: the parameter comes
+  // from a url anybody can edit.
+  const openKind = open && isSourceKind(open) ? open : null;
 
   return (
     <>
-      <h2 className="max-w-[680px] text-[22px] font-semibold leading-[1.25] tracking-[-0.02em]">
+      <h2
+        className={`max-w-[680px] font-semibold tracking-[-0.02em] ${
+          inSheet
+            ? "text-[17px] leading-[1.3]"
+            : "text-[22px] leading-[1.25]"
+        }`}
+      >
         <span>Connect what you already measure.</span>{" "}
         <span className="text-ink-3">
           A post that opens on your own number is the one nobody can argue with,
@@ -38,7 +59,7 @@ export async function IntegrationsBody() {
         </span>
       </h2>
 
-      <section className="mt-8 max-w-[760px]">
+      <section className={`${inSheet ? "mt-5" : "mt-8"} max-w-[760px]`}>
         <div className="flex items-baseline justify-between gap-6">
           <h3 className="text-[13px] font-medium text-ink-2">
             {seatName(access.active)}
@@ -51,7 +72,12 @@ export async function IntegrationsBody() {
         <ul className="mt-2">
           {sources.map((view) => (
             <SourceRow
-              key={view.definition.kind}
+              /* The open state is a prop, and a prop change does not reset
+                 useState. Keying on it remounts the one row whose form should
+                 be open, so clicking a second glyph while the sheet is already
+                 up moves the form instead of leaving it on the first. */
+              key={`${view.definition.kind}:${openKind === view.definition.kind}`}
+              openOnMount={openKind === view.definition.kind}
               definition={view.definition}
               connected={
                 view.connected
@@ -93,9 +119,11 @@ export async function IntegrationsBody() {
           A number we read goes into a draft exactly as it came back, with the
           period it covers. If a card asks you for something, it is because no
           connected source has it.{" "}
-          <Link href="/board" className="text-ink underline">
-            Back to the board
-          </Link>
+          {inSheet ? null : (
+            <Link href="/board" className="text-ink underline">
+              Back to the board
+            </Link>
+          )}
         </p>
       </div>
     </>

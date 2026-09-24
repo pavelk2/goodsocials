@@ -33,8 +33,17 @@ export function Sheet({
       ref={ref}
       aria-label={title}
       /* Escape and a backdrop click both fire `close`, so closing is handled
-         in one place instead of three. */
-      onClose={onClose}
+         in one place instead of three.
+
+         The target check is not paranoia. `close` does not bubble, but React
+         dispatches it through the component tree anyway, so a dialog rendered
+         inside this one would close this one too and drop the user two screens
+         back from where they were. Nothing nests today; this makes sure the
+         day something does, it fails visibly rather than like that. */
+      onClose={(event) => {
+        if (event.target !== ref.current) return;
+        onClose();
+      }}
       onClick={(event) => {
         // A click that lands on the dialog element itself is the backdrop:
         // the panel inside it covers every other pixel.
