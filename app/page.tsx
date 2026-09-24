@@ -203,8 +203,9 @@ export default async function Home() {
         >
           <HeroVideo />
 
-          <h1 className="mx-auto max-w-[16ch] text-balance text-[clamp(40px,6.6vw,78px)] font-semibold leading-[1.02] tracking-[-0.045em]">
-            Hire a social media manager for LinkedIn.
+          <h1 className="mx-auto max-w-[20ch] text-balance text-[clamp(40px,6.6vw,78px)] font-semibold leading-[1.02] tracking-[-0.045em]">
+            Hire a social media manager for LinkedIn for {DEFAULT_PLAN.price}{" "}
+            instead of $3,000.
           </h1>
 
           <p className="mx-auto mt-6 max-w-[44ch] text-balance text-[clamp(18px,1.9vw,24px)] leading-[1.35]">
