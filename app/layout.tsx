@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import { CrispChat } from "@/components/crisp-chat";
 import "./globals.css";
 
-// The hero sets one clause in italic, so the real italic face ships. Without
-// it the browser slants the roman, which at hero size reads as a rendering
-// fault rather than a typographic choice.
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -23,6 +21,8 @@ export const metadata: Metadata = {
     "Hire a social media manager for LinkedIn for $100 instead of $3,000. Publishes for you 5 times a week after your approval.",
 };
 
+const openAiAdsPixelId = process.env.NEXT_PUBLIC_OPENAI_ADS_PIXEL_ID;
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
@@ -30,6 +30,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {openAiAdsPixelId ? (
+          <Script id="openai-ads-pixel" strategy="beforeInteractive">
+            {`(function(w,d,s,u){if(w.oaiq)return;var q=function(){q.q.push(arguments)};q.q=[];w.oaiq=q;var js=d.createElement(s);js.async=true;js.src=u;var f=d.getElementsByTagName(s)[0];f.parentNode.insertBefore(js,f)})(window,document,"script","https://bzrcdn.openai.com/sdk/oaiq.min.js");oaiq("init",{pixelId:"${openAiAdsPixelId}"});`}
+          </Script>
+        ) : null}
         {children}
         <CrispChat />
       </body>
