@@ -55,6 +55,7 @@ export const boardGoal = pgEnum("board_goal", [
   "followers",
   "traffic",
   "leads",
+  "engagement",
 ]);
 export const cardState = pgEnum("card_state", [
   "idea",

@@ -1,5 +1,6 @@
 "use server";
 
+import type { Goal } from "@/lib/agent/ideas";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { auth, signOut } from "@/auth";
@@ -21,7 +22,7 @@ import {
 
 export type SaveResult = { ok: true } | { ok: false; error: string };
 
-const GOALS = new Set(["interesting", "followers", "traffic", "leads"]);
+const GOALS = new Set(["interesting", "followers", "traffic", "leads", "engagement"]);
 
 /** Posts a week. One is the floor, daily is the ceiling LinkedIn rewards. */
 const MIN_CADENCE = 1;
@@ -59,7 +60,7 @@ export async function saveGoal(goal: string): Promise<SaveResult> {
 
   await getDb()
     .update(boardTable)
-    .set({ goal: goal as "interesting" | "followers" | "traffic" | "leads" })
+    .set({ goal: goal as Goal })
     .where(eq(boardTable.profileId, acc.active.profile.id));
 
   revalidatePath("/board");

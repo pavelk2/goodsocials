@@ -69,6 +69,7 @@ const BILLING_OUTCOME: Record<string, string> = {
 const GOAL_OPTIONS = [
   { value: "interesting", label: "Interesting content" },
   { value: "followers", label: "Grow followers" },
+  { value: "engagement", label: "Comments and reactions" },
   { value: "traffic", label: "Grow website visits" },
   { value: "leads", label: "Leads" },
 ];

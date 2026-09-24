@@ -184,15 +184,18 @@ export const GOAL_QUESTION: Question = {
   options: [
     {
       id: "followers",
-      label: "Followers",
+      label: "Followers of your page",
+      detail: "Posts that stand on their own, with no call to action.",
+    },
+    {
+      id: "engagement",
+      label: "Comments and reactions",
+      detail: "Posts people in your field want to answer.",
     },
     {
       id: "traffic",
       label: "Visits to your website",
-    },
-    {
-      id: "leads",
-      label: "Leads",
+      detail: "Posts that end with a link, for clicks and sign ups on your site.",
     },
   ],
   other: { label: "Other", placeholder: "Hiring engineers" },
@@ -269,7 +272,7 @@ export function contentFor(answer: Answer | undefined): ContentChoice {
 /** The board goal an answer maps to. `other` keeps the default and is noted. */
 export function goalFor(answer: Answer | undefined): Goal {
   const id = answer?.choice;
-  return id === "followers" || id === "traffic" || id === "leads" ? id : "interesting";
+  return id === "followers" || id === "engagement" || id === "traffic" ? id : "interesting";
 }
 
 export function appendLine(text: string, line: string | null): string {

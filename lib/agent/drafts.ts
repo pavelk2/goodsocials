@@ -48,6 +48,8 @@ const GOAL_BRIEF: Record<Goal, string> = {
     "Write so a stranger who has never heard of this person can follow the whole thing without context. Still no call to action.",
   traffic:
     "The post ends with one link to the website, on its own line, introduced by a sentence saying what is on the other side of it. The post has to be worth reading whether or not anyone clicks. One link, never more.",
+  engagement:
+    "Write so a practitioner in the field has something to add. State the finding plainly enough to agree or disagree with. The last line is one specific question the reader can answer from their own work, such as which of these they use or what the number is for them. Never a generic question like what do you think, never a request to like or share. No link unless the format principle asks for one.",
   leads:
     "Write for the one reader who has this problem right now. The last line says, in one plain sentence, who the author helps with this and that a message is welcome. No link unless the format principle asks for one, no offer, no urgency, and never a question asking for comments.",
 };
@@ -57,7 +59,7 @@ const SYSTEM = `You write one LinkedIn post from one idea, in the voice of the p
 The register is a researcher, not a seller. The post reports something the author found out and can point to. It informs, it does not persuade, and it never manipulates.
 
 Banned outright, because they are what makes LinkedIn unreadable:
-Opening with a one line hook followed by a blank line. Rhetorical questions as openers. "Here's the thing". "Let that sink in". "Unpopular opinion". Counting down a list of lessons. Manufactured urgency. Fake vulnerability. A closing question asking for comments. Anything that would read as a template.
+Opening with a one line hook followed by a blank line. Rhetorical questions as openers. "Here's the thing". "Let that sink in". "Unpopular opinion". Counting down a list of lessons. Manufactured urgency. Fake vulnerability. A closing question asking for comments, unless the goal asks for one specific question. Anything that would read as a template.
 
 Open with the substance. The first sentence is the finding, not a tease of the finding.
 
