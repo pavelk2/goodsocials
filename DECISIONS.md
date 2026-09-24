@@ -408,6 +408,32 @@ instant-for-a-wall-time, and `Intl.DateTimeFormat.formatToParts` gives both.
 CLAUDE.md says no dependency without the reason in the commit message, and
 "the standard library already does this" is not a reason to add one.
 
+---
+
+## Day 6
+
+**Read integrations before write integrations.**
+Rejected: publishing through Buffer or any other scheduler.
+Reading Stripe or a calendar makes the posts more credible, which is the thing customers leave over; publishing through somebody else adds an onboarding step, gains no quality, and takes away our ability to say whether a post went out.
+
+**Five sources, every one a pasted key that does not expire.**
+Rejected: OAuth for any of the first five.
+LinkedIn already costs a re-authorization every 60 days and a monitor to catch it dying silently, and each OAuth grant is another instance of that failure; Google Calendar is worth the refresh flow and goes next, on its own.
+
+**Facts are upserted on (source, key) and replaced on every sync.**
+Rejected: an append-only reading history.
+A year of daily MRR rows would go into every draft prompt and turn a 0.15 USD post into a 0.60 USD one, and nobody posts last March's churn anyway.
+
+**A number a source read goes into the draft verbatim, with its period.**
+Rejected: letting the model restate or round a reading.
+A receipt is believed because it is specific and theirs, so a rounded real number is worth less than a bracket asking the author to fill it in.
+
+**Read integrations are a solo-tier feature, and agency mode gets an intake link instead.**
+Rejected: asking agencies to collect their clients' API keys.
+An agency managing 12 executives has no access to their Stripe and should not be asking for it, so the agency version of this is a page the client fills in that writes the same rows.
+
+---
+
 ## Day 7: history, and a day you can pick without a mouse
 
 **A member's LinkedIn history comes from their archive, not from the API.**

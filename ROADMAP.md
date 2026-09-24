@@ -72,7 +72,37 @@ What is deliberately not in this pass, in the order it is worth building.
 - [ ] **Research behind framework and data posts.** Both kinds are written from the model's own knowledge today, which is why the data brief refuses to name a source it is not certain of. The Anthropic web search server tool is the route. It goes on the draft call, never on the onboarding call, because onboarding has a 90 second budget and this would spend it. Open question to verify against the live API before building: whether structured output and a server tool can be requested in the same call.
 - [ ] **A real chart on a data post.** A deterministic SVG rendered from numbers the model returns as data, rasterised, and uploaded as the post image. Never the image model: FLUX cannot render legible numbers, and a chart with wrong axis labels under a real name is worse than no chart. This is what makes the data kind worth its two slots.
 - [ ] **Frameworks as LinkedIn documents.** The carousel format, which is what a saveable reference post should be. `POST /rest/documents?action=initializeUpload`, `PUT` the binary, then the document URN in the post body. The same three call shape as images and unverified against the live API, plus a PDF renderer we do not have. Check it the way the image path was checked: one real document on one real feed before anything is built around it.
-- [ ] **Receipts without typing.** Stripe, PostHog or a spreadsheet connected once, so the number the card asks for arrives on its own. The `needs` line is the manual version of this, and it is the version that ships first because it works without an integration and it proves whether anyone answers.
+- [x] **Receipts without typing.** Built as Day 6, below. The `needs` line stays, because it is still the answer when no connected source holds the number.
+
+## Day 6: read integrations
+
+Built and green on typecheck, lint and build. The container has no database, no
+LinkedIn session and no third-party credentials, so the observable conditions
+below are checked on the preview deploy with a real Stripe restricted key. What
+is unobserved is listed under each item.
+
+Five sources, all read-only, all authenticated with a pasted key that does not
+expire. That last part is the selection rule rather than a coincidence: LinkedIn
+already costs this product a re-authorization every 60 days plus a monitor to
+catch it dying silently, and five OAuth grants would be five more of those.
+Google Calendar has the widest coverage of the people who pay us and is the
+first source that needs a refresh flow, which is why it is the next one and not
+one of these.
+
+- [x] **Two tables and one seam.** `source` holds the connection, `fact` holds the readings, upserted on `(source_id, key)` so a sync replaces rather than accumulates. Nothing else in the product knows the five sources apart: adding one is a file in `lib/integrations/adapters/`, a line in the registry, a definition in the catalog, and a member on the enum.
+- [x] **Five adapters, no new dependency.** Stripe, GitHub, PostHog, Plausible, Notion, over raw fetch with a 12 second timeout on every call. Four of the five error envelopes were probed live with a wrong key, which found the thing that would have shipped broken: PostHog answers a bad key with 403 where Stripe answers 401, so a message built from the status code alone tells the user to fix a permission on a key they mistyped. Unobserved: every authenticated GitHub call, because the container's proxy refuses non-repository GitHub paths.
+- [x] **A credential is checked before it is stored.** `connectSource` reads the live API once and refuses a bad key in the sheet the user is still looking at, then runs the first sync inline, so a screen that says connected also shows numbers. Unobserved: the round trip with a real key on the preview.
+- [x] **Facts reach every prompt that writes.** Ideas, drafts and revisions all read them, and the instruction above them is the part that matters: use the figure exactly, never round one for effect, never bracket a number that is sitting in front of you. On a revise, the user's comment outranks a reading, because a comment is them telling us something the tool does not know. Unobserved: whether a receipt built on a real MRR line actually reads better than one with a bracket, which is the whole bet and only real users answer it.
+- [x] **The prompt cannot grow without a decision.** 24 readings and 2,600 characters, Notion excerpts sorted last so they are cut first. Text is 0.15 USD a post against a 100 USD subscription and it stays there.
+- [x] **Rows, not a plugin directory.** Five rows, the official brand mark as a monochrome leading glyph, ink when connected and grey when not, so state is the weight of the first object rather than a badge. A connected source lists its actual readings underneath in the dashboard's row shape, which is the one thing worth looking at on the screen because it is literally what the next post is built from.
+- [x] **Daily sync cron.** `/api/cron/sync-sources` at 04:00 UTC, 20 hour staleness window so a late run does not skip a day. A refused source writes `last_error`, keeps the readings it had, and does not fail the run, which is the posture the publish cron already uses.
+
+What is deliberately not in this pass.
+
+- [ ] **Google Calendar.** The widest coverage of the people who pay us, and not a number source: 14 customer calls this month, a talk on Thursday, a launch date. It needs OAuth with a refresh token, which is the first real work here, and it is worth doing next.
+- [ ] **The agency intake link.** An agency running 12 client profiles has no access to the client's Stripe, so read integrations are a solo-tier feature as built. The agency version is a page the client fills in that writes `fact` rows on their profile, which solves the actual agency problem of chasing clients for material. Same table, no OAuth.
+- [ ] **A card that says which source answered it.** The board shows `needs` when a card is waiting on the author. It does not yet show "this number came from Stripe on Tuesday", which is what makes a user trust the figure enough to approve without checking.
+- [ ] **A per-source error email.** A broken source is visible on the integrations screen and nowhere else. It belongs in the same day 50 machinery as a dying LinkedIn token, because the failure is the same shape: silent, and discovered late.
 
 ## Day 6: the calendar and local time
 
@@ -101,7 +131,7 @@ is checked properly on the preview deploy.
 
 One line each, so nobody relitigates this on Wednesday.
 
-- **Buffer integration.** Adds a connection step before the first post appears.
+- **Buffer integration.** Adds a connection step before the first post appears, gains nothing in content quality, and hands the queue to somebody else, which breaks the one thing we sell: if Buffer holds the post we cannot say whether it published, so cadence and streak become guesses. The only shape that would be allowed is a publish destination chosen in settings after the first post has already gone out from LinkedIn directly, and only if a paying agency asks for it twice.
 - **Multi-channel.** Costs 60 to 70 percent of signups at onboarding.
 - **Company pages.** Gated API, 3 to 6 month approval.
 - **Analytics dashboard.** We sell cadence, and we promise no measurement beyond UTM parameters.

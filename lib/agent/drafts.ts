@@ -2,6 +2,7 @@ import { z } from "zod";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { anthropic, MODEL, recordSpend } from "./client";
 import { appendUtm } from "@/lib/utm";
+import { factsBrief, type FactRow } from "@/lib/integrations/facts";
 import type { Principles } from "./principles";
 import type { Goal, PostKind } from "./ideas";
 
@@ -63,6 +64,8 @@ Never invent a statistic, a study, a percentage, a survey, a report title, a cus
 
 If the idea calls for a number that only the author has, write the sentence around the number and mark the gap in square brackets, for example [your number here], and keep it to one bracket in the whole post. Everything else must be true as written or general enough to be uncontroversial.
 
+Readings are the exception to the bracket. When readings from connected tools appear below, they were read from the author's own accounts and they are already true. Use the figure exactly as it is written, with the period it covers, and never write a bracket for a number that is sitting in front of you. Do not round one for effect, do not convert a currency, and do not put a second number beside one that was not given to you.
+
 Never refer to an attached chart, image, graph, table, or screenshot. The picture beside a post is abstract and it is not always there, so a post that says "see the chart below" is a post that is wrong in the feed.
 
 Obey the format principle on length, line breaks, and how the post ends. Obey the voice principle on register and sentence shape. If the two disagree, voice wins.
@@ -71,6 +74,12 @@ Never use em dashes. Never use "seamless", "leverage", "unlock", "supercharge", 
 
 Return the post text and nothing else. No preamble, no explanation, no quotation marks around it.`;
 
+/** Nothing connected is the common case, and it should not leave a blank line. */
+function factsSection(facts: FactRow[] | undefined): string[] {
+  const readings = factsBrief(facts ?? []);
+  return readings ? [readings, ""] : [];
+}
+
 export async function generateDraft(opts: {
   idea: string;
   kind: PostKind;
@@ -78,6 +87,8 @@ export async function generateDraft(opts: {
   theme?: { title: string; description: string } | null;
   /** The number the idea asked the author for, if it asked for one. */
   needs?: string | null;
+  /** What the connected sources last read. Empty when nothing is connected. */
+  facts?: FactRow[];
   principles: Principles;
   goal: Goal;
   siteUrl: string | null;
@@ -108,6 +119,11 @@ export async function generateDraft(opts: {
             ? `The author has not given you this yet: ${opts.needs}. Write the sentence it belongs in and mark the gap with one bracket. Do not estimate it.`
             : "",
           "",
+          // Readings sit above the principles, because the first question this
+          // prompt answers is what is true, and the second is how to say it.
+          // Spread rather than a bare call: the array is filtered for empties,
+          // so an unconditional blank line after it would not survive anyway.
+          ...factsSection(opts.facts),
           "Brand principles:",
           `Voice. ${opts.principles.voice}`,
           `Format. ${opts.principles.format}`,

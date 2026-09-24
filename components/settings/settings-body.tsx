@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -13,6 +14,7 @@ import {
 } from "@/lib/billing";
 import { loadAccess, seatName } from "@/lib/profiles";
 import { readQuota } from "@/lib/quota";
+import { listSources } from "@/lib/integrations/sources";
 import { boardZone, spacingDays } from "@/lib/schedule";
 import { PUBLISH_HOUR, allZones, dayKey, formatDay, offsetLabel } from "@/lib/time";
 import { summarisePastPosts } from "@/lib/history-store";
@@ -111,8 +113,12 @@ export async function SettingsBody({
     .limit(1);
   if (!brd) redirect("/signin");
 
-  const quota = await readQuota(profile.id);
+  const [quota, sources] = await Promise.all([
+    readQuota(profile.id),
+    listSources(profile.id),
+  ]);
   const gap = spacingDays(brd.targetCadence);
+  const connectedSources = sources.filter((s) => s.connected !== null).length;
   const history = await summarisePastPosts(profile.id);
 
   // The whole IANA list from the runtime rather than a curated one, because a
@@ -213,6 +219,15 @@ export async function SettingsBody({
             label="Images this month"
             value={`${quota.used} of ${quota.cap}, resets ${quota.resetsOn}`}
           />
+          <LinkRow
+            label="Integrations"
+            href="/integrations"
+            value={
+              connectedSources === 0
+                ? `Nothing connected, ${sources.length} available`
+                : `${connectedSources} of ${sources.length} connected`
+            }
+          />
           <Row
             label="Plan"
             value={
@@ -265,6 +280,30 @@ export async function SettingsBody({
 }
 
 /**
+ * The one row on this page that goes somewhere. The value is the link rather
+ * than a chevron beside it, because the value is what the user came to read and
+ * a second target for the same destination is a second thing to aim at.
+ */
+function LinkRow({
+  label,
+  value,
+  href,
+}: {
+  label: string;
+  value: string;
+  href: string;
+}) {
+  return (
+    <li className="flex items-baseline justify-between gap-6 border-b border-hairline py-[14px]">
+      <span className="text-[13px] font-medium text-ink-2">{label}</span>
+      <Link href={href} className="num text-right text-[15px] text-ink underline">
+        {value}
+      </Link>
+    </li>
+  );
+}
+
+/**
  * The one row with a button in it. Which button depends on a column rather
  * than on a screen: an account with a Stripe customer manages its subscription
  * in the portal, and one without starts the plan it picked on the way in.
@@ -312,7 +351,6 @@ async function pickedPlan(current: Plan): Promise<Plan> {
   const chosen = (await cookies()).get(PLAN_COOKIE)?.value;
   return chosen ? planFromSlug(chosen) : current;
 }
-
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <li className="flex items-baseline justify-between gap-6 border-b border-hairline py-[14px]">

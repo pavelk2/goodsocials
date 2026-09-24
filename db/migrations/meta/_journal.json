@@ -57,6 +57,13 @@
       "when": 1790232172906,
       "tag": "0007_billing",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790241117446,
+      "tag": "0008_deep_expediter",
+      "breakpoints": true
     }
   ]
 }

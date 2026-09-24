@@ -63,11 +63,44 @@ One real authorization and one real post to a real feed. Not documentation.
 - A pinned `LinkedIn-Version` stays valid about 12 months and then starts returning errors. Same silent failure class as a dead token. It is tracked by the same expiry monitor.
 - Images need three calls: `POST /rest/images?action=initializeUpload`, `PUT` the binary to the returned upload URL, then reference the image URN in the post body. Each step fails independently.
 
+## Integration constraints, verified against the live APIs, do not re-research
+
+Five read-only sources, all authenticated with a pasted key rather than an OAuth
+grant. Probed with a deliberately wrong credential on 19 September 2026:
+
+- The status code does not identify the failure. Stripe, Notion and Plausible
+  answer a bad key with **401**; PostHog answers **403**. So an error message
+  built from the status alone will tell somebody to fix a permission on a key
+  they mistyped. Read the body: all four return a usable sentence, and
+  `credentialError()` in `lib/integrations/http.ts` leads with theirs.
+- The error message sits in a different place in each one. Stripe nests it at
+  `error.message`, Notion and GitHub use `message`, PostHog uses `detail`,
+  Plausible uses `error` as a bare string. `messageFrom()` handles all four.
+- Endpoints confirmed to exist and to authenticate:
+  `POST https://us.posthog.com/api/projects/{id}/query/` with
+  `{"query":{"kind":"HogQLQuery","query":"..."}}`,
+  `POST https://api.notion.com/v1/search` with `Notion-Version: 2022-06-28`,
+  `GET https://plausible.io/api/v1/stats/aggregate`,
+  `GET https://api.stripe.com/v1/customers`.
+- Not verified from a container, because it needs a real token: every GitHub
+  call, and every authenticated response body shape. The GitHub search
+  qualifiers (`type:pr is:merged merged:>=DATE`, `author-date:>=DATE`) are
+  written from the documentation and are the first thing to check when a
+  GitHub sync comes back empty.
+- Stripe filters subscriptions by when they were **created**, not by when they
+  ended, so churn is counted from `customer.subscription.deleted` events. Those
+  are retained 30 days, which is exactly the window every adapter reads.
+- Money is minor units except in the zero-decimal currencies, and a yearly plan
+  is a twelfth of its invoice per month while a weekly one is 52/12, not 4. The
+  arithmetic is in `lib/integrations/format.ts` and `adapters/stripe.ts`.
+
 ## Cost constraints, enforce in code
 
 Text generation runs about 0.15 USD per finished post including revisions. Not a concern against 100 USD per month.
 
 Images are the margin risk. Hard cap of 200 generated images per profile per month, counted in the database, count visible in settings. Regeneration attempts count against it. A user at the cap sees a clear message, never a silent failure.
+
+Facts are the third thing that can move cost, because they go into every ideas, draft and revision prompt. `lib/integrations/facts.ts` caps them at 24 readings and 2,600 characters and sorts Notion excerpts last so they are cut first. A source that starts returning forty rows cannot spend money.
 
 Log token and image spend per account so cost per customer is visible in PostHog from launch day.
 
@@ -95,6 +128,7 @@ Log token and image spend per account so cost per customer is visible in PostHog
 - `lib/` domain logic with no React import. This is where a reviewer looks first.
 - `lib/linkedin/` every call to LinkedIn. Nothing else in the repo talks to their API.
 - `lib/agent/` prompts, generation, revision, principle updates.
+- `lib/integrations/` the five read-only sources. `adapters/` is the only place that talks to Stripe, GitHub, PostHog, Plausible or Notion, the way `lib/linkedin/` is the only place that talks to LinkedIn.
 - `db/` Drizzle schema and migrations.
 - `emails/` Loops template ids and payload builders.
 - `scripts/` one-off operator scripts. Not shipped, not imported by `app/`.
@@ -117,6 +151,8 @@ Log token and image spend per account so cost per customer is visible in PostHog
 - `card_action` Append-only log of `approve`, `revise`, `reject` with the actor and the comment. Revisions are read from here, never overwritten.
 - `brand_principles` Exactly three rows per profile, keyed by kind: `voice`, `visual`, `format`. Editable text. A revise comment updates the matching one.
 - `scheduled_post` The publish intent: card, profile, `publish_at`, attempt count, last error, resulting post URN. The cron reads this table and nothing else. Five attempts and the row stops holding the reason. A paused row keeps its attempt count, because nothing about that post was wrong.
+- `source` One connected read-only tool per kind per profile: Stripe, GitHub, PostHog, Plausible, Notion. Encrypted credential, `handle` (project id, site domain, account login), `host` for the two that are also self-hosted, `status`, `last_synced_at`, `last_error`. Every one authenticates with a pasted key that does not expire, which is the selection rule and not an accident: LinkedIn already costs a re-authorization every 60 days and a monitor to catch it dying, and five OAuth grants would be five more of those. Google Calendar has the widest coverage of the people who pay us and is the first that needs a refresh flow, so it is next rather than now.
+- `fact` One reading from a source, upserted on `(source_id, key)` and never appended. This is what makes a receipt post a receipt. A sync replaces the set, so a reading that stops coming back is deleted: nobody posts last March's churn, and a year of daily MRR rows in every draft prompt is how a 0.15 USD post becomes a 0.60 USD one. `value` is text because the model reads it and "4,210 EUR" is what belongs in a sentence; the arithmetic happens in the adapter where the currency and the period are still in scope.
 - `linkedin_call_budget` Per member per UTC day. Claimed before every LinkedIn call, so the 150 a day limit is a limit rather than a report.
 - `image_quota` Per profile per calendar month. `generated_count` against a hard cap of 200. Regenerations increment it. Checked before the image call, not after.
 - `queue_runway` Derived, not stored: approved and scheduled cards divided by target cadence, in days. Under 3 days triggers idea generation and a board warning.
@@ -179,11 +215,18 @@ append `?k=` and `LINKEDIN_DEBUG_SECRET`, which is a separate secret so the
 cron's own never lands in a URL or a browser history. The response is the run:
 what was due, what published, what paused and why.
 
+The source sync cron runs daily at 04:00 UTC at `/api/cron/sync-sources`, with
+the same two doors as the publish cron: Vercel's `CRON_SECRET` bearer, or `?k=`
+and `LINKEDIN_DEBUG_SECRET` to run it by hand. The response says what was read,
+what was refused and why.
+
+Agency mode needs more than one seat, and until the Stripe webhook sets the
+plan the seat limit is 1 for everyone:
+
 The Stripe webhook owns the plan, the seat limit and the subscription status.
 For a comped account, or for testing agency mode without a subscription, there
 is a hand crank. `--paid` is what makes the publish loop post for an account
-that has never checked out:
-```
+that has never checked out:```
 npx tsx scripts/set-plan.ts <account email> agency --paid
 npx tsx scripts/set-plan.ts <account email> pro --stop
 ```
@@ -207,7 +250,7 @@ checkout in test mode is a one line edit there and a deploy.
 
 **Secrets.** Vercel environment variables only. `.env.local` is gitignored, `.env.example` holds names with empty values. No secret is ever a `NEXT_PUBLIC_` variable.
 
-**LinkedIn tokens at rest.** AES-256-GCM with `TOKEN_ENCRYPTION_KEY`, a fresh random IV per record, the IV and auth tag stored alongside the ciphertext. Encrypt and decrypt only in `lib/linkedin/crypto.ts`. No other file reads the raw token, no token is logged, and no token crosses into client-side code.
+**Secrets at rest.** AES-256-GCM with `TOKEN_ENCRYPTION_KEY`, a fresh random IV per record, the IV and auth tag stored alongside the ciphertext. The cipher is `lib/crypto.ts` and nothing else calls it directly. Two files wrap it and they are the only ones that ever hold a plaintext: `lib/linkedin/crypto.ts` for a LinkedIn token, `lib/integrations/credentials.ts` for a source credential. Nothing is logged and nothing crosses into client-side code. A source credential never reaches the browser at all, sealed or otherwise, so the integrations screen shows when a source was last read and not what it was read with.
 
 **Rate limits.** Every LinkedIn call goes through `lib/linkedin/client.ts`, which counts calls per member per day. The cron refuses to exceed 150.
 
