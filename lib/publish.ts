@@ -12,6 +12,7 @@ import { openToken } from "@/lib/linkedin/crypto";
 import { uploadImage } from "@/lib/linkedin/images";
 import { personUrn, postPermalink, publishPost } from "@/lib/linkedin/posts";
 import { statusFor } from "@/lib/token-expiry";
+import { toLinkedInText } from "@/lib/bold";
 
 /**
  * LinkedIn has no scheduling endpoint, so this is the publish loop. It reads
@@ -278,7 +279,8 @@ async function publishOne(opts: {
     accessToken,
     memberId,
     authorUrn,
-    text,
+    // Stored with **markers**, sent as bold letters. See lib/bold.ts.
+    text: toLinkedInText(text),
     imageUrn,
     altText: row.card.imageAlt,
   });

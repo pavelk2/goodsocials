@@ -83,7 +83,14 @@ const ResearchSchema = z.object({
 export type Company = z.infer<typeof CompanySchema>;
 export type Job = z.infer<typeof JobSchema>;
 export type Milestone = z.infer<typeof MilestoneSchema>;
-export type Research = z.infer<typeof ResearchSchema> & { searched: boolean };
+/**
+ * What the search opened, counted in code from the result blocks rather than
+ * asked of the model, so the post can say how much it read and be right.
+ * Absent on research stored before it was counted, and on the unsearched path.
+ */
+export type Reading = { pages: number; sites: string[] };
+
+export type Research = z.infer<typeof ResearchSchema> & { searched: boolean; read?: Reading };
 
 /** One thing the research did, as it happened. */
 export type ResearchProgress =
@@ -156,6 +163,7 @@ export async function researchCompetitors(opts: ResearchOpts): Promise<Research>
 
 async function searched(opts: ResearchOpts): Promise<Research> {
   const signal = AbortSignal.timeout(SEARCH_MS);
+  const pages = new Map<string, string>();
   const messages: Anthropic.MessageParam[] = [
     { role: "user", content: `${brief(opts.site, opts.personName)}\n\n${JSON_INSTRUCTION}` },
   ];
@@ -184,6 +192,11 @@ async function searched(opts: ResearchOpts): Promise<Research> {
     const response = await stream.finalMessage();
 
     recordSpend({ profileId: opts.profileId, operation: "competitors", usage: response.usage });
+    for (const block of response.content) {
+      if (block.type === "web_search_tool_result" && Array.isArray(block.content)) {
+        for (const r of block.content) pages.set(r.url, hostOf(r.url));
+      }
+    }
 
     if (response.stop_reason === "pause_turn" && resumes < MAX_RESUMES) {
       messages.push({ role: "assistant", content: response.content });
@@ -192,8 +205,20 @@ async function searched(opts: ResearchOpts): Promise<Research> {
     if (response.stop_reason !== "end_turn") {
       throw new Error(`Search stopped with ${response.stop_reason}.`);
     }
-    return withOwn({ ...parse(response.content), searched: true }, opts.site);
+    return withOwn({ ...parse(response.content), searched: true, read: reading(pages) }, opts.site);
   }
+}
+
+/** Most visited sites first, eight at most: a sentence, not a bibliography. */
+function reading(pages: Map<string, string>): Reading | undefined {
+  if (pages.size === 0) return undefined;
+  const count = new Map<string, number>();
+  for (const host of pages.values()) count.set(host, (count.get(host) ?? 0) + 1);
+  const sites = [...count.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([host]) => host);
+  return { pages: pages.size, sites };
 }
 
 /** The searches and the pages in one finished content block, in order. */

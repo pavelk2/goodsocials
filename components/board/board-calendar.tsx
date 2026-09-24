@@ -24,6 +24,7 @@ import type {
 } from "@/lib/calendar";
 import { cardLabel } from "@/lib/post-kind";
 import { formatTime, publishSlot } from "@/lib/time";
+import { PostText } from "@/components/post-text";
 import { Card } from "./card";
 import { CardModal } from "./card-modal";
 import { CardShell } from "./card-shell";
@@ -485,7 +486,7 @@ function PostChip({
     <div ref={setNodeRef} style={isDragging ? { opacity: 0.4 } : undefined}>
       <div {...attributes} {...listeners} className={movable ? "cursor-grab" : undefined}>
         <p className="mt-1 line-clamp-3 whitespace-pre-line text-[13px] leading-[1.35] text-ink">
-          {post.body}
+          <PostText text={post.body} />
         </p>
       </div>
       <button

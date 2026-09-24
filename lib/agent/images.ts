@@ -52,7 +52,7 @@ const PromptSchema = z.object({
   headline: z
     .string()
     .describe(
-      `The line we set in white across the top of the picture. Two to six words, at most ${HEADLINE_MAX} characters, sentence case, no full stop.`,
+      `The line we set in white across the middle of the picture. Two to six words, at most ${HEADLINE_MAX} characters, sentence case, no full stop.`,
     ),
 });
 
@@ -70,7 +70,7 @@ Never ask for a clear, frontal, fully lit face. A recognisable invented face pub
 
 Banned because they are the visual equivalent of the words we ban: glowing blue neural networks, robot hands touching human hands, floating holograms, rocket ships, light bulbs as ideas, chess pieces, people in suits shaking hands, arrows going up and to the right.
 
-Separately from the prompt, write the headline we set across the top of the picture ourselves, in our own font. It names what the post is about the way a magazine names a feature: "Scheduling tools in 2026", "Why booking pages lose people", "What we charge for SMS". Two to six words, sentence case, no full stop, no question to the reader, no em dash, no buzzwords. A year or a number only when the post states it. It labels the post; it does not summarise the argument or tease it. Because the line sits over the top of the frame, the prompt keeps the top third quiet: sky, haze, dark space or a soft background, never the subject's detail.
+Separately from the prompt, write the headline we set across the middle of the picture ourselves, in our own font. It names what the post is about the way a magazine names a feature: "Scheduling tools in 2026", "Why booking pages lose people", "What we charge for SMS". Two to six words, sentence case, no full stop, no question to the reader, no em dash, no buzzwords. A year or a number only when the post states it. It labels the post; it does not summarise the argument or tease it. Because the line sits across the middle of the frame, the prompt keeps the middle band calm: the subject low in the frame, to one side, or wide and small, with sky, haze, water or a soft background behind the centre, never the subject's detail.
 
 Write the prompt as a description of a photograph or a made object, not as instructions to an artist. No lists, no negative prompt section. The picture is a 4:3 landscape frame, so never ask for a vertical composition.`;
 
