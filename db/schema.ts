@@ -8,6 +8,7 @@ import {
   timestamp,
   uniqueIndex,
   index,
+  jsonb,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -53,6 +54,7 @@ export const boardGoal = pgEnum("board_goal", [
   "interesting",
   "followers",
   "traffic",
+  "leads",
 ]);
 export const cardState = pgEnum("card_state", [
   "idea",
@@ -198,6 +200,13 @@ export const board = pgTable("board", {
    * what lets the board ask the browser once instead of assuming UTC forever.
    */
   timezone: text("timezone"),
+  /**
+   * Where this board is in the onboarding funnel, and what the member answered
+   * on the way. Null on every board created before the funnel, which is what
+   * keeps them out of it. Shape and meaning live in lib/funnel.ts, the only
+   * file that reads or writes it.
+   */
+  funnel: jsonb("funnel"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

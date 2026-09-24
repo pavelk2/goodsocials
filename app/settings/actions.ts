@@ -21,7 +21,7 @@ import {
 
 export type SaveResult = { ok: true } | { ok: false; error: string };
 
-const GOALS = new Set(["interesting", "followers", "traffic"]);
+const GOALS = new Set(["interesting", "followers", "traffic", "leads"]);
 
 /** Posts a week. One is the floor, daily is the ceiling LinkedIn rewards. */
 const MIN_CADENCE = 1;
@@ -55,11 +55,11 @@ export async function switchProfile(profileId: string): Promise<SaveResult> {
 export async function saveGoal(goal: string): Promise<SaveResult> {
   const acc = await access();
   if (!acc?.active) return { ok: false, error: "Sign in first." };
-  if (!GOALS.has(goal)) return { ok: false, error: "Pick one of the three goals." };
+  if (!GOALS.has(goal)) return { ok: false, error: "Pick one of the goals." };
 
   await getDb()
     .update(boardTable)
-    .set({ goal: goal as "interesting" | "followers" | "traffic" })
+    .set({ goal: goal as "interesting" | "followers" | "traffic" | "leads" })
     .where(eq(boardTable.profileId, acc.active.profile.id));
 
   revalidatePath("/board");

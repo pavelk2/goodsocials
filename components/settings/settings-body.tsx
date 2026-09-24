@@ -70,6 +70,7 @@ const GOAL_OPTIONS = [
   { value: "interesting", label: "Interesting content" },
   { value: "followers", label: "Grow followers" },
   { value: "traffic", label: "Grow website visits" },
+  { value: "leads", label: "Leads" },
 ];
 
 const CADENCE_OPTIONS = [1, 2, 3, 4, 5, 6, 7].map((n) => ({

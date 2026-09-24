@@ -174,3 +174,19 @@ Fallback: request a review in Search Console, which is the only thing that lifts
 **Stripe checkout works and nobody buys.**
 Trigger: signups reaching 7 cards but not reaching checkout.
 Fallback: not a code problem. The price is settled, so the answer is the landing page and who we put it in front of.
+
+## Day 7: the onboarding funnel
+
+Built and green on typecheck and lint. The screens were rendered from a
+throwaway route with mock data at desktop and phone width. Nothing here has run
+against a live database, a live model or Stripe, so every condition below is
+checked on the preview deploy.
+
+- [x] **One question per screen, always a way to say something else.** Website (read off the email domain when it is not free mail, typed, or two sentences instead), picture style, voice, goal. Each option has a number key. Picking moves on; there is no Next button.
+- [x] **Research runs while the member answers.** Principles and themes, and competitor research with web search, fire the moment the website is answered and tick off under the questions. Competitor research falls back to the model's knowledge if search fails, and the funnel carries on without it if both fail.
+- [x] **The first post before the price.** Written from the gap competitor research found, with its picture, drawn the way a feed draws it, cut at the fold. The seven ideas behind it are written in the same request, so the offer shows the real week and a member back from Stripe finds ideas already waiting.
+- [x] **The paywall is the week.** Day one is their post, days two to seven name the shape and theme, the button says the price. Checkout returns into the funnel, not to settings. A paying account, an agency adding a client, never sees it. A quiet link past it opens the board with publishing paused.
+- [x] **Two questions after payment.** What to change about the pictures, which goes into the visual principle. Which ideas to write first, where unticked ones are rejected and the member's own idea goes on top.
+- [x] **Every step counted.** Server side events to PostHog under one id from the sign in page to the board. Unobserved: the funnel in PostHog, which needs `NEXT_PUBLIC_POSTHOG_KEY` on the deployment.
+- [ ] **Style pictures.** `npx tsx scripts/onboarding-styles.ts` with `OPENROUTER_API_KEY` draws the three tiles into `public/onboarding/`. Until then the tiles show their names.
+- [ ] **Money back instead of a trial.** The brief said 7 days money back. The funnel keeps the 7 day free trial that the site, the terms and checkout already use, which costs the member nothing to cancel and so keeps the promise. Switching means charging on day one plus a refund flow.

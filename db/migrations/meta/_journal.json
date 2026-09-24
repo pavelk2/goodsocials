@@ -64,6 +64,13 @@
       "when": 1790241117446,
       "tag": "0008_deep_expediter",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790245013212,
+      "tag": "0009_onboarding_funnel",
+      "breakpoints": true
     }
   ]
 }

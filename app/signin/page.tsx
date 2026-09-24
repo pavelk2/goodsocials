@@ -5,6 +5,8 @@ import { signIn, signOut } from "@/auth";
 import { Footer } from "@/components/footer";
 import { BLOCK_LINE, resolveEntry, type EntryBlock } from "@/lib/entry";
 import { PLAN_COOKIE, TRIAL_LINE, planFromSlug } from "@/lib/plans";
+import { TrackView } from "@/components/onboarding/track-view";
+import { anonId, track } from "@/lib/track";
 
 export const metadata = {
   title: "Sign in with LinkedIn",
@@ -54,15 +56,16 @@ export default async function SignInPage({
     <>
       {/* One lifted card on the warm ground, the same object the landing page
           is built out of. DESIGN.md section 7. */}
+      {blocked ? null : <TrackView step="signin" />}
       <main className="mx-auto max-w-[480px] px-6 py-20">
         <div className="card-lift rounded-[var(--r-xl)] p-8 sm:p-10">
           <h1 className="text-[32px] font-semibold leading-[1.1] tracking-[-0.03em]">
-            {blocked ? "Finish connecting." : "Connect your LinkedIn profile."}
+            {blocked ? "Finish connecting." : "See your first post in a minute."}
           </h1>
           <p className="mt-3 text-ink-2">
             {blocked
               ? BLOCK_LINE[blocked]
-              : "GoodSocials writes the posts, you approve them, we publish at the time you set."}
+              : "Connect LinkedIn and tell us your website. We write your first post with its picture before you pay anything."}
           </p>
 
           <div className="mt-10 flex items-baseline justify-between gap-6 border-y border-hairline py-[14px]">
@@ -87,7 +90,10 @@ export default async function SignInPage({
                 path: "/",
                 maxAge: 60 * 60 * 24 * 30,
               });
-              await signIn("linkedin", { redirectTo: "/board" });
+              // Before LinkedIn, so the funnel counts the people who press the
+              // button and never come back from the consent screen.
+              await track("signin_started", { distinctId: await anonId(), plan: plan.slug });
+              await signIn("linkedin", { redirectTo: "/onboarding" });
             }}
           >
             <button
@@ -97,7 +103,7 @@ export default async function SignInPage({
               {blocked ? "Connect again" : "Continue with LinkedIn"}
             </button>
             <p className="num mt-3 text-center text-[13px] text-ink-2">
-              {TRIAL_LINE} Then {plan.priceLine}.
+              Your first post is free. {TRIAL_LINE} Then {plan.priceLine}.
             </p>
           </form>
 

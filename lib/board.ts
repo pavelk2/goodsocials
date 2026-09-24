@@ -9,6 +9,7 @@ import {
   scheduledPost,
   theme as themeTable,
 } from "@/db/schema";
+import { parseFunnel } from "@/lib/funnel-steps";
 
 export const COLUMNS = [
   "idea",
@@ -39,8 +40,13 @@ export type BoardView = {
   cards: Record<Column, BoardCard[]>;
   /** Days of near-daily posting the approved queue can sustain. */
   runwayDays: number;
-  /** True while the principles are still the placeholders from sign in. */
+  /**
+   * True while the principles are still the placeholders from sign in, or
+   * while the onboarding funnel on this board is not finished.
+   */
   needsOnboarding: boolean;
+  /** True once a website has been read into principles, placeholders gone. */
+  brandWritten: boolean;
   /**
    * What the publish queue is doing when it is not publishing. The cron runs
    * whether or not anybody opens this page, so without these two the failure
@@ -136,6 +142,10 @@ export async function loadBoard(profileId: string): Promise<BoardView | null> {
   const perDay = brd.targetCadence / 7;
   const runwayDays = perDay > 0 ? Math.floor(ready / perDay) : 0;
 
+  const brandWritten = !Object.values(principles).every(
+    (t) => t === "" || t.startsWith(PLACEHOLDER_PREFIX),
+  );
+
   return {
     profile: prof,
     board: brd,
@@ -143,9 +153,12 @@ export async function loadBoard(profileId: string): Promise<BoardView | null> {
     themes: themeRows,
     cards,
     runwayDays,
-    needsOnboarding: Object.values(principles).every(
-      (t) => t === "" || t.startsWith(PLACEHOLDER_PREFIX),
-    ),
+    // Placeholders mean nothing was ever read. A funnel that is not done means
+    // the member left partway, and comes back to the screen they left. A
+    // board from before the funnel has none, and is never sent back into it.
+    needsOnboarding:
+      !brandWritten || (parseFunnel(brd.funnel)?.step ?? "done") !== "done",
+    brandWritten,
     connection: connectionRows[0] ?? null,
     queueError: stuckRows[0]?.lastError ?? null,
   };

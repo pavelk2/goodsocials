@@ -209,6 +209,13 @@ export async function startCheckout(opts: {
   account: Account;
   plan: PlanSlug;
   origin: string;
+  /**
+   * Where Stripe sends the member back to, relative to the origin. Settings
+   * by default; onboarding passes its own so a new member lands on the next
+   * question instead of on a screen of switches. `{CHECKOUT_SESSION_ID}` is
+   * filled in by Stripe.
+   */
+  returnTo?: { success: string; cancel: string };
 }): Promise<StripeResult<string>> {
   const plan = planFromSlug(opts.plan);
   const price = priceIdFor(plan.slug);
@@ -235,8 +242,8 @@ export async function startCheckout(opts: {
       // checkout is the only moment anybody is willing to type one.
       tax_id_collection: { enabled: true },
       allow_promotion_codes: true,
-      success_url: `${opts.origin}/settings?billing=started`,
-      cancel_url: `${opts.origin}/settings?billing=cancelled`,
+      success_url: `${opts.origin}${opts.returnTo?.success ?? "/settings?billing=started"}`,
+      cancel_url: `${opts.origin}${opts.returnTo?.cancel ?? "/settings?billing=cancelled"}`,
     }),
   );
   if (!session.ok) return session;

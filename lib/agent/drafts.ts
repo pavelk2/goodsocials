@@ -47,6 +47,8 @@ const GOAL_BRIEF: Record<Goal, string> = {
     "Write so a stranger who has never heard of this person can follow the whole thing without context. Still no call to action.",
   traffic:
     "The post ends with one link to the website, on its own line, introduced by a sentence saying what is on the other side of it. The post has to be worth reading whether or not anyone clicks. One link, never more.",
+  leads:
+    "Write for the one reader who has this problem right now. The last line says, in one plain sentence, who the author helps with this and that a message is welcome. No link unless the format principle asks for one, no offer, no urgency, and never a question asking for comments.",
 };
 
 const SYSTEM = `You write one LinkedIn post from one idea, in the voice of the person whose brand principles you are given.
@@ -155,6 +157,6 @@ export async function generateDraft(opts: {
  * same way the first one was.
  */
 export function finish(post: string, goal: Goal): string {
-  const text = goal === "traffic" ? appendUtm(post.trim()) : post.trim();
+  const text = goal === "traffic" || goal === "leads" ? appendUtm(post.trim()) : post.trim();
   return text.length > MAX_COMMENTARY ? text.slice(0, MAX_COMMENTARY) : text;
 }
