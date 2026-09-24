@@ -11,6 +11,7 @@ import { fetchSiteText } from "@/lib/agent/site";
 import { generatePrinciples } from "@/lib/agent/principles";
 import { generateThemes } from "@/lib/agent/themes";
 import type { Goal } from "@/lib/agent/ideas";
+import { isZone } from "@/lib/time";
 
 /**
  * Step one of onboarding. Split from idea generation so the board starts
@@ -32,7 +33,11 @@ export async function POST(request: Request) {
     return Response.json({ error: "Sign in first." }, { status: 401 });
   }
 
-  const body = (await request.json()) as { url?: string; goal?: string };
+  const body = (await request.json()) as {
+    url?: string;
+    goal?: string;
+    timezone?: string;
+  };
   const goal = (body.goal ?? "interesting") as Goal;
   if (!GOALS.has(goal)) {
     return Response.json({ error: "Pick one of the three goals." }, { status: 400 });
@@ -92,9 +97,16 @@ export async function POST(request: Request) {
 
   // The URL is kept because the traffic goal has to have somewhere to link to,
   // and because re-reading the page later beats asking for it twice.
+  //
+  // The zone comes from the browser rather than from a question, because every
+  // slot this board ever claims is 09:00 in it and the alternative is 09:00
+  // UTC, which is the middle of the night for half the people this is sold to.
+  // A zone the browser did not report leaves the column null, and the board
+  // asks again on first load.
+  const timezone = body.timezone && isZone(body.timezone) ? body.timezone : null;
   await db
     .update(boardTable)
-    .set({ goal, siteUrl: site.url })
+    .set(timezone ? { goal, siteUrl: site.url, timezone } : { goal, siteUrl: site.url })
     .where(eq(boardTable.profileId, prof.id));
 
   return Response.json({ principles, themes, siteUrl: site.url });

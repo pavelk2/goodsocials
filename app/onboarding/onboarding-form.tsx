@@ -54,7 +54,13 @@ export function OnboardingForm() {
       const principles = await fetch("/api/onboarding/principles", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ url, goal }),
+        // The zone the posts will go out in. Asked of the browser rather than
+        // of the person, so onboarding stays two questions long.
+        body: JSON.stringify({
+          url,
+          goal,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        }),
       });
       if (!principles.ok) {
         const body = await principles.json();

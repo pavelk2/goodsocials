@@ -13,7 +13,10 @@ import {
 } from "@/lib/billing";
 import { loadAccess, seatName } from "@/lib/profiles";
 import { readQuota } from "@/lib/quota";
-import { spacingDays } from "@/lib/schedule";
+import { boardZone, spacingDays } from "@/lib/schedule";
+import { PUBLISH_HOUR, allZones, dayKey, formatDay, offsetLabel } from "@/lib/time";
+import { summarisePastPosts } from "@/lib/history-store";
+import { PAST_POST_LIMIT } from "@/db/schema";
 import { connectionLine, needsReconnect } from "@/lib/token-expiry";
 import { AGENCY_SEATS } from "@/lib/legal";
 import {
@@ -24,8 +27,9 @@ import {
   type Plan,
 } from "@/lib/plans";
 import { manageBilling, startPlanCheckout } from "@/app/billing/actions";
-import { saveCadence, saveGoal } from "@/app/settings/actions";
+import { saveCadence, saveGoal, saveTimezone } from "@/app/settings/actions";
 import { ChoiceRow } from "@/components/settings/choice-row";
+import { HistoryImport } from "@/components/settings/history-import";
 import { ProfilePicker, type SeatRow } from "@/components/settings/profile-picker";
 
 /**
@@ -109,6 +113,16 @@ export async function SettingsBody({
 
   const quota = await readQuota(profile.id);
   const gap = spacingDays(brd.targetCadence);
+  const history = await summarisePastPosts(profile.id);
+
+  // The whole IANA list from the runtime rather than a curated one, because a
+  // curated list is a list somebody's city is missing from. A native select
+  // already knows how to be typed into, which DESIGN.md calls the feature.
+  const zone = boardZone(brd.timezone);
+  const zoneOptions = allZones().map((name) => ({ value: name, label: name }));
+  if (!zoneOptions.some((option) => option.value === zone)) {
+    zoneOptions.unshift({ value: zone, label: zone });
+  }
 
   const seats: SeatRow[] = access.seats.map((seat) => ({
     id: seat.profile.id,
@@ -172,9 +186,28 @@ export async function SettingsBody({
             options={CADENCE_OPTIONS}
             save={saveCadence}
           />
+          <ChoiceRow
+            label="Time zone"
+            value={zone}
+            options={zoneOptions}
+            save={saveTimezone}
+          />
           <Row
             label="Posting time"
-            value={`${gap === 1 ? "One a day" : `One every ${gap} days`} at 09:00 UTC`}
+            value={`${gap === 1 ? "One a day" : `One every ${gap} days`} at ${String(
+              PUBLISH_HOUR,
+            ).padStart(2, "0")}:00, ${offsetLabel(zone)}`}
+          />
+          <Row
+            label="Earlier posts"
+            value={
+              history.count === 0
+                ? "None imported"
+                : `${history.count} imported, newest ${formatDay(
+                    dayKey(history.newest ?? new Date(), boardZone(brd.timezone)),
+                    boardZone(brd.timezone),
+                  )}`
+            }
           />
           <Row
             label="Images this month"
@@ -205,7 +238,24 @@ export async function SettingsBody({
         </p>
       )}
 
-      <p className="mt-6 max-w-[560px] text-[13px] leading-[1.4] text-ink-2">
+      <section className="mt-8 max-w-[760px]">
+        <h2 className="text-[13px] font-medium text-ink-2">
+          Posts already on LinkedIn
+        </h2>
+        <p className="mt-2 max-w-[560px] text-[13px] leading-[1.4] text-ink-2">
+          The calendar can show what this profile posted before GoodSocials, so
+          a month reads as the run it is. LinkedIn does not let an app read a
+          member&apos;s posts, so it comes from your own copy of your data: in
+          LinkedIn settings open Data privacy, then Get a copy of your data,
+          pick Posts, and they email an archive within minutes. Upload
+          Shares.csv from it. The most recent {PAST_POST_LIMIT} are kept, for
+          reference only. Nothing imported is ever posted again.
+        </p>
+
+        <HistoryImport count={history.count} limit={PAST_POST_LIMIT} />
+      </section>
+
+      <p className="mt-8 max-w-[560px] text-[13px] leading-[1.4] text-ink-2">
         LinkedIn access tokens last 60 days and cannot be renewed in the
         background. We email you before yours runs out, and posting pauses
         rather than failing one post at a time.

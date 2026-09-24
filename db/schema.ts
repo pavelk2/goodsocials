@@ -187,6 +187,17 @@ export const board = pgTable("board", {
   siteUrl: text("site_url"),
   /** Posts per week. Close to daily is 5. Drives the runway calculation. */
   targetCadence: integer("target_cadence").notNull().default(5),
+  /**
+   * IANA zone this profile posts in, for example `Europe/Amsterdam`. Every slot
+   * is 09:00 here, not 09:00 UTC, so the cron's instants are computed from this
+   * and the calendar reads every day boundary through it.
+   *
+   * On the board rather than the profile because it is a scheduling setting,
+   * and cadence, goal and posting time are one decision a user makes once.
+   * Nullable rather than defaulted: null means nobody has told us yet, which is
+   * what lets the board ask the browser once instead of assuming UTC forever.
+   */
+  timezone: text("timezone"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -371,3 +382,52 @@ export const linkedinCallBudget = pgTable(
   },
   (t) => [uniqueIndex("linkedin_call_member_day_unique").on(t.memberId, t.day)],
 );
+
+/**
+ * A post this person published on LinkedIn before GoodSocials existed, kept so
+ * the calendar can show what the feed already looked like.
+ *
+ * Imported from the member's own LinkedIn data export, never read from the
+ * API: retrieving a member's posts needs r_member_social, which is a closed
+ * permission LinkedIn is not granting. See CLAUDE.md.
+ *
+ * Reference only. Nothing here is a card, has a state, or can be published:
+ * these rows are read by the calendar and by nothing else, which is why they
+ * are a table of their own rather than a flag on `card`.
+ */
+export const pastPost = pgTable(
+  "past_post",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profile.id, { onDelete: "cascade" }),
+    /** When it went out, as the export reports it. */
+    postedAt: timestamp("posted_at", { withTimezone: true }).notNull(),
+    text: text("text").notNull(),
+    /** The permalink from the export, so a cell can open the real post. */
+    url: text("url"),
+    /**
+     * What makes two imports of the same archive one set of rows: the
+     * permalink when the export carries one, the day and the opening words
+     * when it does not. Re-importing is how a user adds the posts they have
+     * published since, so it has to be free of duplicates.
+     */
+    sourceKey: text("source_key").notNull(),
+    importedAt: timestamp("imported_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("past_post_profile_day_idx").on(t.profileId, t.postedAt),
+    uniqueIndex("past_post_source_unique").on(t.profileId, t.sourceKey),
+  ],
+);
+
+/**
+ * How many past posts one profile keeps. The calendar reads them all on every
+ * board load, and a decade of a prolific poster's archive is not reference,
+ * it is a second database. The most recent ones are the ones that say what
+ * this person sounds like now.
+ */
+export const PAST_POST_LIMIT = 300;

@@ -29,6 +29,7 @@ export function CardModal({
   needs,
   imageUrl,
   scheduledAt,
+  timeZone,
   onClose,
 }: {
   id: string;
@@ -38,6 +39,8 @@ export function CardModal({
   needs?: string | null;
   imageUrl?: string | null;
   scheduledAt?: Date | null;
+  /** The profile's own zone. The dialog says the hour the author will see. */
+  timeZone?: string;
   onClose: () => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -74,7 +77,7 @@ export function CardModal({
         month: "short",
         hour: "2-digit",
         minute: "2-digit",
-        timeZone: "UTC",
+        timeZone: timeZone ?? "UTC",
       }).format(scheduledAt)
     : null;
 

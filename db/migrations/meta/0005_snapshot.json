@@ -1,5 +1,5 @@
 {
-  "id": "fd227a09-4105-4d5f-8ada-0c18a2b70cb1",
+  "id": "c0836d1d-a97c-4cc4-af05-704a86830132",
   "prevId": "daef6dfc-4bcb-4798-81d6-83ecc9d9318f",
   "version": "7",
   "dialect": "postgresql",
@@ -33,12 +33,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "stripe_subscription_id": {
-          "name": "stripe_subscription_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "plan": {
           "name": "plan",
           "type": "account_plan",
@@ -54,33 +48,6 @@
           "notNull": true,
           "default": 1
         },
-        "subscription_status": {
-          "name": "subscription_status",
-          "type": "subscription_status",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'none'"
-        },
-        "current_period_end": {
-          "name": "current_period_end",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "trial_ends_at": {
-          "name": "trial_ends_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "cancel_at_period_end": {
-          "name": "cancel_at_period_end",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -89,23 +56,7 @@
           "default": "now()"
         }
       },
-      "indexes": {
-        "account_stripe_customer_unique": {
-          "name": "account_stripe_customer_unique",
-          "columns": [
-            {
-              "expression": "stripe_customer_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
+      "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
@@ -158,6 +109,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": 5
+        },
+        "timezone": {
+          "name": "timezone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -1086,8 +1043,7 @@
       "schema": "public",
       "values": [
         "solo",
-        "agency",
-        "consultancy"
+        "agency"
       ]
     },
     "public.board_goal": {
@@ -1146,21 +1102,6 @@
         "voice",
         "visual",
         "format"
-      ]
-    },
-    "public.subscription_status": {
-      "name": "subscription_status",
-      "schema": "public",
-      "values": [
-        "none",
-        "trialing",
-        "active",
-        "past_due",
-        "canceled",
-        "incomplete",
-        "incomplete_expired",
-        "unpaid",
-        "paused"
       ]
     }
   },

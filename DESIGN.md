@@ -224,6 +224,184 @@ grid, no logo wall, no testimonial faces, and no second coloured word anywhere
 below the hero. The one screenshot on the page is the real board rendered by
 the real components.
 
+---
+
+## 7. The third pass: shapes from the reference, material from us
+
+Pavel picked a reference page and asked for the site to move towards it. Pass
+two had gone the other way: it ragged every heading left, hung a streak grid
+off each one in place of a label, alternated two grounds band by band, and put
+10px radii on everything. Read straight through, six sections opened with the
+same object and none of them said what they were about.
+
+What the reference gives the page, and what each thing is actually for:
+
+- **One ground the whole way down.** Warm paper, `#f7f6f3`, with white cards
+  lifted off it by `--lift`. Alternating bands were making the page argue with
+  itself about where a section starts; a card on a warm ground does that job
+  without a band.
+- **Pill controls.** `.pill`, on the marketing pages only. The app keeps its
+  10px `--r-btn`, because a control inside a dense board is not the same object
+  as a call to action on a page.
+- **A centred eyebrow, claim and explanation above every section.**
+  `SectionHead` in `components/marketing/section-head.tsx`. The eyebrow says
+  what the section is, which is the job the streak grid was failing at.
+- **Two ink panels.** The plan the page recommends and the close, both `.panel`:
+  near-black with one plum glow off the corner. That glow is the accent at the
+  only weight a whole surface can carry it.
+- **Checks in a list.** `Check` in `app/page.tsx`, drawn in ink. Plum is spent
+  on time, so a feature list does not get any.
+
+What did not move:
+
+- **Plum still means now.** Today's cell, the queue runway, and the button that
+  starts a board. Not a feature check, not a section label, not a second word
+  in a headline.
+- **The streak grid is still the only drawn thing on the page.** It lost the
+  section-anchor job and kept the two it is honest at: the five columns as
+  `StepDots`, and a full month on the close over the line that says what a cell
+  is. The footer still draws a year of it.
+- **Geist Mono still carries every count, price period and date.**
+- **The board preview is still the real component** rendering an example board,
+  now floating on a plum wash rather than across a seam between two grounds.
+- **No logo wall, no testimonial faces, no invented numbers.** The featured plan
+  says `Start here`, not `Most popular`: we do not have that number, and the
+  page does not print numbers it does not have.
+
+Two things the pass fixed on the way through:
+
+- **The headline dot is gone.** Two passes drew today's cell in front of the
+  word `daily`. At headline size the word-space is wide enough that the dot
+  always lands mid-gap and reads as a middot separating two words. The plum on
+  the word is the whole signal.
+- **`--accent-text`.** The plum as type is 2.3:1 against the dark ground, which
+  fails at any size. Dark mode lightens it to `#f2799f` for type while the
+  filled buttons keep `--accent`. `--accent-panel` is that same lighter plum in
+  both modes, because the ink panel is ink in both.
+
 Marketing components live in `components/marketing/`. The slim `Footer` in
 `components/footer.tsx` still serves sign in and the error page; `SiteFooter`
 is the landing page's.
+
+---
+
+## 7. The calendar is the second reading of the board, not a second screen
+
+Same url, same cards, one query parameter. `/board` is the five columns and
+`/board?view=calendar` is the month. The switch is two real links, so a week
+somebody is looking at can be sent to the person who has to approve it.
+
+The columns answer how far along a post is. They cannot be made to answer
+whether next Thursday has one: a Scheduled column with four cards in it looks
+identical whether those four days run consecutively or are spread over a
+fortnight. That is the whole reason the view exists, and it is why the header
+sentence names a day rather than a count.
+
+**Cell states, and what each one is drawn as.**
+
+```
+posted      --surface fill, no border, a filled ink dot
+scheduled   dashed --ink-3 border, a hollow dot
+today       --accent border on --accent-wash, the day number in --accent-on-wash
+open        dotted --hairline border, "Schedule here", or "Nothing here"
+weekend     no border, dimmed number, "Weekend", the offer on hover
+history     no border, the post in --ink-3, a --hairline dot, "On LinkedIn"
+outside     the number alone, dimmed
+past        the number alone, no border, nothing droppable
+```
+
+A weekend is drawn back rather than outlined, and it is not counted in the open
+days, because an empty Saturday is a choice and an empty Tuesday is a gap. A
+calendar that flagged both would cry wolf every week.
+
+**The accent, still once.** Today's cell is the live edge of time, which is what
+section 6 says the plum is for, so the runway indicator leaves the header in
+this view. The month line says which day the queue runs dry, which is the same
+fact with somewhere to point. One saturated idea per screen holds.
+
+**The rail is the Image column under the name it has here.** Same card
+component, same three actions, so section 4 still allows exactly one card in the
+product. `Schedule it` picks the next free day; a drag picks the day.
+
+**A drag is the fast way and never the only way.** An open cell said "Nothing
+here", which names the state and hides the capability: nothing on the grid told
+anybody a day would take a card, and a keyboard user had to find a drag handle
+to learn it. An open weekday now says `Schedule here` and opens the list of
+approved posts, which is the same write the drop performs. A weekend keeps its
+word and shows the offer on hover, because an empty Saturday is still a choice.
+The rail says the rule once, above the cards, rather than repeating it in every
+cell: `Schedule it` takes the next free day, `Schedule here` takes this one.
+
+**History is background.** Posts imported from the member's LinkedIn archive
+are drawn in `--ink-3` with no border and no dot fill, under our own posts in
+every sense: a day this board published into never shows one. They cannot be
+dragged, approved or republished, and they are there so a month reads as the
+run it is rather than as the two weeks this product has existed. The month line
+counts them apart from ours, as `12 earlier`.
+
+**Seven columns do not fit a phone.** The grid scrolls sideways inside its own
+container, the way the board already scrolls one column at a time, and the rail
+stacks under it. Squeezing seven cells into 390px would leave none of them wide
+enough for a line of a post.
+
+---
+
+## 8. One screen of footage, then the page
+
+Pavel picked `ai.meta.com/muse` and asked for its shape: a full screen of video
+that carries the claim, and under it a plain page that explains the product.
+This is that, with the material from section 7 unchanged below the fold.
+
+**What the hero holds now.** The mark at 74px, the label, the claim, the two
+buttons, the trial line and one arrow. Nothing else. The sub-paragraph and the
+row of four facts moved down to the screen under it, because a hero that
+explains is a hero that has stopped being one, and a reader who is still
+deciding what this is should meet one sentence rather than six.
+
+**The footage.** An aerial of a few dozen surfers paddling out, scattered across
+flat water. It is stock, which section 5 of the house style would normally end
+the discussion on, and it earns the exception on one ground: from above, the
+frame is the mark. Figures spaced across a plain field, some filled and some
+not, is the streak grid in a photograph, and it is the only footage on the page
+that could be. It is also what we sell drawn literally, which is a lot of
+people doing the same thing on the same day.
+
+**The scrim is two layers.** A flat wash at 40 percent that holds white type
+anywhere on the frame, and a gradient heaviest at the top and the bottom edge,
+which is where the bar and the arrow have to survive whatever the water is
+doing. Type over video is the one place on this site where contrast is not a
+token lookup, so both numbers are tuned against the real frame rather than
+derived.
+
+**The colours are pinned, not tokenised.** The ground under the hero is dark in
+both system themes, so paper and ink cannot be used there. White is white, the
+plum on `daily` is `--accent-panel` for the same reason the ink panel uses it,
+and the primary button keeps `--accent` because plum still means now and
+starting a board is still the most now thing on the page.
+
+**The bar has no ground until the hero is behind it.** A paper fill across the
+top of a full-screen frame cuts it in half and turns a screen of video into a
+banner. `SiteNav` takes `overlay`, draws itself transparent with white type and
+the inverted mark, and crosses to the bar the rest of the site has once the
+reader is 120px from the bottom of the hero.
+
+**Weight.** 7.2MB of video and an 86KB poster in `public/hero/`, the 1366 wide
+encode rather than the 2048 one. Behind a 40 percent scrim on water there is
+nothing in the larger file a reader can see, and it is twice the bytes. The
+poster is the video's own first frame, so a reader on a slow connection gets a
+photograph rather than a black rectangle, and the video starts on the same
+frame it was showing. `prefers-reduced-motion` pauses it at that frame, which
+is the only honest way to switch a video off, and it is why `HeroVideo` is a
+client component.
+
+**The reactions moved.** They were three white chips around the old centred
+hero. On footage a white chip is a sticker, so they sit in the empty right half
+of the opening claim, which is the shape they were drawn for anyway.
+
+The file is from Pixabay under their content licence, which needs no
+attribution, and it lives in the repo rather than on their CDN so the hero does
+not depend on somebody else's uptime.
+
+**What the page still refuses.** Everything section 6 and section 7 list. The
+video does not stand in for the product: the real board is still the first
+thing under it, rendered by the real components.

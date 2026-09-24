@@ -1,4 +1,5 @@
 import type { CSSProperties, HTMLAttributes, ReactNode, Ref } from "react";
+import { formatSlot } from "@/lib/time";
 
 const IMAGE_ALT = "The image generated for this post";
 
@@ -20,6 +21,7 @@ export function CardShell({
   imageUrl,
   onOpen,
   scheduledAt,
+  timeZone,
   innerRef,
   style,
   handleProps,
@@ -49,6 +51,12 @@ export function CardShell({
    */
   onOpen?: () => void;
   scheduledAt?: Date | null;
+  /**
+   * The profile's own zone, so a card says the hour the post goes out where the
+   * author lives. Defaults to UTC for the landing hero, which renders a frozen
+   * card belonging to nobody.
+   */
+  timeZone?: string;
   innerRef?: Ref<HTMLElement>;
   style?: CSSProperties;
   /** Drag listeners. They go on the body, never on the action row. */
@@ -58,15 +66,7 @@ export function CardShell({
   /** The footer: three actions on the board, an open comment on the hero. */
   children?: ReactNode;
 }) {
-  const when = scheduledAt
-    ? new Intl.DateTimeFormat("en-GB", {
-        day: "numeric",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-        timeZone: "UTC",
-      }).format(scheduledAt)
-    : null;
+  const when = scheduledAt ? formatSlot(scheduledAt, timeZone ?? "UTC") : null;
 
   return (
     <article

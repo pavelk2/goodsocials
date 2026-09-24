@@ -126,7 +126,7 @@ export function BoardPreview() {
       <div className="flex items-baseline justify-between pr-8 sm:pr-4">
         <p className="text-[13px] font-medium text-ink-2">Brand principles</p>
         <p className="text-[13px] text-ink-2">
-          Runway <span className="num font-medium text-accent">9 days</span>
+          Runway <span className="num font-medium text-accent-text">9 days</span>
         </p>
       </div>
 
