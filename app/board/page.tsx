@@ -50,7 +50,7 @@ export default async function BoardPage({
     view.cards.draft.length < THIN_DRAFT_COLUMN && view.cards.idea.length > 0;
 
   return (
-    <main className="px-6 py-10">
+    <main className="px-4 py-8 sm:px-6 sm:py-10">
       <TopUp needed={thin} />
       <TimezoneProbe known={Boolean(view.board.timezone)} />
 

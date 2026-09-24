@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import { CrispChat } from "@/components/crisp-chat";
@@ -19,6 +19,17 @@ export const metadata: Metadata = {
   title: "GoodSocials",
   description:
     "Hire a social media manager for LinkedIn for $100 instead of $3,000. Publishes for you 5 times a week after your approval.",
+};
+
+/**
+ * Edge to edge on a phone. The page draws under the notch and the home
+ * indicator, and globals.css pads the body and the full screen dialogs by the
+ * safe area insets so nothing a person has to read or press sits under either.
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 const openAiAdsPixelId = process.env.NEXT_PUBLIC_OPENAI_ADS_PIXEL_ID;

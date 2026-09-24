@@ -12,7 +12,7 @@ import { manageBilling } from "@/app/billing/actions";
  * uses against the column, so nothing new enters the palette.
  */
 const ITEM =
-  "flex w-full items-baseline justify-between gap-4 rounded-[8px] px-3 py-[7px] text-left text-[13px] text-ink transition-colors duration-150 hover:bg-paper";
+  "flex w-full items-baseline justify-between gap-4 rounded-[8px] px-3 py-[7px] text-left text-[13px] text-ink transition-colors duration-150 hover:bg-paper touch:py-3";
 
 /**
  * Name and picture, the plan, and three doors: settings, billing, out. The
@@ -86,7 +86,7 @@ export function UserMenu({
         aria-haspopup="true"
         aria-controls="user-menu"
         onClick={() => setOpen((was) => !was)}
-        className="flex items-center gap-2 rounded-[8px] py-[5px] pl-[5px] pr-2 text-[13px] font-medium transition-colors duration-150 hover:bg-paper"
+        className="flex items-center gap-2 rounded-[8px] py-[5px] pl-[5px] pr-2 text-[13px] font-medium transition-colors duration-150 hover:bg-paper touch:min-h-11"
       >
         <Avatar name={name} src={avatarUrl} />
         <span className="hidden max-w-[160px] truncate sm:block">{name}</span>

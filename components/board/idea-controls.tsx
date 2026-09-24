@@ -104,7 +104,7 @@ export function IdeaControls({ themes }: { themes: BoardTheme[] }) {
                 type="button"
                 disabled={text.trim().length < 10}
                 onClick={save}
-                className="font-medium text-ink underline disabled:text-ink-3 disabled:no-underline"
+                className="font-medium text-ink underline disabled:text-ink-3 disabled:no-underline touch:min-h-11"
               >
                 Add to ideas
               </button>
@@ -114,7 +114,7 @@ export function IdeaControls({ themes }: { themes: BoardTheme[] }) {
                   setMode("idle");
                   setError(null);
                 }}
-                className="text-ink-2 underline"
+                className="text-ink-2 underline touch:min-h-11"
               >
                 Cancel
               </button>
@@ -136,7 +136,7 @@ export function IdeaControls({ themes }: { themes: BoardTheme[] }) {
         <button
           type="button"
           onClick={plan}
-          className="font-medium text-ink underline"
+          className="font-medium text-ink underline touch:min-h-11"
         >
           Plan 7 more ideas
         </button>
@@ -147,7 +147,7 @@ export function IdeaControls({ themes }: { themes: BoardTheme[] }) {
             setNote(null);
             setError(null);
           }}
-          className="text-ink-2 underline"
+          className="text-ink-2 underline touch:min-h-11"
         >
           Write your own
         </button>

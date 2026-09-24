@@ -5,12 +5,8 @@ import { useOptimistic, useState, useTransition } from "react";
 import {
   DndContext,
   DragOverlay,
-  KeyboardSensor,
-  PointerSensor,
   useDraggable,
   useDroppable,
-  useSensor,
-  useSensors,
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
@@ -28,6 +24,7 @@ import { PostText } from "@/components/post-text";
 import { Card } from "./card";
 import { CardModal } from "./card-modal";
 import { CardShell } from "./card-shell";
+import { useBoardSensors } from "./sensors";
 import { DayPicker } from "./day-picker";
 
 /**
@@ -132,10 +129,7 @@ export function BoardCalendar({
     });
   }
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor),
-  );
+  const sensors = useBoardSensors();
 
   function onDragStart(event: DragStartEvent) {
     const data = event.active.data.current;
@@ -191,11 +185,13 @@ export function BoardCalendar({
           <MonthHeader month={month} />
 
           {/* Seven columns do not fit a phone, and squeezing them would leave
-              cells too narrow to hold a line of a post. The board already
-              scrolls sideways on a phone, so this does too. */}
-          <div className="overflow-x-auto pb-2">
-            <div className="min-w-[840px]">
-              <div className="mb-2 grid grid-cols-7 gap-2">
+              cells too narrow to hold a line of a post. Scrolled sideways, a
+              393px screen showed three days of empty grid at a time. So a
+              phone reads the month as a list, one day under the next, which is
+              the order a thumb scrolls in: the same cells, one column. */}
+          <div className="relative pb-2 md:overflow-x-auto">
+            <div className="md:min-w-[840px]">
+              <div className="mb-2 hidden grid-cols-7 gap-2 md:grid">
                 {DOW.map((name) => (
                   <span key={name} className="px-1 text-[11px] text-ink-3">
                     {name}
@@ -203,7 +199,7 @@ export function BoardCalendar({
                 ))}
               </div>
 
-              <div className="grid grid-cols-7 gap-2">
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-7">
                 {model.weeks.flat().map((day) => (
                   <DayBox
                     key={day.key}
@@ -292,14 +288,14 @@ function MonthHeader({ month }: { month: CalendarMonth }) {
         <span className="mx-2 text-ink-3">·</span>
         <Link
           href={`/board?view=calendar&m=${month.previous}`}
-          className="nav-link underline"
+          className="nav-link underline touch:py-3"
         >
           Previous
         </Link>
         <span className="mx-2 text-ink-3">·</span>
         <Link
           href={`/board?view=calendar&m=${month.next}`}
-          className="nav-link underline"
+          className="nav-link underline touch:py-3"
         >
           Next
         </Link>
@@ -348,12 +344,20 @@ function DayBox({
             ? "border-transparent"
             : "border-hairline border-dotted";
 
+  // In the phone's list there is no grid to keep square, so the days that only
+  // pad out the first and last weeks go, and so do past days nobody posted on.
+  // Today stays after its slot has gone: it is where the reader is.
+  const listed =
+    day.inMonth && (day.today || !day.past || day.post || day.history);
+
   return (
     <div
       ref={setNodeRef}
-      className={`group min-h-[124px] overflow-hidden rounded-[14px] border p-[10px] ${border} ${
-        day.post?.state === "posted" ? "bg-surface" : ""
-      } ${day.today ? "bg-[var(--accent-wash)]" : ""}`}
+      className={`group overflow-hidden rounded-[14px] border p-[10px] md:min-h-[124px] ${
+        listed ? "" : "max-md:hidden"
+      } ${border} ${day.post?.state === "posted" ? "bg-surface" : ""} ${
+        day.today ? "bg-[var(--accent-wash)]" : ""
+      }`}
     >
       <span
         className={`num block text-[12px] ${
@@ -364,7 +368,9 @@ function DayBox({
               : "text-ink-3"
         }`}
       >
-        {day.number}
+        {/* A list has no column heading to say which weekday a number is. */}
+        <span className="md:hidden">{day.label}</span>
+        <span className="hidden md:inline">{day.number}</span>
       </span>
 
       {day.post ? (
@@ -380,7 +386,7 @@ function DayBox({
             <ScheduleHere
               day={day}
               onSchedule={onSchedule}
-              className="opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100"
+              className="opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 touch:opacity-100"
             />
           ) : null}
         </>
@@ -413,7 +419,7 @@ function ScheduleHere({
       type="button"
       onClick={() => onSchedule(day)}
       aria-label={`Schedule a post for ${day.label}`}
-      className={`mt-2 text-left text-[12px] text-ink-2 underline underline-offset-2 hover:text-ink ${className}`}
+      className={`mt-2 text-left text-[12px] text-ink-2 underline underline-offset-2 hover:text-ink touch:mt-0 touch:min-h-11 ${className}`}
     >
       Schedule here
     </button>
@@ -484,7 +490,15 @@ function PostChip({
 
   return (
     <div ref={setNodeRef} style={isDragging ? { opacity: 0.4 } : undefined}>
-      <div {...attributes} {...listeners} className={movable ? "cursor-grab" : undefined}>
+      <div
+        {...attributes}
+        {...listeners}
+        className={
+          movable
+            ? "cursor-grab touch:select-none touch:[-webkit-touch-callout:none]"
+            : undefined
+        }
+      >
         <p className="mt-1 line-clamp-3 whitespace-pre-line text-[13px] leading-[1.35] text-ink">
           <PostText text={post.body} />
         </p>
@@ -492,7 +506,7 @@ function PostChip({
       <button
         type="button"
         onClick={() => onRead(post)}
-        className="num mt-[7px] flex items-center gap-[6px] text-[12px] text-ink-2"
+        className="num mt-[7px] flex items-center gap-[6px] text-[12px] text-ink-2 touch:mt-0 touch:min-h-11"
       >
         <span
           aria-hidden="true"
@@ -524,8 +538,10 @@ function Rail({
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: RAIL });
 
+  // Above the month on a phone. Below it, a post waiting for a day sat under
+  // thirty days of list, and a card that needs a decision belongs on top.
   return (
-    <section className="w-full shrink-0 xl:w-[320px]">
+    <section className="w-full shrink-0 max-md:order-first xl:w-[320px]">
       <header className="flex h-[44px] items-center justify-between px-1">
         <h2 className="text-[13px] font-medium text-ink-2">Ready to schedule</h2>
         <span className="num text-[13px] font-medium text-ink-3">

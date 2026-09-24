@@ -80,13 +80,18 @@ export function CardShell({
       style={floating ? { ...style, boxShadow: "var(--shadow)" } : style}
       className="min-h-[88px] rounded-[14px] border border-hairline bg-surface px-4 py-[14px]"
     >
-      {/* The drag handle and the click target are the same surface. dnd-kit's
-          pointer sensor waits for 8px of movement, so a press that does not
-          move never becomes a drag and the click lands. */}
+      {/* The drag handle and the click target are the same surface. A mouse
+          has to move 8px and a finger has to hold before it becomes a drag, so
+          a press that does neither is a click. On a phone the hold would
+          otherwise select the text and raise the copy menu over the card. */}
       <div
         {...handleProps}
         onClick={onOpen}
-        className={handleProps ? "cursor-grab" : undefined}
+        className={
+          handleProps
+            ? "cursor-grab touch:select-none touch:[-webkit-touch-callout:none]"
+            : undefined
+        }
       >
         <p className="line-clamp-3 whitespace-pre-line text-[15px] leading-[1.4] text-ink">
           <PostText text={body} />

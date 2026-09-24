@@ -42,12 +42,12 @@ export function Sheet({
       }}
       className="sheet w-[calc(100vw-32px)] max-w-[820px] rounded-[20px] border border-hairline bg-surface p-0 text-ink"
     >
-      <div className="flex items-center justify-between gap-6 border-b border-hairline px-6 py-4">
+      <div className="flex items-center justify-between gap-6 border-b border-hairline px-5 py-4 sm:px-6">
         <h2 className="text-[17px] font-semibold tracking-[-0.01em]">{title}</h2>
         <button
           type="button"
           onClick={() => ref.current?.close()}
-          className="btn-quiet rounded-[8px] px-2 py-1 text-[13px] font-medium text-ink-2"
+          className="btn-quiet rounded-[8px] px-2 py-1 text-[13px] font-medium text-ink-2 touch:-mr-2 touch:min-h-11 touch:px-3"
         >
           Close
         </button>
@@ -59,7 +59,7 @@ export function Sheet({
       <div
         autoFocus
         tabIndex={-1}
-        className="sheet-body max-h-[70vh] overflow-y-auto px-6 py-5"
+        className="sheet-body max-h-[calc(92dvh-60px)] overflow-y-auto overscroll-contain px-5 py-5 sm:max-h-[70dvh] sm:px-6"
       >
         {children}
       </div>

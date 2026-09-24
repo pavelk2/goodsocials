@@ -13,7 +13,8 @@ import { Sheet } from "@/components/ui/sheet";
  * above it read as the main action on a page where it is the occasional one. The motion lives on .btn-ink and
  * .btn-outline in globals.css, with the rest of the app's buttons.
  */
-const SHAPE = "rounded-[8px] px-3 py-[6px] text-[13px] font-medium";
+const SHAPE =
+  "inline-flex items-center rounded-[8px] px-3 py-[6px] text-[13px] font-medium touch:min-h-11";
 
 /**
  * Surface on paper with a hairline, the same way a card separates from the
@@ -130,7 +131,7 @@ export function BoardHeader({
  */
 function ViewSwitch({ view }: { view: "board" | "calendar" }) {
   const shape =
-    "rounded-[7px] px-[13px] py-[5px] text-[13px] font-medium transition-colors";
+    "inline-flex items-center rounded-[7px] px-[13px] py-[5px] text-[13px] font-medium transition-colors touch:min-h-10";
 
   return (
     <div className="flex rounded-[9px] border border-hairline bg-surface p-[2px]">

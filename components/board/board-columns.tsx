@@ -4,11 +4,7 @@ import { useOptimistic, useState, useTransition } from "react";
 import {
   DndContext,
   DragOverlay,
-  KeyboardSensor,
-  PointerSensor,
   useDroppable,
-  useSensor,
-  useSensors,
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
@@ -26,6 +22,7 @@ import { formatSlot } from "@/lib/time";
 import { Column as ColumnShell } from "./column";
 import { Card } from "./card";
 import { CardShell } from "./card-shell";
+import { useBoardSensors } from "./sensors";
 import { IdeaControls } from "./idea-controls";
 
 const EMPTY_LINE: Record<Column, string> = {
@@ -47,8 +44,8 @@ function bodyOf(card: BoardCard, state: Column): string {
  * card moves in the UI first and the server is the arbiter: if the move is
  * refused, it goes back where it was and the column says why.
  *
- * An 8px activation distance means a click on a card's action row is a click,
- * not a one pixel drag that swallows it.
+ * A mouse needs 8px of movement and a finger a short hold before a card is
+ * picked up, so a click is a click and a swipe scrolls. components/board/sensors.ts.
  */
 export function BoardColumns({
   cards,
@@ -88,10 +85,7 @@ export function BoardColumns({
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor),
-  );
+  const sensors = useBoardSensors();
 
   function onDragStart(event: DragStartEvent) {
     const id = String(event.active.id);
@@ -136,7 +130,12 @@ export function BoardColumns({
         </p>
       ) : null}
 
-      <div className="flex snap-x gap-4 overflow-x-auto pb-4">
+      {/* Relative, so the visually hidden Read it controls on each card are
+          clipped by this scroller. Without it they were placed against the
+          page, and five columns of them made a phone's page 1,058px wide and
+          zoomed it out. On a phone the columns scroll edge to edge, so the
+          next one shows at the right edge as a sign there is more. */}
+      <div className="relative -mx-4 flex snap-x scroll-px-4 gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:scroll-px-0 sm:px-0">
         {COLUMNS.map((state) => {
           const list = optimistic[state];
           const folded = state === "posted" && list.length > 0 && !showPosted;
