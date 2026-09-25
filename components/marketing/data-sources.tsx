@@ -59,6 +59,10 @@ function SoonIcon({ kind, size }: { kind: keyof typeof SOON_PATHS; size: number 
  * The row of pills in the hero board's header. `reading` lights the pills the
  * animated card is being written from, so the row and the board tell one
  * story. `compact` drops the tools still to come, which section two names.
+ *
+ * A row of logos alone reads as "works with" or as a customer strip, so the
+ * row names itself: a label before the pills says they are data sources, and
+ * a note after says what the dot means and that nothing is written back.
  */
 export function SourcePills({
   reading = [],
@@ -72,11 +76,13 @@ export function SourcePills({
       aria-label="Tools a board reads from"
       className={`flex flex-wrap items-center gap-2 ${compact ? "" : "justify-center"}`}
     >
+      <li className="mr-1 font-mono text-[12px] text-ink-2">Data sources</li>
       {CONNECTED.map((source) => {
         const on = reading.includes(source.kind);
         return (
           <li
             key={source.kind}
+            title={`${source.name}, connected as a read-only data source`}
             className="flex items-center gap-[7px] rounded-full border bg-surface py-[6px] pl-[10px] pr-3 text-[13px] transition-[border-color,box-shadow,transform] duration-500"
             style={{
               borderColor: on ? "var(--accent)" : "var(--hairline)",
@@ -91,9 +97,14 @@ export function SourcePills({
               className={`size-[6px] rounded-full ${on ? "src-reading" : ""}`}
               style={{ background: on ? "var(--accent)" : "var(--ink)" }}
             />
+            <span className="sr-only">{on ? ", being read" : ", connected"}</span>
           </li>
         );
       })}
+      <li className="ml-1 flex items-center gap-[6px] font-mono text-[11px] text-ink-3">
+        <span aria-hidden="true" className="size-[6px] rounded-full bg-ink" />
+        connected, read only
+      </li>
       {compact ? null : SOON.map((source) => (
         <li
           key={source.kind}
