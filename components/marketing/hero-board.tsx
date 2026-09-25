@@ -261,6 +261,10 @@ export function HeroBoard() {
         style={{
           background:
             "linear-gradient(175deg, var(--accent-wash) 0%, var(--paper) 78%)",
+          // Browsers keep a card near the top of the screen still by scrolling
+          // the window when it moves. Every card here moves on purpose, so none
+          // of them may be that anchor, or the page scrolls itself.
+          overflowAnchor: "none",
         }}
       >
         <div className="flex flex-wrap items-center justify-between gap-3 px-2 pb-4">
