@@ -421,9 +421,9 @@ function HeroCard({ frame }: { frame: Frame }) {
       <Meta kind="Your numbers" sources={READING} />
 
       {stage === 4 ? (
-        <div className="mt-3 flex gap-[6px] text-[11.5px]">
+        <div className="mt-3 grid grid-cols-3 gap-[5px] text-center text-[11.5px]">
           <span
-            className="rounded-full bg-accent px-3 py-1 font-medium text-accent-ink transition-[transform,box-shadow] duration-200"
+            className="truncate rounded-full bg-accent px-1 py-1 font-medium text-accent-ink transition-[transform,box-shadow] duration-200"
             style={{
               transform: pressed ? "scale(0.92)" : "none",
               boxShadow: pressed ? "0 0 0 6px var(--accent-wash)" : "none",
@@ -431,8 +431,8 @@ function HeroCard({ frame }: { frame: Frame }) {
           >
             Approve
           </span>
-          <span className="rounded-full border border-hairline px-3 py-1">Revise</span>
-          <span className="rounded-full border border-hairline px-3 py-1">Reject</span>
+          <span className="truncate rounded-full border border-hairline px-1 py-1">Revise</span>
+          <span className="truncate rounded-full border border-hairline px-1 py-1">Reject</span>
         </div>
       ) : null}
 

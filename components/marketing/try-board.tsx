@@ -164,7 +164,7 @@ function DraggableCard({ onApprove }: { onApprove: () => void }) {
       }}
     >
       <PostCard floating={isDragging} handle={{ ...attributes, ...listeners }}>
-        <div className="mt-3 flex gap-[6px] text-[12px]">
+        <div className="mt-3 flex flex-wrap gap-[6px] text-[12px]">
           <button
             type="button"
             onClick={onApprove}
