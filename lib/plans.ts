@@ -89,12 +89,12 @@ export const PLANS: Plan[] = [
     name: "Consultancy",
     price: "$2,000",
     priceLine: "$2,000 a month",
-    line: `Up to ${AGENCY_SEATS} profiles, and a call with the founder every week.`,
+    line: "Pasha, the founder, sets everything up with you.",
     features: [
-      "Everything in Agency",
-      "A call with the founder every week",
-      "We write the first set of themes with you",
-      "A direct line when a client board needs a decision",
+      `Everything in Agency, up to ${AGENCY_SEATS} profiles`,
+      "Pasha sets up your themes, principles and sources with you",
+      "A call with Pasha every week",
+      "A direct line when a board needs a decision",
     ],
     cta: "Start for $2,000 a month",
     seats: AGENCY_SEATS,
@@ -105,17 +105,13 @@ export const PLANS: Plan[] = [
 export const DEFAULT_PLAN = PLANS[0];
 
 /**
- * The landing hero's button, and only the hero's. The headline above it names
- * the job, so the button keeps the verb and adds the price: the hero is where a
- * visitor decides whether this replaces a person. `Start for $100 a month` reads as a subscription to a tool, which
- * invites a comparison with a cheap generator instead of with a hire.
- *
- * The closing call to action and the three plan cards keep the short `cta`. By
- * then the reader has been through the pricing and wants the step, not the
- * pitch, and on a card the plan name above the button already says which job
- * is being bought.
+ * The landing page's first step, on the hero, the section on what it writes,
+ * and the close. Signing in with LinkedIn and pasting a URL puts seven posts on
+ * a board before any card is asked for, so the step a stranger takes first is
+ * seeing their own example, and the button says that. The price sits beside it
+ * as the secondary, and the three plan cards keep their priced `cta`.
  */
-export const HERO_CTA = `Hire for ${DEFAULT_PLAN.price} / month`;
+export const HERO_CTA = "See an example for free";
 
 /** Free days on every plan, before the first charge. Stated wherever a price is. */
 export const TRIAL_DAYS = 7;

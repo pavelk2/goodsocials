@@ -60,6 +60,9 @@
   /* The panel is ink in both modes, so the plum on it is the lighter one in
      both modes. Same reason as --accent-text. */
   --accent-panel: #f2799f;
+  /* LinkedIn's own blue, for its mark and nothing else. The one place the
+     landing page says where a post ends up. */
+  --linkedin: #0a66c2;
   --panel-ink-2: #a1a1a6;
   --panel-hairline: rgba(255, 255, 255, 0.14);
   --panel-glow: radial-gradient(
@@ -618,5 +621,33 @@ body:has(dialog[open]) {
   }
   50% {
     opacity: 0.9;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   The animated hero board. components/marketing/hero-board.tsx.
+   ------------------------------------------------------------------------ */
+
+/* A reading lands on the board: the dark chip drops a few pixels into the Idea
+   column before it becomes a card. */
+.chip-in {
+  animation: chip-in 700ms var(--ease) both;
+}
+
+@keyframes chip-in {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.96);
+  }
+}
+
+/* A source pill while the card is being written from it. */
+.src-reading {
+  animation: src-reading 700ms ease-in-out infinite alternate;
+}
+
+@keyframes src-reading {
+  to {
+    opacity: 0.3;
   }
 }
