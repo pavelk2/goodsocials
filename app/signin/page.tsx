@@ -1,10 +1,9 @@
-import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { signIn, signOut } from "@/auth";
 import { Footer } from "@/components/footer";
 import { BLOCK_LINE, resolveEntry, type EntryBlock } from "@/lib/entry";
-import { PLAN_COOKIE, TRIAL_LINE, planFromSlug } from "@/lib/plans";
+import { PLAN_COOKIE, planFromSlug } from "@/lib/plans";
 import { TrackView } from "@/components/onboarding/track-view";
 import { anonId, track } from "@/lib/track";
 import { shareMetadata } from "@/lib/share";
@@ -24,10 +23,12 @@ export const metadata = shareMetadata({
  * about to ask for, and what we never do, but in four lines instead of two
  * screens. The long version lives on the landing page and in the terms.
  *
- * Each plan arrives here with its own ?plan=, so the page states the price the
- * visitor clicked, and the choice survives the trip through LinkedIn in a
- * cookie that checkout reads. An unknown or missing slug falls back to the
- * entry plan rather than blocking the flow.
+ * The page is a sign in and nothing else: no plan, no price, no trial. Those
+ * belong to the offer screen after the sample post. Each pricing link still
+ * arrives with its own ?plan=, and the choice survives the trip through
+ * LinkedIn in a cookie that checkout reads, without being shown here. An
+ * unknown or missing slug falls back to the entry plan rather than blocking
+ * the flow.
  *
  * A member who is already signed in never sees this page as a stranger would.
  * Either their board opens, or the page names what is stopping it. Sending
@@ -62,26 +63,16 @@ export default async function SignInPage({
       <main className="mx-auto max-w-[480px] px-6 py-20">
         <div className="card-lift rounded-[var(--r-xl)] p-8 sm:p-10">
           <h1 className="text-[32px] font-semibold leading-[1.1] tracking-[-0.03em]">
-            {blocked ? "Finish connecting." : "Connect LinkedIn."}
+            {blocked ? "Finish connecting." : "Sign in with LinkedIn."}
           </h1>
           <p className="mt-3 text-ink-2">
             {blocked
               ? BLOCK_LINE[blocked]
-              : "We read your website and write your first post. You see it before you pay."}
+              : "GoodSocials writes posts for your LinkedIn profile, and publishes the ones you approve."}
           </p>
 
-          <div className="mt-10 flex items-baseline justify-between gap-6 border-y border-hairline py-[14px]">
-            <span>
-              <span className="font-medium">{plan.name}</span>{" "}
-              <span className="text-ink-2">{plan.line}</span>
-            </span>
-            <Link className="shrink-0 text-ink-2 underline" href="/#pricing">
-              Change
-            </Link>
-          </div>
-
           <form
-            className="mt-8"
+            className="mt-10"
             action={async () => {
               "use server";
               const store = await cookies();
@@ -104,9 +95,6 @@ export default async function SignInPage({
             >
               {blocked ? "Connect again" : "Continue with LinkedIn"}
             </button>
-            <p className="num mt-3 text-center text-[13px] text-ink-2">
-              {TRIAL_LINE} Then {plan.priceLine}.
-            </p>
           </form>
 
           {blocked ? (
