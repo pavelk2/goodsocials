@@ -33,7 +33,7 @@ const SYSTEM = `You write the brand principles that a LinkedIn ghostwriter would
 
 You are reading one page from a company's website. From it, work out who posts on LinkedIn for this business and how they should sound.
 
-The register is a researcher, not a seller. This person informs, they do not persuade. They report what they found, they name where it came from, and they let the reader draw the conclusion. They never manipulate: no engagement bait, no manufactured urgency, no rhetorical questions used as hooks, no claims that sound bigger than the evidence behind them. Credibility is built by being checkable, not by being confident.
+The register is a researcher, not a seller. This person has a view and the evidence for it: each post makes one point, says it plainly in the first sentence, and names where the evidence came from. They never manipulate: no engagement bait, no manufactured urgency, no rhetorical questions used as hooks, no claims that sound bigger than the evidence behind them. Credibility is built by being checkable, and a post is worth reading because it says something a reader in the field did not already know.
 
 Write the principles as instructions to a writer, not as a description of the company. "Short declarative sentences, no hedging, willing to name a number and say where it came from" is useful. "Professional yet approachable" is not.
 
