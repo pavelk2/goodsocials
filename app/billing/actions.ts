@@ -8,8 +8,9 @@ import { loadAccess } from "@/lib/profiles";
 import { planFromSlug, type PlanSlug } from "@/lib/plans";
 
 /**
- * The two buttons that move money: start a plan, or open the portal where
- * changing plan, updating the card and cancelling all live.
+ * The buttons that move money: start a plan, open the portal where changing
+ * plan, updating the card and cancelling all live, or open it straight on the
+ * switch or cancel page for the plan card that was pressed.
  *
  * There is no billing form in this repo and there will not be one. Stripe
  * hosts both pages, which means no card ever reaches our servers and the
@@ -48,6 +49,45 @@ export async function manageBilling(): Promise<void> {
   if (!canManageBilling(account)) redirect("/#pricing");
 
   const result = await openPortal({ account, origin: await origin() });
+  if (!result.ok) redirect(failed(result.error));
+  redirect(result.value);
+}
+
+/**
+ * A plan card's button for somebody already paying: the confirm page for that
+ * plan, with Stripe's proration on it. Upgrades apply now and downgrades at
+ * the end of the period, which is the portal configuration's rule, not ours.
+ *
+ * A plan set to end has to be renewed before it can change, so that reader
+ * lands on the portal's home screen, where the renew button is.
+ */
+export async function switchPlan(slug: PlanSlug): Promise<void> {
+  const account = await signedInAccount();
+  if (!account) redirect("/signin");
+  if (!canManageBilling(account)) redirect(`/signin?plan=${slug}`);
+
+  const result = await openPortal({
+    account,
+    origin: await origin(),
+    flow: account.cancelAtPeriodEnd
+      ? undefined
+      : { kind: "switch", plan: planFromSlug(slug).slug },
+  });
+  if (!result.ok) redirect(failed(result.error));
+  redirect(result.value);
+}
+
+/** The current plan's card: Stripe's cancel page, one click from ours. */
+export async function cancelPlan(): Promise<void> {
+  const account = await signedInAccount();
+  if (!account) redirect("/signin");
+  if (!canManageBilling(account)) redirect("/#pricing");
+
+  const result = await openPortal({
+    account,
+    origin: await origin(),
+    flow: account.cancelAtPeriodEnd ? undefined : { kind: "cancel" },
+  });
   if (!result.ok) redirect(failed(result.error));
   redirect(result.value);
 }

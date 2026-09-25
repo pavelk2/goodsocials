@@ -64,6 +64,8 @@ const LINK_OUTCOME: Record<string, string> = {
 const BILLING_OUTCOME: Record<string, string> = {
   started: "Stripe has your payment. The plan below updates the moment Stripe confirms it, usually within seconds.",
   cancelled: "Checkout closed. Nothing was charged.",
+  changed: "Stripe has the new plan. The row below updates the moment Stripe confirms it, usually within seconds.",
+  ending: "Your plan is set to end. Posts keep publishing until the date below.",
 };
 
 const GOAL_OPTIONS = [
@@ -95,7 +97,7 @@ export async function SettingsBody({
   why,
 }: {
   linked?: string;
-  /** What Stripe came back with: `started`, `cancelled` or `error`. */
+  /** What Stripe came back with: `started`, `cancelled`, `changed`, `ending` or `error`. */
   billing?: string;
   /** The sentence a failed checkout or portal call wrote onto the URL. */
   why?: string;
