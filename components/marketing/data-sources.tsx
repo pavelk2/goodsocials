@@ -111,3 +111,25 @@ export function SourceTag({ kind }: { kind: SourceKind }) {
     </span>
   );
 }
+
+/** A citation in a card's meta row: a paper, a report, a set of pages read. */
+export function RefTag({ label }: { label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-hairline px-[7px] py-[2px] font-mono text-[10.5px] text-ink-2">
+      <svg
+        viewBox="0 0 12 12"
+        width={10}
+        height={10}
+        aria-hidden="true"
+        focusable="false"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.2"
+      >
+        <path d="M2 1.5h6.5a1 1 0 0 1 1 1v8H3a1 1 0 0 1-1-1z" />
+        <path d="M2 9.5a1 1 0 0 1 1-1h6.5" />
+      </svg>
+      {label}
+    </span>
+  );
+}

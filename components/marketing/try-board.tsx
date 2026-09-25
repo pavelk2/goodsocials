@@ -210,7 +210,7 @@ function PostCard({
         Why TimeTuna shows 3 slots. A/B test on 2,100 bookings, and the earlier
         hypothesis did not hold up.
         <p className="mt-2 flex items-center gap-[6px] font-mono text-[10.5px] text-ink-3">
-          Deep dive <SourceTag kind="posthog" />
+          Your numbers <SourceTag kind="posthog" />
         </p>
       </div>
       {children}

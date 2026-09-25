@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { SourceKind } from "@/lib/integrations/types";
-import { SourcePills, SourceTag } from "./data-sources";
+import { RefTag, SourcePills, SourceTag } from "./data-sources";
 import { Streak } from "./streak";
 
 /**
@@ -22,17 +22,30 @@ import { Streak } from "./streak";
 
 type Kind = "Research" | "Deep dive" | "Your numbers";
 
-type Static = { id: string; body: string; kind: Kind; sources: SourceKind[]; when?: string };
+/** The image the agent drew for a post. Abstract on purpose: a stock photo is the fastest way to look like AI slop. Styles in globals.css. */
+type Art = "blobs" | "rings" | "dots";
+
+type Static = {
+  id: string;
+  body: string;
+  kind: Kind;
+  sources: SourceKind[];
+  /** Citations, for research and deep dives. */
+  refs?: string[];
+  when?: string;
+  art?: Art;
+};
 
 const COLUMNS: { name: string; cards: Static[] }[] = [
   {
     name: "Idea",
     cards: [
       {
-        id: "friday",
-        body: "Friday 4pm is the least booked slot across 40k TimeTuna pages. About 3x below Tuesday 10am. Timezones not yet controlled for.",
+        id: "competitors",
+        body: "Of 12 scheduling tools compared this month, 9 put round-robin behind a paid tier. Two moved it there last quarter.",
         kind: "Research",
-        sources: ["posthog"],
+        sources: [],
+        refs: ["12 pricing pages"],
       },
       {
         id: "week-one",
@@ -58,9 +71,11 @@ const COLUMNS: { name: string; cards: Static[] }[] = [
     cards: [
       {
         id: "slots",
-        body: "Why TimeTuna shows 3 slots. A/B test on 2,100 bookings, and the earlier hypothesis did not hold up.",
+        body: "Why TimeTuna shows 3 slots: choice overload, 25 years on. One famous jam study against a meta-analysis of 50 experiments.",
         kind: "Deep dive",
-        sources: ["posthog"],
+        sources: [],
+        refs: ["Iyengar & Lepper, 2000", "Scheibehenne et al., 2010"],
+        art: "dots",
       },
     ],
   },
@@ -73,6 +88,7 @@ const COLUMNS: { name: string; cards: Static[] }[] = [
         kind: "Your numbers",
         sources: ["stripe"],
         when: "Wed 09:00",
+        art: "blobs",
       },
     ],
   },
@@ -84,6 +100,7 @@ const COLUMNS: { name: string; cards: Static[] }[] = [
         body: "14 deploys a week, and weekly signups held steady. Correlation for now. The causal story is still being checked.",
         kind: "Your numbers",
         sources: ["github", "plausible"],
+        art: "rings",
       },
     ],
   },
@@ -260,9 +277,12 @@ export function HeroBoard() {
           </p>
         </div>
 
+        {/* A fixed height, so a card growing or crossing the board never
+            moves anything below the hero. What runs past the bottom fades. */}
+        <div className="relative h-[540px] overflow-hidden">
         <div
           ref={scroller}
-          className="grid snap-x grid-cols-[repeat(5,minmax(220px,1fr))] gap-3 overflow-x-auto pb-1 lg:grid-cols-5 lg:overflow-visible"
+          className="grid h-full snap-x grid-cols-[repeat(5,minmax(220px,1fr))] gap-3 overflow-x-auto overflow-y-hidden pb-1 lg:grid-cols-5 lg:overflow-hidden"
         >
           {COLUMNS.map((col, i) => {
             const here = column === i;
@@ -286,14 +306,24 @@ export function HeroBoard() {
                       data-flip={card.id}
                       className="rounded-[12px] border border-hairline bg-surface px-[13px] py-3 text-[13px] leading-[1.42]"
                     >
+                      {card.art ? (
+                        <div aria-hidden="true" className={`art art-${card.art} mb-3`} />
+                      ) : null}
                       {card.body}
-                      <Meta kind={card.kind} sources={card.sources} when={card.when} />
+                      <Meta kind={card.kind} sources={card.sources} refs={card.refs} when={card.when} />
                     </article>
                   ))}
                 </div>
               </section>
             );
           })}
+        </div>
+
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-20"
+          style={{ background: "linear-gradient(to bottom, transparent, var(--paper))" }}
+        />
         </div>
 
         <div
@@ -316,12 +346,25 @@ export function HeroBoard() {
   );
 }
 
-function Meta({ kind, sources, when }: { kind: Kind; sources: SourceKind[]; when?: string }) {
+function Meta({
+  kind,
+  sources,
+  refs = [],
+  when,
+}: {
+  kind: Kind;
+  sources: SourceKind[];
+  refs?: string[];
+  when?: string;
+}) {
   return (
     <div className="mt-2 flex flex-wrap items-center gap-[6px] font-mono text-[10.5px] text-ink-3">
       {kind}
       {sources.map((kind) => (
         <SourceTag key={kind} kind={kind} />
+      ))}
+      {refs.map((label) => (
+        <RefTag key={label} label={label} />
       ))}
       {when ? <span className="num ml-auto text-ink-2">{when}</span> : null}
     </div>
@@ -405,9 +448,15 @@ function HeroCard({ frame }: { frame: Frame }) {
 /** The image the agent made for this post: the reading, drawn. */
 function Chart({ grown }: { grown: boolean }) {
   return (
-    <div className="relative h-[106px] rounded-[9px] bg-[var(--panel)] px-3 pt-[10px]">
+    <div
+      className="relative h-[106px] rounded-[9px] px-3 pt-[10px]"
+      style={{
+        background:
+          "radial-gradient(circle at 88% 110%, var(--accent) 0, transparent 55%), radial-gradient(circle at 10% 0%, var(--art-violet) 0, transparent 45%), var(--art-ink)",
+      }}
+    >
       <p className="font-mono text-[9.5px] uppercase text-[var(--panel-ink-2)]">
-        Reschedule rate · May to Aug
+        Reschedule rate
       </p>
       <div className="absolute inset-x-3 bottom-[10px] flex h-[52px] items-end gap-[10px]">
         {BARS.map((bar, i) => {
@@ -420,12 +469,14 @@ function Chart({ grown }: { grown: boolean }) {
                 height: grown ? bar.value * 2.4 : 0,
                 transitionDelay: `${i * 140}ms`,
                 transitionTimingFunction: "var(--ease)",
-                background: last ? "var(--accent-panel)" : "var(--panel-hairline)",
+                background: last
+                  ? "linear-gradient(to top, var(--accent), var(--art-coral), var(--art-sun))"
+                  : "linear-gradient(to top, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.22))",
               }}
             >
               <span
                 className="num absolute -top-4 left-0 whitespace-nowrap font-mono text-[10px]"
-                style={{ color: last ? "var(--accent-panel)" : "var(--panel-ink-2)" }}
+                style={{ color: last ? "var(--art-sun)" : "var(--panel-ink-2)" }}
               >
                 {bar.value}%
               </span>

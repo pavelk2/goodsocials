@@ -5,7 +5,12 @@ import { SectionHead } from "@/components/marketing/section-head";
 import { Streak } from "@/components/marketing/streak";
 import { HeroBoard } from "@/components/marketing/hero-board";
 import { TryBoard } from "@/components/marketing/try-board";
-import { SOON_AGENTS, SourceTag } from "@/components/marketing/data-sources";
+import {
+  CONNECTED,
+  RefTag,
+  SOON_AGENTS,
+  SourceTag,
+} from "@/components/marketing/data-sources";
 import { AGENCY_SEATS, SUPPORT } from "@/lib/legal";
 import {
   PLANS,
@@ -39,25 +44,36 @@ const band = "py-[110px]";
 
 const anchor = "scroll-mt-[calc(var(--nav-h)+40px)]";
 
-/** The three kinds of post. `lib/agent/ideas.ts` is where the mix is set. */
-const KINDS: { name: string; line: string; post: string; sources: SourceKind[] }[] = [
+/**
+ * The three kinds of post. Research and deep dives cite what they read, so a
+ * member with no data of their own still gets posts with something under them.
+ * `lib/agent/ideas.ts` is where the mix is set.
+ */
+const KINDS: {
+  name: string;
+  line: string;
+  post: string;
+  refs?: string[];
+  /** Your numbers: the tools it can read, the one this post came from lit. */
+  from?: SourceKind;
+}[] = [
   {
     name: "Market research",
-    line: "What is moving in the member's market, with the source named.",
-    post: "Friday 4pm is the least booked slot across 40k TimeTuna pages. About 3x below Tuesday 10am. Timezones not yet controlled for.",
-    sources: ["posthog"],
+    line: "What competitors and the market are doing, with the source named.",
+    post: "Of 12 scheduling tools compared this month, 9 put round-robin behind a paid tier. Two moved it there last quarter. Snapshot of public pricing pages, 24 September.",
+    refs: ["12 pricing pages"],
   },
   {
     name: "Deep dive",
-    line: "One idea from the work, explained to the bottom.",
-    post: "Why TimeTuna shows 3 slots. A/B test on 2,100 bookings, and the earlier hypothesis did not hold up.",
-    sources: ["posthog"],
+    line: "One question, explained to the bottom, with the references.",
+    post: "Why TimeTuna shows 3 slots. Iyengar and Lepper found 6 jams sold about 10x better than 24. A meta-analysis of 50 experiments puts the average effect near zero. The setting decides.",
+    refs: ["Iyengar & Lepper, 2000", "Scheibehenne et al., 2010"],
   },
   {
     name: "Your numbers",
-    line: "Read from the tools the company runs on, with the caveat attached.",
+    line: "Read from the tools you connect, with the caveat attached.",
     post: "31% of August signups chose annual, up from 19% in July. Two candidate causes, neither confirmed.",
-    sources: ["stripe"],
+    from: "stripe",
   },
 ];
 
@@ -188,13 +204,17 @@ export default async function Home() {
         {/* 1. The hero. The claim, then the board doing the whole job in a
             loop, so the first screen answers what this is without a paragraph. */}
         <section className={`${wrap} pb-[96px] pt-[40px] text-center sm:pt-[48px]`}>
-          <h1 className="mx-auto max-w-[17ch] text-balance text-[clamp(40px,5.2vw,62px)] font-semibold leading-[1.02] tracking-[-0.045em]">
-            LinkedIn posts written from{" "}
-            <span className="text-accent-text">your own data.</span>
+          <h1 className="mx-auto max-w-[20ch] text-balance text-[clamp(40px,5.2vw,62px)] font-semibold leading-[1.02] tracking-[-0.045em]">
+            AI social media manager for your{" "}
+            <span className="text-accent-text">LinkedIn.</span>
           </h1>
           <p className="mx-auto mt-4 max-w-[60ch] text-balance text-[clamp(17px,1.5vw,19px)] leading-[1.4] text-ink-2">
-            It reads your tools, finds what only you know, and posts it 5 times
-            a week after you approve.
+            Posts only from deep research or your own data, 5 times a week,
+            after you approve.
+          </p>
+          <p className="mx-auto mt-3 max-w-[80ch] font-mono text-[12.5px] text-ink-3">
+            No cringe. No &ldquo;no one talks about this&rdquo;. No &ldquo;it&rsquo;s
+            not X, it&rsquo;s Y&rdquo;.
           </p>
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
@@ -253,13 +273,32 @@ export default async function Home() {
                     </p>
                     <article className="mt-6 w-full max-w-[330px] rounded-[14px] border border-hairline bg-surface px-4 py-[14px] text-left text-[14px] leading-[1.45]">
                       {kind.post}
-                      <p className="mt-2 flex items-center gap-[6px] font-mono text-[10.5px] text-ink-3">
+                      <p className="mt-2 flex flex-wrap items-center gap-[6px] font-mono text-[10.5px] text-ink-3">
                         {kind.name}
-                        {kind.sources.map((source) => (
-                          <SourceTag key={source} kind={source} />
-                        ))}
+                        {kind.refs?.map((label) => <RefTag key={label} label={label} />)}
+                        {kind.from ? <SourceTag kind={kind.from} /> : null}
                       </p>
                     </article>
+                    {kind.from ? (
+                      <ul
+                        aria-label="Tools it reads"
+                        className="mt-4 flex max-w-[330px] flex-wrap justify-center gap-[6px]"
+                      >
+                        {CONNECTED.map((source) => (
+                          <li
+                            key={source.kind}
+                            className="rounded-full"
+                            style={
+                              source.kind === kind.from
+                                ? { boxShadow: "0 0 0 1.5px var(--accent)" }
+                                : undefined
+                            }
+                          >
+                            <SourceTag kind={source.kind} />
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
                   </li>
                 ))}
               </ul>
