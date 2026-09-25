@@ -118,6 +118,18 @@ const BARS = [
 const READING: SourceKind[] = ["posthog", "stripe"];
 
 /**
+ * The caption under the board: the whole job in five words a skimmer reads
+ * without looking at a card. The step the card is on is in ink.
+ */
+const STEPS: { label: string; stages: Stage[] }[] = [
+  { label: "Reads your tools", stages: [-1, 0] },
+  { label: "Writes the post", stages: [1, 2] },
+  { label: "Draws the image", stages: [3] },
+  { label: "You approve", stages: [4] },
+  { label: "Publishes Tue 09:00", stages: [5, 6] },
+];
+
+/**
  * -1 nothing yet, 0 the sources are read and the finding lands, 1 idea,
  * 2 draft, 3 image, 4 approve, 5 scheduled, 6 posted.
  */
@@ -253,11 +265,9 @@ export function HeroBoard() {
 
   return (
     <div>
-      <SourcePills reading={frame.stage === 0 ? READING : []} />
-
       <div
         ref={board}
-        className="relative mt-7 rounded-[var(--r-2xl)] px-3 pb-6 pt-5 sm:px-6"
+        className="relative rounded-[var(--r-2xl)] px-3 pb-6 pt-5 sm:px-6"
         style={{
           background:
             "linear-gradient(175deg, var(--accent-wash) 0%, var(--paper) 78%)",
@@ -269,7 +279,7 @@ export function HeroBoard() {
       >
         <div className="flex flex-wrap items-center justify-between gap-3 px-2 pb-4">
           <p className="text-[13px]">
-            <span className="font-semibold">TimeTuna</span>
+            <span className="font-semibold">TimeTuna.com - scheduling service</span>
             <span className="text-ink-2"> · example board · goal: inbound leads</span>
           </p>
           <p className="num flex items-center gap-3 font-mono text-[12px] text-ink-2">
@@ -279,6 +289,9 @@ export function HeroBoard() {
               {posted} posted
             </span>
           </p>
+        </div>
+        <div className="px-2 pb-5">
+          <SourcePills compact reading={frame.stage === 0 ? READING : []} />
         </div>
 
         {/* A fixed height, so a card growing or crossing the board never
@@ -348,6 +361,30 @@ export function HeroBoard() {
           </div>
         </div>
       </div>
+
+      <ol
+        aria-label="What the board does"
+        className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-[15px] tracking-[-0.01em]"
+      >
+        {STEPS.map((step, i) => {
+          const on = step.stages.includes(frame.stage);
+          return (
+            <li key={step.label} className="flex items-center gap-3">
+              {i > 0 ? (
+                <span aria-hidden="true" className="text-ink-3">
+                  →
+                </span>
+              ) : null}
+              <span
+                className="font-medium transition-colors duration-500"
+                style={{ color: on ? "var(--ink)" : "var(--ink-3)" }}
+              >
+                {step.label}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
     </div>
   );
 }

@@ -56,14 +56,21 @@ function SoonIcon({ kind, size }: { kind: keyof typeof SOON_PATHS; size: number 
 }
 
 /**
- * The row of pills under the hero's buttons. `reading` lights the pills the
- * animated card is being written from, so the row and the board tell one story.
+ * The row of pills in the hero board's header. `reading` lights the pills the
+ * animated card is being written from, so the row and the board tell one
+ * story. `compact` drops the tools still to come, which section two names.
  */
-export function SourcePills({ reading = [] }: { reading?: SourceKind[] }) {
+export function SourcePills({
+  reading = [],
+  compact,
+}: {
+  reading?: SourceKind[];
+  compact?: boolean;
+}) {
   return (
     <ul
       aria-label="Tools a board reads from"
-      className="flex flex-wrap items-center justify-center gap-2"
+      className={`flex flex-wrap items-center gap-2 ${compact ? "" : "justify-center"}`}
     >
       {CONNECTED.map((source) => {
         const on = reading.includes(source.kind);
@@ -87,7 +94,7 @@ export function SourcePills({ reading = [] }: { reading?: SourceKind[] }) {
           </li>
         );
       })}
-      {SOON.map((source) => (
+      {compact ? null : SOON.map((source) => (
         <li
           key={source.kind}
           className="hidden items-center gap-[7px] rounded-full border border-dashed border-hairline py-[6px] pl-[10px] pr-3 text-[13px] text-ink-3 sm:flex"

@@ -28,6 +28,11 @@ export type Plan = {
    */
   features: string[];
   /**
+   * The two lines the landing page's plan card shows: what this plan adds
+   * over the one before it. Taken from `features`, so the same rule holds.
+   */
+  highlights: [string, string];
+  /**
    * The one plan the page recommends. Drawn on ink, with the label below.
    * Exactly one plan carries this.
    */
@@ -63,6 +68,10 @@ export const PLANS: Plan[] = [
       `Up to ${IMAGE_CAP_PER_MONTH} generated images a month`,
       "Publishes on your schedule, checked every 15 minutes",
     ],
+    highlights: [
+      "Three brand principles that learn from every revision",
+      `Up to ${IMAGE_CAP_PER_MONTH} generated images a month`,
+    ],
     featured: true,
     cta: "Start for $100 a month",
     seats: 1,
@@ -77,6 +86,10 @@ export const PLANS: Plan[] = [
     features: [
       `Everything in Pro, up to ${AGENCY_SEATS} profiles`,
       "One board, themes and principles per client",
+      "Each client authorises their own profile, you never hold a password",
+      "We email you before a client's access runs out",
+    ],
+    highlights: [
       "Each client authorises their own profile, you never hold a password",
       "We email you before a client's access runs out",
     ],
@@ -96,6 +109,10 @@ export const PLANS: Plan[] = [
       "A call with Pasha every week",
       "A direct line when a board needs a decision",
     ],
+    highlights: [
+      "Pasha sets up your themes, principles and sources with you",
+      "A call with Pasha every week",
+    ],
     cta: "Start for $2,000 a month",
     seats: AGENCY_SEATS,
     priceId: "price_1UIQaNBxtKkTb0BvcAbdUIhO",
@@ -108,16 +125,26 @@ export const DEFAULT_PLAN = PLANS[0];
  * The landing page's first step, on the hero, the section on what it writes,
  * and the close. Signing in with LinkedIn and pasting a URL puts seven posts on
  * a board before any card is asked for, so the step a stranger takes first is
- * seeing their own example, and the button says that. The price sits beside it
- * as the secondary, and the three plan cards keep their priced `cta`.
+ * seeing their first post, and the button says that. The price sits beside it
+ * as the secondary.
  */
-export const HERO_CTA = "See an example for free";
+export const HERO_CTA = "See your first post for free";
+
+/** The hero's second button. The price and what it buys, in the button. */
+export const HIRE_CTA = `Hire a social media manager for ${DEFAULT_PLAN.price}`;
 
 /** Free days on every plan, before the first charge. Stated wherever a price is. */
 export const TRIAL_DAYS = 7;
 
 /** The one sentence that carries the trial. Same words on every surface. */
 export const TRIAL_LINE = `${TRIAL_DAYS} days free, cancel any time.`;
+
+/**
+ * The plan cards' button on the landing page. The price sits above it in 46px,
+ * so the button says the step instead. `cta` keeps the price for the surfaces
+ * where the button is the only place it appears.
+ */
+export const TRIAL_CTA = `Start a ${TRIAL_DAYS} day trial`;
 
 /** The cookie the checkout route reads once Stripe is wired. */
 export const PLAN_COOKIE = "gs_plan";

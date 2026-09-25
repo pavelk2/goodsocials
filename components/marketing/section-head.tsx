@@ -60,12 +60,16 @@ export function SectionHead({
 }) {
   return (
     <div className="mx-auto max-w-[760px] text-center">
-      <Eyebrow>{eyebrow}</Eyebrow>
-      <h2 className="mt-7 text-balance text-[clamp(32px,4.6vw,54px)] font-semibold leading-[1.04] tracking-[-0.04em]">
+      {/* Inside a <Reveal>, the label and the claim land first and the
+          explanation a beat after. Outside one, `.rv` does nothing. */}
+      <div className="rv">
+        <Eyebrow>{eyebrow}</Eyebrow>
+      </div>
+      <h2 className="rv mt-7 text-balance text-[clamp(32px,4.6vw,54px)] font-semibold leading-[1.04] tracking-[-0.04em]">
         {title}
       </h2>
       {children ? (
-        <p className="mx-auto mt-6 max-w-[58ch] text-balance text-[clamp(16px,1.4vw,19px)] leading-[1.5] text-ink-2">
+        <p className="rv rv-1 mx-auto mt-6 max-w-[58ch] text-balance text-[clamp(16px,1.4vw,19px)] leading-[1.5] text-ink-2">
           {children}
         </p>
       ) : null}
