@@ -44,6 +44,10 @@ const band = "py-[110px]";
 
 const anchor = "scroll-mt-[calc(var(--nav-h)+40px)]";
 
+/** Product Hunt's featured badge for this launch, without the theme. */
+const PH_BADGE =
+  "https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1260932&t=1790333158988";
+
 /**
  * The three kinds of post. Research and deep dives cite what they read, so a
  * member with no data of their own still gets posts with something under them.
@@ -204,6 +208,30 @@ export default async function Home() {
         {/* 1. The hero. The claim, then the board doing the whole job in a
             loop, so the first screen answers what this is without a paragraph. */}
         <section className={`${wrap} pb-[96px] pt-[40px] text-center sm:pt-[48px]`}>
+          {/* The Product Hunt badge. Their own image, served by them, in the
+              theme that matches the reader's: the light badge on paper and the
+              dark one on the dark ground. */}
+          <a
+            href="https://www.producthunt.com/products/goodsocials?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-goodsocials"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mb-8 inline-block"
+          >
+            <picture>
+              <source
+                media="(prefers-color-scheme: dark)"
+                srcSet={`${PH_BADGE}&theme=dark`}
+              />
+              {/* A plain img: an SVG Product Hunt redraws with the live vote
+                  count, so it loads from them rather than through next/image. */}
+              <img
+                alt="GoodSocials - AI social media manager for LinkedIn | Product Hunt"
+                width={250}
+                height={54}
+                src={`${PH_BADGE}&theme=light`}
+              />
+            </picture>
+          </a>
           <h1 className="mx-auto max-w-[20ch] text-balance text-[clamp(40px,5.2vw,62px)] font-semibold leading-[1.02] tracking-[-0.045em]">
             AI social media manager for your{" "}
             <span className="text-accent-text">LinkedIn.</span>
