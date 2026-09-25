@@ -60,6 +60,20 @@
   /* The panel is ink in both modes, so the plum on it is the lighter one in
      both modes. Same reason as --accent-text. */
   --accent-panel: #f2799f;
+  /* LinkedIn's own blue, for its mark and nothing else. The one place the
+     landing page says where a post ends up. */
+  --linkedin: #0a66c2;
+  /* The images on the landing page's example cards. Abstract and colourful on
+     purpose, the way a generated post image should look: never stock, never a
+     face. Only the .art classes below read these, and only on marketing
+     pages, so the one-accent rule of the product holds everywhere else. */
+  --art-ink: #1b1030;
+  --art-sand: #f3ece2;
+  --art-sun: #ffb547;
+  --art-coral: #ff6b5b;
+  --art-sky: #5aa9ff;
+  --art-mint: #5ce0b8;
+  --art-violet: #7b61ff;
   --panel-ink-2: #a1a1a6;
   --panel-hairline: rgba(255, 255, 255, 0.14);
   --panel-glow: radial-gradient(
@@ -619,4 +633,70 @@ body:has(dialog[open]) {
   50% {
     opacity: 0.9;
   }
+}
+
+/* ---------------------------------------------------------------------------
+   The animated hero board. components/marketing/hero-board.tsx.
+   ------------------------------------------------------------------------ */
+
+/* A reading lands on the board: the dark chip drops a few pixels into the Idea
+   column before it becomes a card. */
+.chip-in {
+  animation: chip-in 700ms var(--ease) both;
+}
+
+@keyframes chip-in {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.96);
+  }
+}
+
+/* A source pill while the card is being written from it. */
+.src-reading {
+  animation: src-reading 700ms ease-in-out infinite alternate;
+}
+
+@keyframes src-reading {
+  to {
+    opacity: 0.3;
+  }
+}
+
+/* Post images on the example board. Three compositions, all gradients, so
+   they cost nothing to load and stay sharp at any width. */
+.art {
+  height: 84px;
+  border-radius: 9px;
+}
+
+/* Warm light through a dark frame. */
+.art-blobs {
+  background:
+    radial-gradient(circle at 22% 32%, var(--art-sun) 0 12%, transparent 42%),
+    radial-gradient(circle at 68% 62%, var(--art-coral) 0 14%, transparent 48%),
+    radial-gradient(circle at 44% 110%, var(--accent) 0 18%, transparent 55%),
+    radial-gradient(circle at 92% 8%, var(--art-violet) 0 6%, transparent 32%),
+    var(--art-ink);
+}
+
+/* Ripples rising off the corner. */
+.art-rings {
+  background:
+    radial-gradient(circle at 18% 28%, var(--art-mint) 0 9%, transparent 30%),
+    repeating-radial-gradient(
+      circle at 84% 120%,
+      var(--art-sky) 0 5px,
+      var(--art-sand) 5px 11px
+    );
+}
+
+/* Thirty slots, three of them lit. */
+.art-dots {
+  background:
+    radial-gradient(circle at 34% 50%, var(--art-coral) 0 11px, transparent 12px),
+    radial-gradient(circle at 50% 50%, var(--art-sun) 0 11px, transparent 12px),
+    radial-gradient(circle at 66% 50%, var(--art-violet) 0 11px, transparent 12px),
+    radial-gradient(circle, var(--ink-3) 0 2px, transparent 2.5px) 0 0 / 14px 14px,
+    var(--art-sand);
 }

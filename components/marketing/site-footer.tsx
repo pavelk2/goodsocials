@@ -30,10 +30,10 @@ const MONTHS = [
 ];
 
 const LINKS = [
+  { href: "#writes", label: "What it writes" },
   { href: "#how", label: "How it works" },
   { href: "#who", label: "Who it is for" },
   { href: "#pricing", label: "Pricing" },
-  { href: "#permissions", label: "LinkedIn" },
 ];
 
 const SECONDARY = [
