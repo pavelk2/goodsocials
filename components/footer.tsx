@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { SUPPORT } from "@/lib/legal";
 
-/** The legal pages one click away on every screen. */
+/** The legal pages and the docs one click away on every screen. */
 export function Footer() {
   return (
     <footer className="mx-auto max-w-[1200px] border-t border-hairline px-6 py-10 text-[13px] text-ink-2">
@@ -19,6 +19,12 @@ export function Footer() {
         </Link>
         <Link className="underline" href="/terms">
           Terms
+        </Link>
+        <Link className="underline" href="/docs">
+          Docs
+        </Link>
+        <Link className="underline" href="/blog">
+          Blog
         </Link>
       </p>
     </footer>

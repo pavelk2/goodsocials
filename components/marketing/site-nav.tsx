@@ -29,10 +29,10 @@ import { DEFAULT_PLAN, TRIAL_DAYS, planHref } from "@/lib/plans";
  * banner.
  */
 const LINKS = [
-  { href: "#writes", label: "What it writes" },
-  { href: "#how", label: "How it works" },
-  { href: "#who", label: "Who it is for" },
-  { href: "#pricing", label: "Pricing" },
+  { href: "/#writes", label: "What it writes" },
+  { href: "/#how", label: "How it works" },
+  { href: "/#who", label: "Who it is for" },
+  { href: "/#pricing", label: "Pricing" },
 ];
 
 export function SiteNav({
