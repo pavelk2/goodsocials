@@ -7,7 +7,7 @@ import { HeroBoard } from "@/components/marketing/hero-board";
 import { Reveal } from "@/components/marketing/reveal";
 import { CorrectionLoop } from "@/components/marketing/correction-loop";
 import { SOON_AGENTS, SourceTag } from "@/components/marketing/data-sources";
-import { AGENCY_SEATS, SUPPORT } from "@/lib/legal";
+import { AGENCY_SEATS, FOUNDER_LINKEDIN, SUPPORT } from "@/lib/legal";
 import {
   PLANS,
   DEFAULT_PLAN,
@@ -132,6 +132,37 @@ function Check() {
         strokeLinejoin="round"
       />
     </svg>
+  );
+}
+
+/**
+ * Plan copy with Pasha's name linked to his LinkedIn. The strings live in
+ * `lib/plans.ts` as plain text, so the link is added where they are drawn.
+ */
+function Founder({ text }: { text: string }) {
+  const parts = text.split("Pasha");
+  return (
+    <>
+      {parts.map((part, i) => (
+        <span key={i}>
+          {i > 0 ? <FounderLink /> : null}
+          {part}
+        </span>
+      ))}
+    </>
+  );
+}
+
+function FounderLink() {
+  return (
+    <a
+      href={FOUNDER_LINKEDIN}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="underline decoration-[var(--ink-3)] underline-offset-[3px] hover:decoration-current"
+    >
+      Pasha
+    </a>
   );
 }
 
@@ -476,7 +507,7 @@ export default async function Home() {
               }
             >
               {PLANS[0].price} for you. {PLANS[1].price} for {AGENCY_SEATS} clients.{" "}
-              {PLANS[2].price} and Pasha sets it up.
+              {PLANS[2].price} and <FounderLink /> sets it up.
             </SectionHead>
 
             {/* Stretch, not items-start: three plans are three versions of one
@@ -499,7 +530,7 @@ export default async function Home() {
                       color: plan.featured ? "var(--panel-ink-2)" : "var(--ink-2)",
                     }}
                   >
-                    {plan.line}
+                    <Founder text={plan.line} />
                   </p>
 
                   <p className="num mt-7 flex items-baseline gap-2">
@@ -526,7 +557,9 @@ export default async function Home() {
                     {plan.highlights.map((feature) => (
                       <li key={feature} className="flex gap-3">
                         <Check />
-                        <span>{feature}</span>
+                        <span>
+                          <Founder text={feature} />
+                        </span>
                       </li>
                     ))}
                   </ul>
