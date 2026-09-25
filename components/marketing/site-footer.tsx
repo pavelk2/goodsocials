@@ -3,6 +3,8 @@ import { Logo } from "./logo";
 import { Streak } from "./streak";
 import { AGENCY_SEATS, SUPPORT } from "@/lib/legal";
 import { BOARD_HREF, DEFAULT_PLAN } from "@/lib/plans";
+import { COMPARISONS } from "@/lib/content/compare";
+import { POSTS } from "@/lib/content/blog";
 
 /**
  * The sign-off is a year of the mark: twelve grids, one per month, filled to
@@ -11,8 +13,10 @@ import { BOARD_HREF, DEFAULT_PLAN } from "@/lib/plans";
  * it is the only place on the site that shows more than one month.
  *
  * Under it, the shape the reference uses: mark and links on one row, the
- * secondary set below a hairline. Three stacked columns of links is a footer
- * for a site with three products; we have one page with six anchors on it.
+ * secondary set below a hairline. Below that, three short columns for the
+ * pages that are not the landing page: the comparisons people search for, the
+ * newest posts, and the docs. A handful of each with a link to the rest, so the
+ * footer stays a footer and not a sitemap.
  */
 const MONTHS = [
   "Jan",
@@ -30,17 +34,65 @@ const MONTHS = [
 ];
 
 const LINKS = [
-  { href: "#writes", label: "What it writes" },
-  { href: "#how", label: "How it works" },
-  { href: "#who", label: "Who it is for" },
-  { href: "#pricing", label: "Pricing" },
+  { href: "/#writes", label: "What it writes" },
+  { href: "/#how", label: "How it works" },
+  { href: "/#who", label: "Who it is for" },
+  { href: "/#pricing", label: "Pricing" },
 ];
 
 const SECONDARY = [
-  { href: "#pricing", label: `Run up to ${AGENCY_SEATS} clients` },
+  { href: "/#pricing", label: `Run up to ${AGENCY_SEATS} clients` },
   { href: `mailto:${SUPPORT}`, label: SUPPORT },
   { href: "/privacy", label: "Privacy" },
   { href: "/terms", label: "Terms" },
+];
+
+/** Six of the twenty: the two best known schedulers, the three LinkedIn-only tools, and ChatGPT. */
+const FOOTER_COMPARISONS = [
+  "buffer",
+  "hootsuite",
+  "taplio",
+  "supergrow",
+  "authoredup",
+  "chatgpt",
+];
+
+const READ: {
+  title: string;
+  href: string;
+  all: string;
+  links: { href: string; label: string }[];
+}[] = [
+  {
+    title: "Compare",
+    href: "/compare",
+    all: `All ${COMPARISONS.length} comparisons`,
+    links: FOOTER_COMPARISONS.flatMap((slug) => {
+      const c = COMPARISONS.find((item) => item.slug === slug);
+      return c ? [{ href: `/compare/${c.slug}`, label: `vs ${c.name}` }] : [];
+    }),
+  },
+  {
+    title: "Blog",
+    href: "/blog",
+    all: "All posts",
+    links: POSTS.slice(0, 4).map((post) => ({
+      href: `/blog/${post.slug}`,
+      label: post.title,
+    })),
+  },
+  {
+    title: "Docs",
+    href: "/docs",
+    all: "Read the docs",
+    links: [
+      { href: "/docs#start", label: "Getting started" },
+      { href: "/docs#principles", label: "Brand principles" },
+      { href: "/docs#schedule", label: "Scheduling" },
+      { href: "/docs#reconnect", label: "Reconnecting LinkedIn" },
+      { href: "/docs#agency", label: "Running clients' profiles" },
+    ],
+  },
 ];
 
 /**
@@ -102,6 +154,33 @@ export function SiteFooter({ signedIn = false }: { signedIn?: boolean }) {
           <p className="num shrink-0 font-mono text-[12px] text-ink-3">
             &copy; {now.getUTCFullYear()} GoodSocials, Amsterdam
           </p>
+        </div>
+
+        <div className="mt-10 grid gap-10 border-t border-hairline pt-8 sm:grid-cols-3">
+          {READ.map((group) => (
+            <div key={group.title}>
+              <Link
+                href={group.href}
+                className="font-mono text-[11px] uppercase tracking-[0.12em] text-ink-3 hover:text-ink"
+              >
+                {group.title}
+              </Link>
+              <ul className="mt-5 space-y-3 text-[15px] text-ink-2">
+                {group.links.map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} className="nav-link">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+                <li>
+                  <Link href={group.href} className="nav-link text-ink">
+                    {group.all}
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          ))}
         </div>
 
         <div className="mt-10 border-t border-hairline pt-8">
