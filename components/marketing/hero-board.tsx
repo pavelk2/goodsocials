@@ -282,11 +282,13 @@ export function HeroBoard() {
         </div>
 
         {/* A fixed height, so a card growing or crossing the board never
-            moves anything below the hero. What runs past the bottom fades. */}
-        <div className="relative h-[540px] overflow-hidden">
+            moves anything below the hero. What runs past the bottom fades.
+            The 4px either side is room for the Posted card's ring, which
+            sits outside the card and the clip would otherwise cut. */}
+        <div className="relative -mx-1 h-[540px] overflow-hidden">
         <div
           ref={scroller}
-          className="grid h-full snap-x grid-cols-[repeat(5,minmax(220px,1fr))] gap-3 overflow-x-auto overflow-y-hidden pb-1 lg:grid-cols-5 lg:overflow-hidden"
+          className="grid h-full snap-x grid-cols-[repeat(5,minmax(220px,1fr))] gap-3 overflow-x-auto overflow-y-hidden px-1 pb-1 lg:grid-cols-5 lg:overflow-hidden"
         >
           {COLUMNS.map((col, i) => {
             const here = column === i;
