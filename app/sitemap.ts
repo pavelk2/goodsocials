@@ -1,12 +1,12 @@
 import type { MetadataRoute } from "next";
 import { COMPARISONS } from "@/lib/content/compare";
 import { POSTS } from "@/lib/content/blog";
+import { ORIGIN } from "@/lib/share";
 
 /**
  * The public pages, for search engines. goodsocials.co is the one host that
  * appears anywhere a stranger reads, so it is the one this file names.
  */
-const ORIGIN = "https://goodsocials.co";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const pages = ["", "/compare", "/blog", "/docs", "/privacy", "/terms"];

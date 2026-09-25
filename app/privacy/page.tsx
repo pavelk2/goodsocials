@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
+import { shareMetadata } from "@/lib/share";
 import { LegalPage, Section, Row } from "@/components/legal";
 import { OPERATOR, CONTACT, LAST_UPDATED } from "@/lib/legal";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = shareMetadata({
+  path: "/privacy",
   title: "Privacy | GoodSocials",
   description:
     "What GoodSocials collects from your LinkedIn account, why, who else touches it, and how to delete it.",
-};
+});
 
 /**
  * The privacy policy URL LinkedIn asks for during app verification. It has to

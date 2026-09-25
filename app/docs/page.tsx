@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { shareMetadata } from "@/lib/share";
 import {
   Blocks,
   CloseBand,
@@ -7,11 +8,12 @@ import {
 } from "@/components/marketing/content";
 import { DOCS } from "@/lib/content/docs";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = shareMetadata({
+  path: "/docs",
   title: "Docs | GoodSocials",
   description:
     "How GoodSocials works: the board, the three card actions, brand principles, themes, scheduling, sources, reconnecting LinkedIn, agency mode and billing.",
-};
+});
 
 /**
  * One page, every section on it, a contents list down the side on a wide

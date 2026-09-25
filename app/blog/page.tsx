@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { shareMetadata } from "@/lib/share";
 import {
   CloseBand,
   ContentPage,
@@ -8,11 +9,12 @@ import {
 } from "@/components/marketing/content";
 import { POSTS } from "@/lib/content/blog";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = shareMetadata({
+  path: "/blog",
   title: "Blog | GoodSocials",
   description:
     "Practical notes on posting to LinkedIn and other networks in 2026: cadence, openings, formats, timing, themes and what to measure.",
-};
+});
 
 export default function BlogIndex() {
   return (

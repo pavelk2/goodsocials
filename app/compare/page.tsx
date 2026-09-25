@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { shareMetadata } from "@/lib/share";
 import {
   CloseBand,
   ContentPage,
@@ -7,11 +8,12 @@ import {
 } from "@/components/marketing/content";
 import { COMPARISONS } from "@/lib/content/compare";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = shareMetadata({
+  path: "/compare",
   title: "GoodSocials compared | GoodSocials",
   description:
     "GoodSocials next to 20 other social media and LinkedIn tools: who each one is for, how the workflow differs, and when to pick the other one.",
-};
+});
 
 export default function CompareIndex() {
   return (

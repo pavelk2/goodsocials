@@ -7,12 +7,14 @@ import { BLOCK_LINE, resolveEntry, type EntryBlock } from "@/lib/entry";
 import { PLAN_COOKIE, TRIAL_LINE, planFromSlug } from "@/lib/plans";
 import { TrackView } from "@/components/onboarding/track-view";
 import { anonId, track } from "@/lib/track";
+import { shareMetadata } from "@/lib/share";
 
-export const metadata = {
+export const metadata = shareMetadata({
+  path: "/signin",
   title: "Sign in with LinkedIn",
   description:
     "Connect your LinkedIn profile so GoodSocials can write posts for your approval and publish the ones you approve.",
-};
+});
 
 /**
  * Replaces the Auth.js default page. The stock page is an unbranded button

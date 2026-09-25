@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { shareMetadata } from "@/lib/share";
 import { notFound } from "next/navigation";
 import {
   Blocks,
@@ -25,10 +26,11 @@ export async function generateMetadata({
 }: PageProps<"/compare/[slug]">): Promise<Metadata> {
   const c = find((await params).slug);
   if (!c) return {};
-  return {
+  return shareMetadata({
+    path: `/compare/${c.slug}`,
     title: `GoodSocials vs ${c.name} | GoodSocials`,
     description: `${c.summary} How GoodSocials differs, and who should pick which.`,
-  };
+  });
 }
 
 /**
