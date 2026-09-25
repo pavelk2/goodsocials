@@ -562,3 +562,31 @@ export const fact = pgTable(
     index("fact_profile_idx").on(t.profileId),
   ],
 );
+
+/**
+ * Every funnel event, as lib/track.ts sends it to PostHog. Kept here too so the
+ * admin pipeline is one query against our own database: PostHog needs a
+ * personal API key to read back, and an ad blocker cannot drop a row we write.
+ *
+ * `anon_id` is the gs_aid cookie, set on the first page. `member_id` is null
+ * until sign in, and the same anon id carrying a member id afterwards is what
+ * ties a landing page visit to the account it became. Append only.
+ */
+export const funnelEvent = pgTable(
+  "funnel_event",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    anonId: text("anon_id").notNull(),
+    memberId: text("member_id"),
+    event: text("event").notNull(),
+    props: jsonb("props"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("funnel_event_anon_idx").on(t.anonId),
+    index("funnel_event_member_idx").on(t.memberId),
+    index("funnel_event_created_idx").on(t.createdAt),
+  ],
+);

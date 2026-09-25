@@ -18,6 +18,7 @@ import {
   planHref,
 } from "@/lib/plans";
 import { isSignedIn } from "@/lib/viewer";
+import { TrackLanding } from "@/components/marketing/track-landing";
 
 /**
  * The offer copy is verbatim from CLAUDE.md. Do not improve it, derive from it.
@@ -189,6 +190,7 @@ export default async function Home() {
   return (
     <>
       <SiteNav overlay signedIn={signedIn} />
+      {signedIn ? null : <TrackLanding />}
       <main className="bg-paper">
         {/* The hero is one screen of footage and nothing else. DESIGN.md
             section 8: the page a stranger lands on has to say what this is in
