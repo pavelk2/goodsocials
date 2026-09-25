@@ -700,3 +700,51 @@ body:has(dialog[open]) {
     radial-gradient(circle, var(--ink-3) 0 2px, transparent 2.5px) 0 0 / 14px 14px,
     var(--art-sand);
 }
+
+/* The landing page arrives in order: a section's claim first, then what backs
+   it. Opacity and transform only, so nothing reflows. 12px of travel, once,
+   and the delays stay under half a second so the reader never waits on the
+   page. `.rv` goes on a plain wrapper, never on an element with a hover
+   transition of its own, because the delay would carry over to the hover.
+
+   The hero runs on a CSS animation from first paint, so the headline never
+   waits on JavaScript. Every other section is hidden only once scripting is
+   on, and shown by <Reveal> when it scrolls into view. With reduced motion
+   nothing moves and nothing is hidden. */
+@media (prefers-reduced-motion: no-preference) {
+  .intro {
+    animation: rise 800ms var(--ease) both;
+  }
+  .intro-1 { animation-delay: 90ms; }
+  .intro-2 { animation-delay: 200ms; }
+  .intro-3 { animation-delay: 320ms; }
+  .intro-4 { animation-delay: 460ms; }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  .rv {
+    transition:
+      opacity 700ms var(--ease),
+      transform 800ms var(--ease);
+  }
+  [data-reveal]:not([data-in]) .rv {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  .rv-1 { transition-delay: 90ms; }
+  .rv-2 { transition-delay: 200ms; }
+  .rv-3 { transition-delay: 300ms; }
+  .rv-4 { transition-delay: 400ms; }
+  .rv-5 { transition-delay: 500ms; }
+}

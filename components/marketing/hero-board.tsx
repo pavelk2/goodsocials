@@ -269,7 +269,7 @@ export function HeroBoard() {
       >
         <div className="flex flex-wrap items-center justify-between gap-3 px-2 pb-4">
           <p className="text-[13px]">
-            <span className="font-semibold">TimeTuna</span>
+            <span className="font-semibold">TimeTuna.com - scheduling service</span>
             <span className="text-ink-2"> · example board · goal: inbound leads</span>
           </p>
           <p className="num flex items-center gap-3 font-mono text-[12px] text-ink-2">

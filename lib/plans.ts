@@ -108,16 +108,26 @@ export const DEFAULT_PLAN = PLANS[0];
  * The landing page's first step, on the hero, the section on what it writes,
  * and the close. Signing in with LinkedIn and pasting a URL puts seven posts on
  * a board before any card is asked for, so the step a stranger takes first is
- * seeing their own example, and the button says that. The price sits beside it
- * as the secondary, and the three plan cards keep their priced `cta`.
+ * seeing their first post, and the button says that. The price sits beside it
+ * as the secondary.
  */
-export const HERO_CTA = "See an example for free";
+export const HERO_CTA = "See your first post for free";
+
+/** The hero's second button. The price and what it buys, in the button. */
+export const HIRE_CTA = `Hire a social media manager for ${DEFAULT_PLAN.price}`;
 
 /** Free days on every plan, before the first charge. Stated wherever a price is. */
 export const TRIAL_DAYS = 7;
 
 /** The one sentence that carries the trial. Same words on every surface. */
 export const TRIAL_LINE = `${TRIAL_DAYS} days free, cancel any time.`;
+
+/**
+ * The plan cards' button on the landing page. The price sits above it in 46px,
+ * so the button says the step instead. `cta` keeps the price for the surfaces
+ * where the button is the only place it appears.
+ */
+export const TRIAL_CTA = `Start a ${TRIAL_DAYS} day trial`;
 
 /** The cookie the checkout route reads once Stripe is wired. */
 export const PLAN_COOKIE = "gs_plan";

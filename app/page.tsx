@@ -4,7 +4,7 @@ import { SiteFooter } from "@/components/marketing/site-footer";
 import { SectionHead } from "@/components/marketing/section-head";
 import { Streak } from "@/components/marketing/streak";
 import { HeroBoard } from "@/components/marketing/hero-board";
-import { TryBoard } from "@/components/marketing/try-board";
+import { Reveal } from "@/components/marketing/reveal";
 import {
   CONNECTED,
   RefTag,
@@ -16,7 +16,9 @@ import {
   PLANS,
   DEFAULT_PLAN,
   HERO_CTA,
+  HIRE_CTA,
   SIGNED_IN_CTA,
+  TRIAL_CTA,
   TRIAL_DAYS,
   TRIAL_LINE,
   planHref,
@@ -28,9 +30,12 @@ import { TrackLanding } from "@/components/marketing/track-landing";
 /**
  * The Product Hunt page. One idea per screen, and the picture carries it.
  *
- * Eight screens: the board in motion, the three kinds of post, the one job the
- * reader has (drag a card), twelve weeks of learning, what cadence does, who it
- * is for, the three prices, and the close set against a $3,000 manager.
+ * Seven screens: the board in motion, the three kinds of post, how a note
+ * becomes a rule, what cadence does, who it is for, the three prices, and the
+ * close set against a $3,000 manager.
+ *
+ * Each screen arrives in order: its claim first, then what backs it. The hero
+ * runs on `.intro` from first paint, the rest on <Reveal> as it scrolls in.
  *
  * Every example on the page is TimeTuna's board, written the way the agent is
  * meant to write: third person, a sample size and a caveat on every claim, no
@@ -81,32 +86,26 @@ const KINDS: {
   },
 ];
 
-/** Week 1, 4 and 12 of one Voice principle. Each week adds what a revise taught it. */
+/**
+ * One correction, followed through. The draft before the note, the note, the
+ * rule it added to Voice, and the next post written under that rule. The note
+ * is the product: it rewrites this card and every card after it.
+ */
+const CORRECTION = {
+  before:
+    "Ever wondered why so many meetings get missed? TimeTuna looked into its own bookings to find out.",
+  note: "Open on the number, not a question.",
+  voice: ["Reports, does not sell."],
+  learned: "Opens on the number.",
+  after:
+    "14% of 1,200 TimeTuna bookings were missed in August. A reminder two hours before cut that to 6% in a two week test. One month of data so far.",
+};
+
+/** How many rules Voice holds by week 1, 4 and 12. Each one came from a note. */
 const LEVELS = [
-  {
-    week: "Week 1",
-    level: 1,
-    head: "Knows the website.",
-    voice: ["Reports, does not sell."],
-  },
-  {
-    week: "Week 4",
-    level: 5,
-    head: "Knows the voice.",
-    voice: ["Reports, does not sell.", "Opens on the number."],
-  },
-  {
-    week: "Week 12",
-    level: 10,
-    head: "Knows the author.",
-    voice: [
-      "Reports, does not sell.",
-      "Opens on the number.",
-      "Every claim carries its sample size.",
-      "Names the caveat before a reader does.",
-      "Closes on the next question.",
-    ],
-  },
+  { week: "Week 1", rules: 1, head: "Knows the website." },
+  { week: "Week 4", rules: 2, head: "Knows the voice." },
+  { week: "Week 12", rules: 5, head: "Knows the author." },
 ];
 
 const OUTCOMES = [
@@ -215,7 +214,7 @@ export default async function Home() {
             href="https://www.producthunt.com/products/goodsocials?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-goodsocials"
             target="_blank"
             rel="noopener noreferrer"
-            className="mb-8 inline-block"
+            className="intro intro-3 mb-8 inline-block"
           >
             <picture>
               <source
@@ -232,19 +231,19 @@ export default async function Home() {
               />
             </picture>
           </a>
-          <h1 className="mx-auto max-w-[20ch] text-balance text-[clamp(40px,5.2vw,62px)] font-semibold leading-[1.02] tracking-[-0.045em]">
+          <h1 className="intro mx-auto max-w-[20ch] text-balance text-[clamp(40px,5.2vw,62px)] font-semibold leading-[1.02] tracking-[-0.045em]">
             AI social media manager for your{" "}
             <span className="text-accent-text">LinkedIn.</span>
           </h1>
-          <p className="mx-auto mt-4 max-w-[60ch] text-balance text-[clamp(17px,1.5vw,19px)] leading-[1.4] text-ink-2">
+          <p className="intro intro-1 mx-auto mt-4 max-w-[60ch] text-balance text-[clamp(17px,1.5vw,19px)] leading-[1.4] text-ink-2">
             Posts only from deep research or your own data, 5 times a week,
             after you approve.
           </p>
-          <p className="mx-auto mt-3 max-w-[80ch] font-mono text-[12.5px] text-ink-3">
+          <p className="intro intro-1 mx-auto mt-3 max-w-[80ch] font-mono text-[12.5px] text-ink-3">
             No cringe. No &ldquo;no one talks about this&rdquo;. No &ldquo;it&rsquo;s
             not X, it&rsquo;s Y&rdquo;.
           </p>
-          <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <div className="intro intro-2 mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
               href={start}
               className="pill btn-accent inline-block w-full px-7 py-[14px] text-center text-[16px] sm:w-auto"
@@ -255,23 +254,24 @@ export default async function Home() {
               href="#pricing"
               className="pill btn-outline num inline-block w-full border border-hairline bg-surface px-7 py-[14px] text-center text-[16px] sm:w-auto"
             >
-              {DEFAULT_PLAN.priceLine}
+              {HIRE_CTA}
             </Link>
           </div>
           {signedIn ? null : (
-            <p className="num mt-3 font-mono text-[12px] text-ink-2">
+            <p className="intro intro-2 num mt-3 font-mono text-[12px] text-ink-2">
               Sign in with LinkedIn, paste your website, 7 posts in 90 seconds.
+              {" "}{TRIAL_DAYS} days free, then {DEFAULT_PLAN.priceLine}.
             </p>
           )}
 
-          <div className="mt-8 text-left">
+          <div className="intro intro-4 mt-8 text-left">
             <HeroBoard />
           </div>
         </section>
 
         {/* 2. What it writes. Three kinds and nothing else, which is the whole
             answer to AI slop. */}
-        <section id="writes" className={anchor}>
+        <Reveal id="writes" className={anchor}>
           <div className={`${wrap} ${band} pt-0`}>
             <SectionHead eyebrow="No AI slop" title="Three kinds of posts. Nothing else." />
 
@@ -280,11 +280,14 @@ export default async function Home() {
                   where there are three columns side by side. */}
               <span
                 aria-hidden="true"
-                className="absolute left-[16.6%] right-[16.6%] top-[13px] hidden h-[2px] bg-ink md:block"
+                className="rv rv-1 absolute left-[16.6%] right-[16.6%] top-[13px] hidden h-[2px] bg-ink md:block"
               />
               <ul className="relative grid gap-12 md:grid-cols-3 md:gap-8">
                 {KINDS.map((kind, i) => (
-                  <li key={kind.name} className="flex flex-col items-center text-center">
+                  <li
+                    key={kind.name}
+                    className={`rv ${["rv-2", "rv-3", "rv-4"][i]} flex flex-col items-center text-center`}
+                  >
                     <span
                       aria-hidden="true"
                       className="size-[28px] rounded-full"
@@ -332,7 +335,7 @@ export default async function Home() {
               </ul>
             </div>
 
-            <div className="mt-14 text-center">
+            <div className="rv rv-5 mt-14 text-center">
               <Link
                 href={start}
                 className="pill btn-accent inline-block px-7 py-[14px] text-[16px]"
@@ -345,112 +348,148 @@ export default async function Home() {
               </p>
             </div>
           </div>
-        </section>
+        </Reveal>
 
-        {/* 3. The one job. The reader drags a card, or presses Approve. */}
-        <section id="how" className={anchor}>
-          <div className={`${wrap} ${band} pt-0`}>
-            <SectionHead eyebrow="Try it" title="Drag a card to Scheduled.">
-              That is the whole job. It publishes at 09:00 in your timezone.
-            </SectionHead>
-            <div className="mt-16">
-              <TryBoard />
-            </div>
-          </div>
-        </section>
-
-        {/* 4. It learns the author. One Voice principle at week 1, 4 and 12,
-            each week's new lines in plum. The persistence is the product. */}
-        <section>
+        {/* 3. Corrections stick, which is how it works. One note followed from
+            the card it was left on, to the rule it wrote, to the next post
+            written under that rule, each step landing after the one before.
+            Under it, how many rules Voice holds by week 1, 4 and 12. */}
+        <Reveal id="how" className={anchor}>
           <div className={`${wrap} ${band} pt-0`}>
             <SectionHead
               eyebrow="Corrections stick"
-              title="From level 1 to level 10 in 12 weeks."
+              title="Correct it once. Every post after follows."
             >
-              Each note you give becomes a rule. The rules become your voice.
+              A note on a card rewrites that card and becomes a rule in your
+              voice. The rules add up, week by week.
             </SectionHead>
-            <ul className="mt-16 grid gap-4 md:grid-cols-3">
+
+            <ol className="mt-16 grid items-stretch gap-4 lg:grid-cols-[1fr_auto_1fr_auto_1fr]">
+              <li className="rv rv-2 card-lift flex flex-col rounded-[var(--r-xl)] p-6">
+                <p className="num font-mono text-[12px] text-ink-2">1 · You leave a note</p>
+                <article className="mt-5 rounded-[14px] border border-hairline bg-paper px-4 py-[14px] text-[14px] leading-[1.45] text-ink-2">
+                  <span className="line-through decoration-[var(--ink-3)]">
+                    {CORRECTION.before}
+                  </span>
+                </article>
+                <div className="mt-3 flex gap-3 rounded-[14px] bg-[var(--accent-wash)] px-4 py-[14px]">
+                  <span className="mt-[6px] size-[7px] shrink-0 rounded-full bg-[var(--accent)]" aria-hidden="true" />
+                  <div>
+                    <p className="text-[14px] font-medium leading-[1.45] text-[var(--accent-on-wash)]">
+                      {CORRECTION.note}
+                    </p>
+                    <p className="mt-1 font-mono text-[10.5px] text-ink-2">You · Revise</p>
+                  </div>
+                </div>
+              </li>
+
+              <li aria-hidden="true" className="rv rv-3 hidden items-center text-ink-3 lg:flex">
+                →
+              </li>
+
+              <li className="rv rv-3 card-lift flex flex-col rounded-[var(--r-xl)] p-6">
+                <p className="num font-mono text-[12px] text-ink-2">2 · It becomes a rule</p>
+                <div className="mt-5 grow rounded-[14px] border border-hairline bg-paper px-4 py-[14px]">
+                  <p className="font-mono text-[11px] text-ink-3">VOICE</p>
+                  <ul className="mt-3 space-y-2 text-[15px] leading-[1.45]">
+                    {CORRECTION.voice.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                    <li>
+                      <span className="rounded-[4px] bg-[var(--accent-wash)] px-[4px] text-[var(--accent-on-wash)]">
+                        {CORRECTION.learned}
+                      </span>
+                      <span className="ml-2 font-mono text-[10.5px] text-ink-3">new</span>
+                    </li>
+                  </ul>
+                </div>
+              </li>
+
+              <li aria-hidden="true" className="rv rv-4 hidden items-center text-ink-3 lg:flex">
+                →
+              </li>
+
+              <li className="rv rv-4 card-lift flex flex-col rounded-[var(--r-xl)] p-6">
+                <p className="num font-mono text-[12px] text-ink-2">3 · Every next post follows it</p>
+                <article className="mt-5 grow rounded-[14px] border border-hairline bg-surface px-4 py-[14px] text-[14px] leading-[1.45]">
+                  {CORRECTION.after}
+                  <p className="mt-2 flex items-center gap-[6px] font-mono text-[10.5px] text-ink-3">
+                    Your numbers <SourceTag kind="posthog" />
+                  </p>
+                </article>
+              </li>
+            </ol>
+
+            {/* The same rule count over twelve weeks. Rows, not cards: it is
+                one measure read three times. */}
+            <ul className="rv rv-5 mt-10 grid border-t border-hairline sm:grid-cols-3">
               {LEVELS.map((step, i) => {
-                const learned = i === 0 ? 0 : LEVELS[i - 1].voice.length;
                 const last = i === LEVELS.length - 1;
                 return (
                   <li
                     key={step.week}
-                    className="card-lift rounded-[var(--r-xl)] p-7"
-                    style={last ? { boxShadow: "var(--shadow)" } : undefined}
+                    className="flex items-center justify-between gap-4 border-b border-hairline py-5 sm:block sm:border-b-0 sm:pr-6"
                   >
-                    <p className="num flex justify-between font-mono text-[12px] text-ink-2">
-                      <span>{step.week}</span>
-                      <span style={last ? { color: "var(--accent-text)" } : undefined}>
-                        Level {step.level}
-                      </span>
-                    </p>
-                    <div aria-hidden="true" className="mt-3 flex gap-1">
-                      {Array.from({ length: 10 }, (_, k) => (
-                        <span
-                          key={k}
-                          className="h-[5px] flex-1 rounded-full"
-                          style={{
-                            background:
-                              k < step.level
-                                ? last
-                                  ? "var(--accent)"
-                                  : "var(--ink)"
-                                : "var(--hairline)",
-                          }}
-                        />
-                      ))}
+                    <div>
+                      <p className="num font-mono text-[12px] text-ink-2">{step.week}</p>
+                      <p className="mt-1 text-[17px] font-semibold tracking-[-0.01em]">
+                        {step.head}
+                      </p>
                     </div>
-                    <h3 className="mt-6 text-[22px] font-semibold tracking-[-0.02em]">
-                      {step.head}
-                    </h3>
-                    <p className="mt-5 font-mono text-[11px] text-ink-3">VOICE</p>
-                    <p className="mt-2 text-[15px] leading-[1.55]">
-                      {step.voice.map((line, k) => (
-                        <span key={line}>
-                          {k >= learned && i > 0 ? (
-                            <span className="rounded-[4px] bg-[var(--accent-wash)] px-[3px] text-accent-text">
-                              {line}
-                            </span>
-                          ) : (
-                            line
-                          )}{" "}
-                        </span>
-                      ))}
+                    <p className="num flex items-center gap-2 font-mono text-[12px] text-ink-2 sm:mt-3">
+                      <span aria-hidden="true" className="flex gap-1">
+                        {Array.from({ length: 5 }, (_, k) => (
+                          <span
+                            key={k}
+                            className="size-[8px] rounded-full"
+                            style={{
+                              background:
+                                k < step.rules
+                                  ? last
+                                    ? "var(--accent)"
+                                    : "var(--ink)"
+                                  : "var(--hairline)",
+                            }}
+                          />
+                        ))}
+                      </span>
+                      {step.rules} {step.rules === 1 ? "rule" : "rules"}
                     </p>
                   </li>
                 );
               })}
             </ul>
           </div>
-        </section>
+        </Reveal>
 
-        {/* 5. What cadence does. The last three months beside the next one,
+        {/* 4. What cadence does. The last three months beside the next one,
             and the three things a steady month is for. No figures until there
             are real ones to show. */}
-        <section>
+        <Reveal>
           <div className={`${wrap} ${band} pt-0`}>
             <SectionHead
               eyebrow="Cadence"
               title="Show up every weekday. The rest follows."
             />
             <div className="mt-16 grid gap-4 lg:grid-cols-[minmax(0,360px)_1fr]">
-              <div className="card-lift rounded-[var(--r-xl)] p-7 opacity-80">
-                <p className="num flex justify-between font-mono text-[12px] text-ink-2">
-                  <span>Your last 3 months</span>
-                  <span>3 posts</span>
-                </p>
-                <div className="mt-6">
-                  <Month
-                    days={91}
-                    columns={13}
-                    size={11}
-                    gap={6}
-                    posted={(day) => day === 4 || day === 40 || day === 71}
-                  />
+              <div className="rv rv-2">
+                <div className="card-lift h-full rounded-[var(--r-xl)] p-7 opacity-80">
+                  <p className="num flex justify-between font-mono text-[12px] text-ink-2">
+                    <span>Your last 3 months</span>
+                    <span>3 posts</span>
+                  </p>
+                  <div className="mt-6">
+                    <Month
+                      days={91}
+                      columns={13}
+                      size={11}
+                      gap={6}
+                      posted={(day) => day === 4 || day === 40 || day === 71}
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="card-lift grid gap-8 rounded-[var(--r-xl)] p-7 sm:grid-cols-[auto_1fr] sm:items-center">
+              <div className="rv rv-3 card-lift grid gap-8 rounded-[var(--r-xl)] p-7 sm:grid-cols-[auto_1fr] sm:items-center">
                 <div>
                   <p className="num flex justify-between gap-8 font-mono text-[12px] text-ink-2">
                     <span>Your next month</span>
@@ -485,18 +524,18 @@ export default async function Home() {
               </div>
             </div>
           </div>
-        </section>
+        </Reveal>
 
-        {/* 6. Who it is for. Four fifths of the row for the person whose name
+        {/* 5. Who it is for. Four fifths of the row for the person whose name
             is on the profile, one fifth for the agency that runs twelve. */}
-        <section id="who" className={anchor}>
+        <Reveal id="who" className={anchor}>
           <div className={`${wrap} ${band} pt-0`}>
             <SectionHead
               eyebrow="Who it is for"
               title="Built for the person whose name is on the profile."
             />
             <div className="mt-16 grid gap-4 lg:grid-cols-[4fr_1fr]">
-              <div className="card-lift rounded-[var(--r-xl)] p-7 sm:p-9">
+              <div className="rv rv-2 card-lift rounded-[var(--r-xl)] p-7 sm:p-9">
                 <div className="flex flex-wrap items-baseline justify-between gap-3">
                   <h3 className="text-[24px] font-semibold tracking-[-0.02em]">
                     For founders, consultants and operators
@@ -535,7 +574,7 @@ export default async function Home() {
                   ))}
                 </ul>
               </div>
-              <div className="flex flex-col rounded-[var(--r-xl)] border border-hairline p-6">
+              <div className="rv rv-3 flex flex-col rounded-[var(--r-xl)] border border-hairline p-6">
                 <h3 className="text-[17px] font-semibold">Agencies</h3>
                 <p className="mt-2 text-[14px] leading-[1.45] text-ink-2">
                   Up to {AGENCY_SEATS} client profiles. Each client connects their own LinkedIn.
@@ -552,10 +591,10 @@ export default async function Home() {
               </div>
             </div>
           </div>
-        </section>
+        </Reveal>
 
-        {/* 7. Pricing. Three plans, the recommended one on ink. */}
-        <section id="pricing" className={anchor}>
+        {/* 6. Pricing. Three plans, the recommended one on ink. */}
+        <Reveal id="pricing" className={anchor}>
           <div className={`${wrap} ${band} pt-0`}>
             <SectionHead
               eyebrow="A social media manager costs $3,000 a month"
@@ -568,10 +607,10 @@ export default async function Home() {
                 object, so the prices sit on one baseline and the buttons on
                 another. */}
             <ul className="mt-16 grid gap-4 md:grid-cols-3">
-              {PLANS.map((plan) => (
+              {PLANS.map((plan, i) => (
                 <li
                   key={plan.slug}
-                  className={`flex flex-col rounded-[var(--r-xl)] p-8 ${
+                  className={`rv ${["rv-2", "rv-3", "rv-4"][i]} flex flex-col rounded-[var(--r-xl)] p-8 ${
                     plan.featured ? "panel" : "card-lift"
                   }`}
                 >
@@ -629,7 +668,7 @@ export default async function Home() {
                             : "btn-outline border border-hairline bg-surface"
                         }`}
                       >
-                        {plan.cta}
+                        {TRIAL_CTA}
                       </Link>
                       <p
                         className="num mt-3 text-center font-mono text-[12px]"
@@ -655,33 +694,37 @@ export default async function Home() {
               </p>
             ) : null}
           </div>
-        </section>
+        </Reveal>
 
-        {/* 8. The close. The month on ink and the button on the left, and on
+        {/* 7. The close. The month on ink and the button on the left, and on
             the right what a $3,000 manager does, set against what this does.
             They differ on one row, and it is the row that is sold. */}
-        <section className={`${wrap} pb-[110px]`}>
+        <Reveal className={`${wrap} pb-[110px]`}>
           <div className="grid overflow-hidden rounded-[var(--r-2xl)] border border-hairline lg:grid-cols-[1fr_1.25fr]">
             <div className="panel flex flex-col items-center justify-center px-6 py-16 text-center sm:py-20">
-              <Streak
-                posted={20}
-                today={false}
-                size={130}
-                ink="var(--panel-ink)"
-                empty="var(--panel-hairline)"
-              />
-              <h2 className="mx-auto mt-10 max-w-[16ch] text-balance text-[clamp(30px,3.6vw,42px)] font-semibold leading-[1.06] tracking-[-0.035em]">
+              <div className="rv">
+                <Streak
+                  posted={20}
+                  today={false}
+                  size={130}
+                  ink="var(--panel-ink)"
+                  empty="var(--panel-hairline)"
+                />
+              </div>
+              <h2 className="rv mx-auto mt-10 max-w-[16ch] text-balance text-[clamp(30px,3.6vw,42px)] font-semibold leading-[1.06] tracking-[-0.035em]">
                 {signedIn ? "Your board is waiting." : "Your board is full in 90 seconds."}
               </h2>
-              <Link
-                href={start}
-                className="pill btn-accent mt-8 inline-block px-7 py-[14px] text-[16px]"
-              >
-                {startLabel}
-              </Link>
+              <div className="rv rv-1">
+                <Link
+                  href={start}
+                  className="pill btn-accent mt-8 inline-block px-7 py-[14px] text-[16px]"
+                >
+                  {startLabel}
+                </Link>
+              </div>
               {signedIn ? null : (
                 <p
-                  className="num mt-4 font-mono text-[12px]"
+                  className="rv rv-1 num mt-4 font-mono text-[12px]"
                   style={{ color: "var(--panel-ink-2)" }}
                 >
                   {TRIAL_LINE}
@@ -690,10 +733,10 @@ export default async function Home() {
             </div>
 
             <div className="bg-paper px-6 py-14 sm:px-12">
-              <h2 className="text-[clamp(26px,2.6vw,32px)] font-semibold leading-[1.1] tracking-[-0.03em]">
+              <h2 className="rv rv-2 text-[clamp(26px,2.6vw,32px)] font-semibold leading-[1.1] tracking-[-0.03em]">
                 What a $3,000 manager does, every week.
               </h2>
-              <table className="mt-8 w-full border-collapse text-left text-[15px]">
+              <table className="rv rv-3 mt-8 w-full border-collapse text-left text-[15px]">
                 <thead>
                   <tr className="font-mono text-[11px] uppercase text-ink-2">
                     <th className="pb-3 font-normal">
@@ -720,7 +763,7 @@ export default async function Home() {
               </table>
             </div>
           </div>
-        </section>
+        </Reveal>
       </main>
 
       <SiteFooter signedIn={signedIn} />
