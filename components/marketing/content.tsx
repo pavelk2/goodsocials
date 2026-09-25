@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import type { Block } from "@/lib/content/types";
+import type { Block, Reference } from "@/lib/content/types";
 import { SiteNav } from "./site-nav";
 import { SiteFooter } from "./site-footer";
 import { Eyebrow } from "./section-head";
@@ -47,6 +47,67 @@ export function PageTitle({
   );
 }
 
+/**
+ * Text with its citation markers turned into links. "[2]" in a string becomes
+ * a superscript 2 that jumps to the second entry of the page's reference list.
+ */
+function Cited({ text }: { text: string }) {
+  const parts = text.split(/(\[\d+\])/);
+  return (
+    <>
+      {parts.map((part, i) => {
+        const n = /^\[(\d+)\]$/.exec(part)?.[1];
+        return n ? (
+          <sup key={i} className="num ml-[1px] text-[0.72em]">
+            <a
+              href={`#ref-${n}`}
+              className="text-ink underline-offset-2 hover:underline"
+              aria-label={`Reference ${n}`}
+            >
+              [{n}]
+            </a>
+          </sup>
+        ) : (
+          part
+        );
+      })}
+    </>
+  );
+}
+
+/** The numbered list the markers point at, at the end of a page. */
+export function References({ references }: { references: Reference[] }) {
+  if (references.length === 0) return null;
+  return (
+    <section className="mt-16 border-t border-hairline pt-8">
+      <h2 className="font-mono text-[11px] uppercase tracking-[0.12em] text-ink-3">
+        References
+      </h2>
+      <ol className="mt-5 space-y-3 text-[14px] leading-[1.5] text-ink-2">
+        {references.map((ref, i) => (
+          <li
+            key={ref.url + i}
+            id={`ref-${i + 1}`}
+            className="flex scroll-mt-[calc(var(--nav-h)+32px)] gap-3"
+          >
+            <span className="num w-6 shrink-0 text-ink-3">{i + 1}.</span>
+            <span>
+              {ref.title}{" "}
+              <a
+                href={ref.url}
+                rel="noopener nofollow"
+                className="break-all underline underline-offset-2"
+              >
+                {ref.url.replace(/^https?:\/\//, "")}
+              </a>
+            </span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
 /** A run of blocks at reading size. `id` on an h2 makes it linkable. */
 export function Blocks({ blocks }: { blocks: Block[] }) {
   return (
@@ -59,16 +120,22 @@ export function Blocks({ blocks }: { blocks: Block[] }) {
                 key={i}
                 className="pt-8 text-[24px] font-semibold leading-[1.2] tracking-[-0.02em] text-ink"
               >
-                {block.text}
+                <Cited text={block.text} />
               </h2>
             );
           case "p":
-            return <p key={i}>{block.text}</p>;
+            return (
+              <p key={i}>
+                <Cited text={block.text} />
+              </p>
+            );
           case "list":
             return (
               <ul key={i} className="space-y-2 pl-5 [list-style:disc]">
                 {block.items.map((item) => (
-                  <li key={item}>{item}</li>
+                  <li key={item}>
+                    <Cited text={item} />
+                  </li>
                 ))}
               </ul>
             );
@@ -77,7 +144,7 @@ export function Blocks({ blocks }: { blocks: Block[] }) {
               <ol key={i} className="space-y-2 pl-5 [list-style:decimal]">
                 {block.items.map((item) => (
                   <li key={item} className="num">
-                    {item}
+                    <Cited text={item} />
                   </li>
                 ))}
               </ol>
@@ -125,6 +192,8 @@ export function LinkRows({
 }
 
 /** The one plum control on these pages, at the end, where the next step is. */
+export { Cited };
+
 export function CloseBand({ title }: { title: string }) {
   return (
     <section className="mx-auto w-full max-w-[760px] px-6 py-24">
@@ -133,8 +202,8 @@ export function CloseBand({ title }: { title: string }) {
           {title}
         </h2>
         <p className="mt-4 text-[16px] text-ink-2">
-          Sign in with LinkedIn, paste your website, see seven posts on a board.{" "}
-          {TRIAL_LINE}
+          Sign in with LinkedIn and paste a website URL. Seven posts appear on a
+          board. {TRIAL_LINE}
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link

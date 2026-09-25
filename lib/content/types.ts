@@ -10,6 +10,17 @@ export type Block =
   | { type: "list"; items: string[] }
   | { type: "steps"; items: string[] };
 
+/**
+ * A source a page cites. The text carries the marker as [1], [2], matching the
+ * position in `references`, and the page prints the list at the end. Every
+ * entry is a public page someone can open and check.
+ */
+export type Reference = {
+  /** Author or publisher, title, year. Written the way a paper would list it. */
+  title: string;
+  url: string;
+};
+
 export type BlogPost = {
   slug: string;
   title: string;
@@ -19,6 +30,7 @@ export type BlogPost = {
   date: string;
   readMinutes: number;
   blocks: Block[];
+  references: Reference[];
 };
 
 export type Comparison = {
@@ -38,4 +50,10 @@ export type Comparison = {
   chooseThem: string[];
   chooseUs: string[];
   blocks: Block[];
+  references: Reference[];
 };
+
+/** A string without its citation markers, for meta descriptions and link lines. */
+export function plain(text: string): string {
+  return text.replace(/\s*\[\d+\]/g, "");
+}

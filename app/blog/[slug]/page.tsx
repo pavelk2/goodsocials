@@ -3,12 +3,15 @@ import { notFound } from "next/navigation";
 import {
   Blocks,
   CloseBand,
+  Cited,
   ContentPage,
   LinkRows,
   PageTitle,
+  References,
   formatDate,
 } from "@/components/marketing/content";
 import { POSTS } from "@/lib/content/blog";
+import { plain } from "@/lib/content/types";
 
 /** Every post is known at build time. Anything else is a 404. */
 export const dynamicParams = false;
@@ -28,7 +31,7 @@ export async function generateMetadata({
   if (!post) return {};
   return {
     title: `${post.title} | GoodSocials`,
-    description: post.description,
+    description: plain(post.description),
     openGraph: { type: "article", publishedTime: post.date },
   };
 }
@@ -51,11 +54,12 @@ export default async function BlogPost({ params }: PageProps<"/blog/[slug]">) {
           title={post.title}
         >
           <p className="mt-6 text-[clamp(17px,1.5vw,20px)] leading-[1.5] text-ink-2">
-            {post.description}
+            <Cited text={post.description} />
           </p>
         </PageTitle>
         <div className="mx-auto mt-12 w-full max-w-[760px] px-6">
           <Blocks blocks={post.blocks} />
+          <References references={post.references} />
         </div>
       </article>
 
@@ -74,7 +78,7 @@ export default async function BlogPost({ params }: PageProps<"/blog/[slug]">) {
         </div>
       </div>
 
-      <CloseBand title="Let the board keep the cadence for you." />
+      <CloseBand title="A board that keeps the cadence." />
     </ContentPage>
   );
 }

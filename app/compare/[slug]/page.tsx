@@ -3,11 +3,14 @@ import { notFound } from "next/navigation";
 import {
   Blocks,
   CloseBand,
+  Cited,
   ContentPage,
   LinkRows,
   PageTitle,
+  References,
 } from "@/components/marketing/content";
 import { COMPARISONS } from "@/lib/content/compare";
+import { plain } from "@/lib/content/types";
 
 /** Twenty pages, all known at build time. Anything else is a 404. */
 export const dynamicParams = false;
@@ -27,7 +30,7 @@ export async function generateMetadata({
   if (!c) return {};
   return {
     title: `GoodSocials vs ${c.name} | GoodSocials`,
-    description: `${c.summary} How GoodSocials differs, and who should pick which.`,
+    description: `${plain(c.summary)} How GoodSocials differs, and who should pick which.`,
   };
 }
 
@@ -57,9 +60,11 @@ export default async function Comparison({
       />
 
       <div className="mx-auto mt-14 w-full max-w-[760px] px-6">
-        <p className="text-[19px] leading-[1.55] text-ink">{c.verdict}</p>
+        <p className="text-[19px] leading-[1.55] text-ink">
+          <Cited text={c.verdict} />
+        </p>
         <p className="mt-5 text-[17px] leading-[1.6] text-ink-2">
-          {c.summary}{" "}
+          <Cited text={c.summary} />{" "}
           <a
             href={`https://${c.site}`}
             rel="noopener nofollow"
@@ -86,11 +91,11 @@ export default async function Comparison({
                 </dt>
                 <dd className="text-[15px] leading-[1.5] text-ink-2">
                   <span className="text-ink-3 sm:hidden">{c.name}: </span>
-                  {row.them}
+                  <Cited text={row.them} />
                 </dd>
                 <dd className="text-[15px] leading-[1.5] text-ink">
                   <span className="text-ink-3 sm:hidden">GoodSocials: </span>
-                  {row.us}
+                  <Cited text={row.us} />
                 </dd>
               </div>
             ))}
@@ -104,7 +109,9 @@ export default async function Comparison({
             </h2>
             <ul className="mt-4 space-y-2 pl-5 text-[16px] leading-[1.5] text-ink-2 [list-style:disc]">
               {c.chooseThem.map((item) => (
-                <li key={item}>{item}</li>
+                <li key={item}>
+                  <Cited text={item} />
+                </li>
               ))}
             </ul>
           </div>
@@ -114,7 +121,9 @@ export default async function Comparison({
             </h2>
             <ul className="mt-4 space-y-2 pl-5 text-[16px] leading-[1.5] text-ink-2 [list-style:disc]">
               {c.chooseUs.map((item) => (
-                <li key={item}>{item}</li>
+                <li key={item}>
+                  <Cited text={item} />
+                </li>
               ))}
             </ul>
           </div>
@@ -124,10 +133,12 @@ export default async function Comparison({
           <Blocks blocks={c.blocks} />
         </div>
 
+        <References references={c.references} />
+
         <p className="mt-10 text-[13px] leading-[1.5] text-ink-3">
-          What we say about {c.name} comes from its public site, checked in
-          September 2026. Features and prices change, so check theirs before you
-          decide. {c.name} is a trademark of its owner.
+          Claims about {c.name} come from its public site and the sources below,
+          checked in September 2026. Features and prices change. {c.name} is a
+          trademark of its owner.
         </p>
 
         <h2 className="mt-16 font-mono text-[11px] uppercase tracking-[0.12em] text-ink-3">
@@ -143,7 +154,7 @@ export default async function Comparison({
         </div>
       </div>
 
-      <CloseBand title="See seven posts written for your profile." />
+      <CloseBand title="Seven posts on a board, written from one website." />
     </ContentPage>
   );
 }

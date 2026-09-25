@@ -5,6 +5,7 @@ import {
   LinkRows,
   PageTitle,
 } from "@/components/marketing/content";
+import { plain } from "@/lib/content/types";
 import { COMPARISONS } from "@/lib/content/compare";
 
 export const metadata: Metadata = {
@@ -18,19 +19,19 @@ export default function CompareIndex() {
     <ContentPage>
       <PageTitle
         eyebrow="Compare"
-        title="GoodSocials next to the tools you already know."
-        summary="Twenty side by sides, with the cases where the other tool is the better pick."
+        title="GoodSocials next to twenty social media tools."
+        summary="Each page states who the tool suits, where the workflow differs, and when the other tool is the better choice."
       />
       <div className="mx-auto mt-14 w-full max-w-[760px] px-6">
         <LinkRows
           rows={COMPARISONS.map((c) => ({
             href: `/compare/${c.slug}`,
             title: `GoodSocials vs ${c.name}`,
-            line: c.category,
+            line: plain(c.category),
           }))}
         />
       </div>
-      <CloseBand title="See what it writes for you." />
+      <CloseBand title="Seven posts on a board, written from one website." />
     </ContentPage>
   );
 }
