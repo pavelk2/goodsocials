@@ -7,7 +7,7 @@ import { HeroBoard } from "@/components/marketing/hero-board";
 import { Reveal } from "@/components/marketing/reveal";
 import { CorrectionLoop } from "@/components/marketing/correction-loop";
 import { SOON_AGENTS, SourceTag } from "@/components/marketing/data-sources";
-import { AGENCY_SEATS, FOUNDER_LINKEDIN, SUPPORT } from "@/lib/legal";
+import { AGENCY_SEATS, FOUNDER_LINKEDIN } from "@/lib/legal";
 import {
   PLANS,
   DEFAULT_PLAN,
@@ -20,7 +20,8 @@ import {
   planHref,
 } from "@/lib/plans";
 import type { SourceKind } from "@/lib/integrations/types";
-import { isSignedIn } from "@/lib/viewer";
+import { isSignedIn, loadViewerAccount } from "@/lib/viewer";
+import { PlanButton } from "@/components/marketing/plan-button";
 import { TrackLanding } from "@/components/marketing/track-landing";
 import { shareMetadata } from "@/lib/share";
 
@@ -223,6 +224,7 @@ function Month({
  */
 export default async function Home() {
   const signedIn = await isSignedIn();
+  const account = signedIn ? await loadViewerAccount() : null;
   const start = planHref(DEFAULT_PLAN.slug, signedIn);
   const startLabel = signedIn ? SIGNED_IN_CTA : HERO_CTA;
 
@@ -572,10 +574,12 @@ export default async function Home() {
                     ))}
                   </ul>
 
-                  {/* Signed in, every button would open the same board, so
-                      the buttons go and the line under the grid says what to
-                      do instead. */}
-                  {signedIn ? null : (
+                  {/* Signed in, the button acts on the reader's own
+                      subscription: start it, switch to this plan, or cancel
+                      it from the card that is the current plan. */}
+                  {account ? (
+                    <PlanButton account={account} plan={plan} />
+                  ) : signedIn ? null : (
                     <>
                       <Link
                         href={planHref(plan.slug, signedIn)}
@@ -602,18 +606,8 @@ export default async function Home() {
             </ul>
 
             <p className="rv rv-5 mt-8 text-center font-mono text-[12px] text-ink-2">
-              No setup fee, and you cancel from the settings screen.
+              No setup fee. Change plan or cancel from this page or settings.
             </p>
-
-            {signedIn ? (
-              <p className="mt-4 text-center text-[15px] text-ink-2">
-                You are signed in. To change plan, email{" "}
-                <a href={`mailto:${SUPPORT}`} className="underline">
-                  {SUPPORT}
-                </a>
-                .
-              </p>
-            ) : null}
           </div>
         </Reveal>
 

@@ -259,24 +259,114 @@ export async function startCheckout(opts: {
  * The billing portal, which is where changing plan, updating the card and
  * cancelling all happen. Stripe hosts it and the configuration lives in the
  * Stripe dashboard, which is why this repo has no billing forms of its own.
+ *
+ * A flow skips the portal's home screen. `switch` opens the confirm page for
+ * one price, with the proration already worked out, and `cancel` opens the
+ * cancel page. Both need the portal configuration to allow them, which the
+ * GoodSocials billing configuration does for all three prices. Either way the
+ * webhook is what changes the account, so nothing here writes a column.
  */
+export type PortalFlow = { kind: "switch"; plan: PlanSlug } | { kind: "cancel" };
+
 export async function openPortal(opts: {
   account: Account;
   origin: string;
+  flow?: PortalFlow;
 }): Promise<StripeResult<string>> {
-  if (!opts.account.stripeCustomerId) {
+  const customer = opts.account.stripeCustomerId;
+  if (!customer) {
     return { ok: false, error: "There is no subscription on this account yet." };
   }
 
+  const flowData = await portalFlowData(opts.account, opts.origin, opts.flow);
+  if (!flowData.ok) return flowData;
+
   const session = await callStripe("billingPortal.sessions.create", (stripe) =>
     stripe.billingPortal.sessions.create({
-      customer: opts.account.stripeCustomerId as string,
+      customer,
       return_url: `${opts.origin}/settings`,
+      ...(flowData.value ? { flow_data: flowData.value } : {}),
     }),
   );
   if (!session.ok) return session;
 
   return { ok: true, value: session.value.url };
+}
+
+async function portalFlowData(
+  account: Account,
+  origin: string,
+  flow: PortalFlow | undefined,
+): Promise<
+  StripeResult<Stripe.BillingPortal.SessionCreateParams.FlowData | null>
+> {
+  const subscription = account.stripeSubscriptionId;
+  if (!flow || !subscription) return { ok: true, value: null };
+
+  if (flow.kind === "cancel") {
+    return {
+      ok: true,
+      value: {
+        type: "subscription_cancel",
+        subscription_cancel: { subscription },
+        after_completion: {
+          type: "redirect",
+          redirect: { return_url: `${origin}/settings?billing=ending` },
+        },
+      },
+    };
+  }
+
+  // The confirm page needs the subscription item, which Stripe holds and we
+  // do not store. One item per subscription, because every plan is one price.
+  const current = await callStripe("subscriptions.retrieve", (stripe) =>
+    stripe.subscriptions.retrieve(subscription),
+  );
+  if (!current.ok) return current;
+  const item = current.value.items.data[0];
+  if (!item) {
+    return { ok: false, error: "Stripe returned a subscription with no plan on it. Try again." };
+  }
+
+  return {
+    ok: true,
+    value: {
+      type: "subscription_update_confirm",
+      subscription_update_confirm: {
+        subscription,
+        items: [{ id: item.id, price: priceIdFor(flow.plan), quantity: 1 }],
+      },
+      after_completion: {
+        type: "redirect",
+        redirect: { return_url: `${origin}/settings?billing=changed` },
+      },
+    },
+  };
+}
+
+/**
+ * What a plan card's button does for a signed in reader. Decided from the
+ * account's columns, so the pricing page and Stripe cannot disagree about which
+ * plan is the current one.
+ *
+ * - `checkout` no live subscription, so the card starts that plan.
+ * - `switch` another plan than the one paid for, so the card changes to it.
+ * - `cancel` the plan paid for, renewing.
+ * - `resume` the plan paid for, set to end. The portal's home screen is where
+ *   an ending plan is renewed, and a switch has to wait until it is.
+ */
+export type PlanAction = "checkout" | "switch" | "cancel" | "resume";
+
+export function planAction(
+  account: Pick<
+    Account,
+    "stripeCustomerId" | "stripeSubscriptionId" | "plan" | "cancelAtPeriodEnd"
+  >,
+  slug: PlanSlug,
+): PlanAction {
+  if (!canManageBilling(account)) return "checkout";
+  if (planOf(account).slug !== slug) return "switch";
+  return account.cancelAtPeriodEnd ? "resume" : "cancel";
 }
 
 /**

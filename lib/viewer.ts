@@ -80,3 +80,22 @@ export async function isSignedIn(): Promise<boolean> {
   const session = await auth();
   return Boolean(session?.memberId);
 }
+
+/**
+ * The signed in reader's account, for the plan cards on the landing page and
+ * nothing else. One indexed read, and only when there is a session, so a
+ * stranger's visit still costs no round trip to Neon.
+ */
+export async function loadViewerAccount(): Promise<
+  typeof accountTable.$inferSelect | null
+> {
+  const session = await auth();
+  if (!session?.memberId) return null;
+
+  const [row] = await getDb()
+    .select()
+    .from(accountTable)
+    .where(eq(accountTable.ownerMemberId, session.memberId))
+    .limit(1);
+  return row ?? null;
+}
