@@ -18,6 +18,9 @@ import { Streak } from "./streak";
  * column, then animated from where it was to where it is, so the layout is the
  * real one at every frame and nothing is positioned by hand. Reduced motion
  * gets the last frame, standing still.
+ *
+ * The rest of the board is scenery, held back so the eye follows the one card
+ * that moves and nothing else competes with it.
  */
 
 type Kind = "Research" | "Deep dive" | "Your numbers";
@@ -293,7 +296,9 @@ export function HeroBoard() {
             return (
               <section key={col.name} className="snap-start">
                 <header className="flex items-center justify-between px-1 pb-2 text-[12px] font-medium">
-                  <h3>{col.name}</h3>
+                  <h3 className="transition-colors duration-500" style={{ color: here && frame.stage >= 0 ? "var(--ink)" : "var(--ink-2)" }}>
+                    {col.name}
+                  </h3>
                   <span
                     className="num font-mono font-normal transition-colors"
                     style={{ color: here && frame.stage > 0 ? "var(--accent-text)" : "var(--ink-3)" }}
@@ -308,7 +313,7 @@ export function HeroBoard() {
                     <article
                       key={card.id}
                       data-flip={card.id}
-                      className="rounded-[12px] border border-hairline bg-surface px-[13px] py-3 text-[13px] leading-[1.42]"
+                      className="rounded-[12px] border border-hairline bg-surface px-[13px] py-3 text-[13px] leading-[1.42] opacity-40 saturate-[0.4]"
                     >
                       {card.art ? (
                         <div aria-hidden="true" className={`art art-${card.art} mb-3`} />
