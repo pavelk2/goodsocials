@@ -41,6 +41,7 @@ Two numbers with no gap is the whole pricing conversation, and a middle tier inv
 **The voice is a researcher, not a seller.**
 Rejected: persuasion, engagement bait, rhetorical-question hooks, manufactured urgency.
 The post reports something the author found and can point to, so credibility comes from being checkable rather than from sounding confident.
+A researcher still has a finding. Every post makes one point the evidence supports and says it in the first sentence. The first onboarding sample was a neutral catalog, one block per company, never ranked, and a content writer testing it said it was too boring to post. Rejected since: the catalog. Comparing on one named thing is fine; calling a company better is not.
 
 **The agent never invents a citation.**
 Rejected: "studies show", unnamed percentages, plausible-sounding report titles.

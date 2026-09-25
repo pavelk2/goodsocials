@@ -38,13 +38,13 @@ const CompanySchema = z.object({
     .string()
     .nullable()
     .describe(
-      "What customers say they like, paraphrased from reviews you read. Null if you found none.",
+      "What customers say they like, paraphrased from reviews you read, as the most specific thing said: a situation, a number or a detail close to the reviewer's words, never a category like ease of use. Null if you found none.",
     ),
   criticised: z
     .string()
     .nullable()
     .describe(
-      "What customers say they dislike, paraphrased from reviews you read. Null if you found none.",
+      "What customers say they dislike, paraphrased from reviews you read, as the most specific thing said: a situation, a number or a detail close to the reviewer's words, never a category like pricing. Null if you found none.",
     ),
   source: z
     .string()
@@ -71,6 +71,20 @@ const MilestoneSchema = z.object({
   source: z.string().describe("Where you read it, for example Wikipedia or the company's own history page."),
 });
 
+/**
+ * The one detail in the reading a practitioner would not have guessed. A post
+ * needs a point, and a list of five paraphrased reviews does not hand the
+ * writer one; this does, and it is still something somebody said in public.
+ */
+const StandoutSchema = z.object({
+  what: z
+    .string()
+    .describe(
+      "The one thing you read that a practitioner in this field would least expect, in one plain sentence, close to how it was said.",
+    ),
+  source: z.string().describe("Where it was said, for example G2, a Reddit thread or a news article."),
+});
+
 const ResearchSchema = z.object({
   field: z
     .string()
@@ -78,11 +92,13 @@ const ResearchSchema = z.object({
   companies: z.array(CompanySchema).max(5),
   jobs: z.array(JobSchema).max(5),
   history: z.array(MilestoneSchema).max(6),
+  standout: StandoutSchema.nullable(),
 });
 
 export type Company = z.infer<typeof CompanySchema>;
 export type Job = z.infer<typeof JobSchema>;
 export type Milestone = z.infer<typeof MilestoneSchema>;
+export type Standout = z.infer<typeof StandoutSchema>;
 /**
  * What the search opened, counted in code from the result blocks rather than
  * asked of the model, so the post can say how much it read and be right.
@@ -120,18 +136,20 @@ const SYSTEM = `You map the market one company sells into, for a LinkedIn post i
 
 List three to five companies operating in the same field and selling to the same buyers. The company whose website you are given is always one of them, marked own. Only name a company you found or are certain exists. Fewer real ones beats more invented ones.
 
-For each company, say in one plain sentence what it sells and to whom. Then what its customers say they like and what they say they dislike, paraphrased from reviews you read: review sites, forums, app stores, public threads. Name where the reviews were. If you found no reviews for a company, praised and criticised are null. Never infer an opinion from a company's own marketing, never write one you did not read, and never soften or sharpen what a reviewer said. This includes the own company: if its reviews say something unflattering, report it as written.
+For each company, say in one plain sentence what it sells and to whom. Then what its customers say they like and what they say they dislike, paraphrased from reviews you read: review sites, forums, app stores, public threads. Name where the reviews were. If you found no reviews for a company, praised and criticised are null. Never infer an opinion from a company's own marketing, never write one you did not read, and never soften or sharpen what a reviewer said. Keep the most specific thing a reviewer said over the most common: "double books when a calendar syncs late" is worth a post, "reliability issues" is not. This includes the own company: if its reviews say something unflattering, report it as written.
 
 Then the jobs: up to five distinct things customers say they hired a product in this field to do, read from the same reviews and threads. Write each as the progress the customer wanted in their situation, not as a feature. Say what they used before only if they said it. An empty list beats an invented job.
 
 Then the history of the field: up to six dated moments from its start to now, such as the first company, the change that made it grow and the arrival of the current leaders. Only dates and names you read. An empty list beats an invented date.
+
+Then the standout: the one thing you read, anywhere in this research, that a practitioner in this field would least expect, with where it was said. A complaint every company shares, a reason people buy that no company advertises, a date that is older than anyone would guess. Null if nothing you read stood out.
 
 Search in this order. One search for the field and its alternatives. Then searches for reviews that cover several companies at once, such as comparison pages and review site category listings. Then, for every company those did not cover, one search for that company by name with the word reviews. Any company with paying customers has reviews somewhere: G2, Capterra, Trustpilot, the App Store, Google Play, Product Hunt or a Reddit thread. Leave praised and criticised null only after a search for that company by name came back with nothing. Last, one search for the history of the field.
 
 Never use em dashes. Never use "seamless", "leverage", "unlock", "supercharge", "effortless", or "game-changer". Never use "actually", "really", "simply", "just", or "basically".`;
 
 const JSON_INSTRUCTION = `When you have finished searching, reply with one JSON object and nothing else, in this shape:
-{"field":"...","companies":[{"name":"...","own":true,"offers":"...","praised":"..." or null,"criticised":"..." or null,"source":"..." or null}],"jobs":[{"job":"...","before":"..." or null,"source":"..."}],"history":[{"when":"...","what":"...","source":"..."}]}`;
+{"field":"...","companies":[{"name":"...","own":true,"offers":"...","praised":"..." or null,"criticised":"..." or null,"source":"..." or null}],"jobs":[{"job":"...","before":"..." or null,"source":"..."}],"history":[{"when":"...","what":"...","source":"..."}],"standout":{"what":"...","source":"..."} or null}`;
 
 function brief(site: Extract<SiteText, { ok: true }>, personName?: string | null): string {
   return [
@@ -241,6 +259,7 @@ function progressOf(block: Anthropic.ContentBlock): ResearchProgress[] {
 const LenientResearch = ResearchSchema.extend({
   jobs: ResearchSchema.shape.jobs.catch([]),
   history: ResearchSchema.shape.history.catch([]),
+  standout: ResearchSchema.shape.standout.catch(null),
 });
 
 function parse(content: Anthropic.ContentBlock[]): z.infer<typeof ResearchSchema> {
@@ -260,7 +279,7 @@ async function unsearched(opts: ResearchOpts): Promise<Research> {
     max_tokens: 4000,
     thinking: { type: "disabled" },
     output_config: { format: zodOutputFormat(ResearchSchema) },
-    system: `${SYSTEM}\n\nYou cannot search, so you have read no reviews. Name a company only if you are certain it exists and sells to these buyers, and leave praised, criticised and source null for every one. Leave jobs and history empty.`,
+    system: `${SYSTEM}\n\nYou cannot search, so you have read no reviews. Name a company only if you are certain it exists and sells to these buyers, and leave praised, criticised and source null for every one. Leave jobs and history empty, and standout null.`,
     messages: [{ role: "user", content: brief(opts.site, opts.personName) }],
   });
 
@@ -277,7 +296,7 @@ async function unsearched(opts: ResearchOpts): Promise<Research> {
     source: null,
   }));
   return withOwn(
-    { ...response.parsed_output, companies, jobs: [], history: [], searched: false },
+    { ...response.parsed_output, companies, jobs: [], history: [], standout: null, searched: false },
     opts.site,
   );
 }
@@ -309,12 +328,18 @@ function hostOf(url: string): string {
 /**
  * Research written before the market map had a different shape. Research from
  * before the content question has no jobs or history, and is read as having
- * found none, so the sample falls back to the market map.
+ * found none, so the sample falls back to the market map. Research from before
+ * the standout has none, and the sample finds its point in the rest.
  */
 export function isResearch(value: unknown): value is Research {
   return Boolean(value && Array.isArray((value as Research).companies));
 }
 
 export function withDefaults(research: Research): Research {
-  return { ...research, jobs: research.jobs ?? [], history: research.history ?? [] };
+  return {
+    ...research,
+    jobs: research.jobs ?? [],
+    history: research.history ?? [],
+    standout: research.standout ?? null,
+  };
 }

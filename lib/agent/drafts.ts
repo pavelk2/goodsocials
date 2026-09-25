@@ -7,6 +7,7 @@ import type { Principles } from "./principles";
 import type { Goal, PostKind } from "./ideas";
 import type { Research } from "./competitors";
 import { THIRD_PERSON } from "./person";
+import { checkPost } from "@/lib/quality";
 
 /**
  * One idea becomes one finished post. The draft is publishable as written: no
@@ -57,7 +58,7 @@ const GOAL_BRIEF: Record<Goal, string> = {
 
 const SYSTEM = `You write one LinkedIn post from one idea, in the voice of the person whose brand principles you are given.
 
-The register is a researcher, not a seller. The post reports something true that a reader can check. It informs, it does not persuade, and it never manipulates.
+The register is a researcher, not a seller. The post reports something true that a reader can check, and it never manipulates. A researcher also has a finding: every post makes one point the evidence supports, specific enough that someone in the field could disagree with it, and says it plainly. A post with no point is a directory, and nobody follows a directory. The point is what the evidence shows, never a taste or a sales claim.
 
 Banned outright, because they are what makes LinkedIn unreadable:
 Opening with a one line hook followed by a blank line. Rhetorical questions as openers. "Here's the thing". "Let that sink in". "Unpopular opinion". Counting down a list of lessons. Manufactured urgency. Fake vulnerability. A closing question asking for comments, unless the goal asks for one specific question. Anything that would read as a template.
@@ -159,27 +160,52 @@ export async function generateDraft(opts: {
   return finish(response.parsed_output.post, opts.goal);
 }
 
-const MARKET_BRIEF = `Build it as a map of the field. One opening sentence naming the field and that this is what customers say about the companies in it. Then one short block per company, the author's own company included, named by its name and written about in the same plain register as the others: the name in bold, what it offers, what customers like, what they dislike, and where that was said. A company listed without opinions gets what it offers and nothing else. Never write that reviews are missing, thin or hard to find, and never mention searching: the list is what was read, not what was looked for. Report the reviews as reviews, never as your own verdict, and never rank the companies. End on the last company, or on one sentence saying what the list shows about the field as a whole. No brackets, because nothing here needs a number from the author.`;
+/**
+ * What every sample shares, whatever it is about. The first version of these
+ * briefs asked for a neutral catalog, one block per entry in the same
+ * register, and a content writer who tested it called the result boring and
+ * said they would not post it. They were right: a list with no point gives the
+ * reader no reason to finish it. So the post leads with one observation the
+ * material supports, and the entries become the evidence for it.
+ */
+const POINT = `The first sentence is the point: one observation the material below supports, in plain words, specific enough that a practitioner in the field could disagree with it. It names what it is about. It is never a tease, a question or a sentence about the post itself, and it never announces what the list is. The reader sees about two lines before the feed cuts the post, and those two lines have to be worth stopping for.
+
+A count in the point, such as three of the five, is a count of the entries below and has to be exactly right. Say what the sources show, never what the author thinks: "four of the five get the same complaint in reviews" is a finding, "the market is broken" is an opinion nobody gave you.`;
+
+const CLOSE = `Close the body with one sentence saying what the point means for someone choosing, buying or building in this field. Plain, no lesson list, no call to action beyond what the goal asks for. No brackets, because nothing here needs a number from the author.`;
+
+const MARKET_BRIEF = `${POINT}
+
+Then the companies that carry it, one short block each, the author's own company always among them and written about in the same plain register as the others: the name in bold, then in one or two sentences what it offers and the specific thing customers said that bears on the point, and where it was said. Leave out a company that says nothing about the point, except the author's own. Report reviews as reviews. Comparing the companies on one named thing, such as price, who they serve or what customers complain about, is fine; calling one better is not. Never write that reviews are missing, thin or hard to find, and never mention searching.
+
+${CLOSE}`;
 
 /**
  * The market map when too few reviews were read to compare: what each company
  * sells, from its own site. A post saying nobody reviewed Calendly would be
- * false, and the reader would know it.
+ * false, and the reader would know it. The point is where the offers differ.
  */
-const OFFERS_BRIEF = `Build it as a map of the field. One opening sentence naming the field and how many companies sell in it to these buyers. Then one short block per company, the author's own company included, named by its name and written about in the same plain register as the others: the name in bold, then what it sells and to whom, as its own site puts it. Never say what customers think of any of them, never mention reviews, and never mention searching. Never rank the companies. End on one sentence saying where the companies differ most. No brackets, because nothing here needs a number from the author.`;
+const OFFERS_BRIEF = `${POINT} Here the material is what each company sells, as its own site puts it, so the point is about the offers: where they split, who each one is for, what only one of them does.
+
+Then the companies that carry it, one short block each, the author's own company always among them and written about in the same plain register as the others: the name in bold, then what it sells and to whom, as its own site puts it. Never say what customers think of any of them, never mention reviews, never mention searching, and never call one better.
+
+${CLOSE}`;
 
 /**
  * What the research opened, for the one sentence that tells the reader how
  * much was read and where. Counted in code, so the number in the post is the
  * number of pages, not the model's impression of it. Null when nothing was
  * counted, which leaves the sentence out rather than guessing it.
+ *
+ * It closes the post rather than opening it: it is where the post comes from,
+ * and the two lines before the feed cuts it belong to the point.
  */
 function readingLine(research: Research): string | null {
   const read = research.read;
   if (!read || read.pages < 3) return null;
   return [
     `What was read for this post: ${read.pages} public pages. The sites opened most often: ${read.sites.join(", ")}.`,
-    "Right after the opening sentence, say this in one plain sentence: the number of pages exactly as given, and the sites among those a reader would recognise as sources, such as review sites, forums and reference sites, named as people know them (G2, not g2.com). Leave out the companies' own sites. No judgement of the sources, no word like thorough or comprehensive. The sentence tells the reader where the post comes from.",
+    "Say this in one short plain sentence after the closing sentence, as the source line, and before anything the goal puts last: the number of pages exactly as given, and the sites among those a reader would recognise as sources, such as review sites, forums and reference sites, named as people know them (G2, not g2.com). Leave out the companies' own sites. No judgement of the sources, no word like thorough or comprehensive.",
   ].join("\n");
 }
 
@@ -194,9 +220,17 @@ function marketBrief(research: Research): string {
   return research.companies.filter(reviewed).length >= MIN_REVIEWED ? MARKET_BRIEF : OFFERS_BRIEF;
 }
 
-const JOBS_BRIEF = `Build it as the jobs customers hire a product in this field to do. One opening sentence naming the field and that this is why people buy in it, as they said it themselves. Then one short block per job: the job as a bold label of a few words, then the progress the customer wanted, what they used before where they said it, and where it was said. Write each job as a situation and an outcome, never as a feature, and never claim the author's product does any of them. Report what customers wrote as what customers wrote, never as your own verdict. End on the last job, or on one sentence saying which job comes up most often in what customers wrote. No brackets, because nothing here needs a number from the author.`;
+const JOBS_BRIEF = `${POINT} Here the material is why customers say they bought, so the point is about that: the job that comes up most, the job no company advertises, or what people were using before they switched.
 
-const HISTORY_BRIEF = `Build it as a short history of the field. One opening sentence naming the field and when it started. Then the moments in order, one short line each: when, in bold, then what happened and who did it. Use only the dates and names given, never add one, and never round a date to make it tidier. The author's company is part of the story only if it is in the list. End on where the field is now, in one sentence, without predicting where it goes next. No brackets, because nothing here needs a number from the author.`;
+Then the jobs that carry it, one short block each: the job as a bold label of a few words, then the situation the customer was in, what they used before where they said it, and where it was said. A job is a situation and an outcome, never a feature, and never claim the author's product does any of them. Report what customers wrote as what customers wrote.
+
+${CLOSE}`;
+
+const HISTORY_BRIEF = `${POINT} Here the material is how the field started and changed, so the point is about that: the turn that made the field what it is, how old a supposedly new idea is, or who got there first.
+
+Then the moments that carry it, in order, one short line each: when, in bold, then what happened and who did it. Use only the dates and names given, never add one, and never round a date to make it tidier. The author's company is part of the story only if it is in the list. Do not predict where the field goes next.
+
+${CLOSE}`;
 
 /** The idea behind each sample, as the card shows it. */
 export function sampleIdea(content: SampleContent, field: string): string {
@@ -269,13 +303,44 @@ export function sampleContent(asked: SampleContent, research: Research): SampleC
 }
 
 /**
+ * Three ways into the same material. One draft finds the first point that
+ * comes to mind, which for a list of reviews is the most common one; three
+ * drafts, each told where to look, give the pick something to choose between.
+ */
+const ANGLES = [
+  "Look for what repeats: the thing that shows up in more than one entry below, and that a practitioner would not expect to be shared.",
+  "Look for the contrast: the two entries below that differ most on one thing, and what that difference is.",
+  "Look for the surprise: the single detail below that a practitioner in this field would least expect. The standout, if one is given, is a good place to start.",
+] as const;
+
+/**
+ * The editor who reads the three and picks the one to show. A stranger decides
+ * on this post whether to pay, so the pick is for the post a demanding content
+ * writer would publish under their own name, with the evidence rules first.
+ */
+const PickSchema = z.object({
+  best: z
+    .number()
+    .int()
+    .describe("The number of the post to publish, as numbered in the message."),
+  reason: z.string().describe("Why, in one plain sentence."),
+});
+
+const PICK_SYSTEM = `You are a demanding LinkedIn content editor choosing which of several drafts publishes under a real person's name. You have the material they were written from.
+
+First rule out any draft that states something the material does not support: a count that does not match the entries, a claim about a company nobody made in the material, a number that is not there. Of the rest, pick the one a picky content writer would post as it stands: the first sentence makes a specific point worth stopping for, the rest proves it, and nothing is filler. A draft that reads like a directory loses to one that says something.`;
+
+/**
  * The onboarding sample. At that point we know the member's website and
  * nothing they have done, so the post is built only from what the research
  * read in public: the companies in the field, the jobs customers hire them
  * for, or how the field started, whichever the member picked.
  *
- * No thinking. The facts arrive laid out and the job is to set them in the
- * member's voice, and on the waiting screen every second is counted.
+ * It is the post a stranger decides to pay on, so it gets more than any other
+ * draft: three written in parallel from three angles, with low effort
+ * thinking to find a point in the material, then one editor call to pick.
+ * About one draft's worth of waiting more than a single shot, and about five
+ * cents, against a 100 USD subscription.
  */
 export async function generateSamplePost(opts: {
   content: SampleContent;
@@ -289,50 +354,128 @@ export async function generateSamplePost(opts: {
   const facts = sampleFacts(content, opts.research);
   const brief = content === "competitors" ? marketBrief(opts.research) : BRIEF[content];
   // The offers map is written because the reviews were too thin to compare,
-  // and it never mentions reviews, so it never points at review sites either.
-  const read = brief === OFFERS_BRIEF ? null : readingLine(opts.research);
+  // and it never mentions reviews, so it never points at review sites or
+  // carries a standout that was probably a review either.
+  const offers = brief === OFFERS_BRIEF;
+  const read = offers ? null : readingLine(opts.research);
+  const standout = offers ? null : standoutLine(opts.research);
+  // draft_market predates the other two and is kept, so spend charts stay continuous.
+  const operation = content === "competitors" ? "draft_market" : `draft_${content}`;
 
+  const material = [
+    `Idea: ${sampleIdea(content, opts.research.field)}`,
+    "",
+    `Shape. ${brief}`,
+    "",
+    facts,
+    ...(standout ? ["", standout] : []),
+    "",
+    ...(read ? [read, ""] : []),
+  ];
+
+  const drafts = await Promise.allSettled(
+    ANGLES.map(async (angle) => {
+      const response = await anthropic().messages.parse({
+        model: MODEL,
+        max_tokens: 6000,
+        thinking: { type: "adaptive" },
+        // Low effort: finding one point in a page of material is a short
+        // think, and the member is watching a countdown.
+        output_config: { effort: "low", format: zodOutputFormat(DraftSchema) },
+        system: SYSTEM,
+        messages: [
+          {
+            role: "user",
+            content: [
+              ...material,
+              `Where to find the point. ${angle}`,
+              "",
+              "Brand principles:",
+              `Voice. ${opts.principles.voice}`,
+              `Format. ${opts.principles.format}`,
+              "",
+              `Goal. ${GOAL_BRIEF[opts.goal]}`,
+              opts.siteUrl ? `The website to link to is ${opts.siteUrl}` : "",
+            ]
+              .filter((line) => line !== null)
+              .join("\n"),
+          },
+        ],
+      });
+      recordSpend({ profileId: opts.profileId, operation, usage: response.usage });
+      if (!response.parsed_output) {
+        throw new Error("The model did not return a draft in the expected shape.");
+      }
+      return finish(response.parsed_output.post, opts.goal);
+    }),
+  );
+
+  const written = drafts.flatMap((d) => (d.status === "fulfilled" ? [d.value] : []));
+  if (written.length === 0) {
+    const first = drafts.find((d) => d.status === "rejected");
+    throw first?.reason ?? new Error("No draft was written.");
+  }
+  // A draft that breaks a rule a pattern can see never reaches the editor,
+  // unless all of them do, in which case the editor still picks the best.
+  const clean = written.filter((post) => checkPost(post).length === 0);
+  const candidates = clean.length > 0 ? clean : written;
+  if (candidates.length === 1) return candidates[0];
+
+  try {
+    return await pickSample({
+      candidates,
+      material: material.filter((line) => line !== null).join("\n"),
+      profileId: opts.profileId,
+    });
+  } catch (cause) {
+    // The pick is an improvement, not a requirement. Any of the drafts is
+    // true to the material, so a failed pick shows the first one.
+    console.error("[drafts] sample pick failed, showing the first draft:", cause);
+    return candidates[0];
+  }
+}
+
+/** The standout from the research, laid out as material. Null when there is none. */
+function standoutLine(research: Research): string | null {
+  const standout = research.standout;
+  if (!standout?.what) return null;
+  return `One detail that stood out in the reading, usable as the point if it fits this post: ${standout.what} (said on ${standout.source}).`;
+}
+
+async function pickSample(opts: {
+  candidates: string[];
+  material: string;
+  profileId: string;
+}): Promise<string> {
   const response = await anthropic().messages.parse({
     model: MODEL,
-    max_tokens: 2000,
+    max_tokens: 1000,
+    // No thinking: reading three short posts against a page of material is
+    // what the editor is for, and this is the last wait before the offer.
     thinking: { type: "disabled" },
-    system: SYSTEM,
-    output_config: { format: zodOutputFormat(DraftSchema) },
+    output_config: { format: zodOutputFormat(PickSchema) },
+    system: PICK_SYSTEM,
     messages: [
       {
         role: "user",
         content: [
-          `Idea: ${sampleIdea(content, opts.research.field)}`,
+          "The material the drafts were written from:",
+          "<material>",
+          opts.material,
+          "</material>",
           "",
-          `Shape. ${brief}`,
-          "",
-          facts,
-          "",
-          ...(read ? [read, ""] : []),
-          "Brand principles:",
-          `Voice. ${opts.principles.voice}`,
-          `Format. ${opts.principles.format}`,
-          "",
-          `Goal. ${GOAL_BRIEF[opts.goal]}`,
-          opts.siteUrl ? `The website to link to is ${opts.siteUrl}` : "",
-        ]
-          .filter((line) => line !== null)
-          .join("\n"),
+          ...opts.candidates.map((post, i) => `<draft number="${i + 1}">\n${post}\n</draft>`),
+        ].join("\n"),
       },
     ],
   });
+  recordSpend({ profileId: opts.profileId, operation: "draft_pick", usage: response.usage });
 
-  recordSpend({
-    profileId: opts.profileId,
-    // draft_market predates the other two and is kept, so spend charts stay continuous.
-    operation: content === "competitors" ? "draft_market" : `draft_${content}`,
-    usage: response.usage,
-  });
-
-  if (!response.parsed_output) {
-    throw new Error("The model did not return a draft in the expected shape.");
+  const best = response.parsed_output?.best;
+  if (!best || best < 1 || best > opts.candidates.length) {
+    throw new Error(`The pick came back as ${best}.`);
   }
-  return finish(response.parsed_output.post, opts.goal);
+  return opts.candidates[best - 1];
 }
 
 /**
