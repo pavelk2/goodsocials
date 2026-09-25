@@ -652,6 +652,13 @@ body:has(dialog[open]) {
   }
 }
 
+/* Every card but the moving one sits back, so the eye has one place to go.
+   Still legible, so the board reads as a board and not as a blur. */
+.hb-backdrop {
+  opacity: 0.42;
+  filter: saturate(0.55);
+}
+
 /* A source pill while the card is being written from it. */
 .src-reading {
   animation: src-reading 700ms ease-in-out infinite alternate;
