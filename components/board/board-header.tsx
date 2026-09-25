@@ -32,6 +32,7 @@ const SECONDARY = `btn-outline ${SHAPE} border border-hairline bg-surface text-i
 export function BoardHeader({
   seat,
   runwayDays,
+  scheduled,
   readyToSchedule,
   view,
   principles,
@@ -39,6 +40,8 @@ export function BoardHeader({
 }: {
   seat: string | null;
   runwayDays: number;
+  /** Scheduled column count, so an empty queue can say so in words. */
+  scheduled: number;
   /** Image column count: approved posts that still need a slot. */
   readyToSchedule: number;
   /** Which reading of the same cards is on screen. */
@@ -72,9 +75,10 @@ export function BoardHeader({
               many are left, and one screen carries one saturated idea. */}
           {view === "board" ? (
             <p className="mr-1 text-[13px] text-ink-2">
-              Runway{" "}
-              <span className="num font-medium text-accent">
-                {runwayDays} {runwayDays === 1 ? "day" : "days"}
+              {/* Plain words over "Runway 0 days". A tester read the bare
+                  zero as a bug; what it meant was that nothing is queued. */}
+              <span className="font-medium text-accent">
+                {runwayLabel(scheduled, runwayDays)}
               </span>
               {/* Said beside the runway, not added to it: these publish
                   nothing until somebody schedules them. */}
@@ -122,6 +126,17 @@ export function BoardHeader({
       ) : null}
     </div>
   );
+}
+
+/**
+ * How long the scheduled posts keep the feed going, at the board's cadence.
+ * Under a day of cover with something queued still reads as queued, never
+ * as zero.
+ */
+function runwayLabel(scheduled: number, days: number): string {
+  if (scheduled === 0) return "Nothing scheduled";
+  if (days === 0) return "Scheduled posts cover less than a day";
+  return `Scheduled posts cover ${days} ${days === 1 ? "day" : "days"}`;
 }
 
 /**
