@@ -92,6 +92,13 @@
       "when": 1790261712599,
       "tag": "0012_card_quality",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1790325180322,
+      "tag": "0013_funnel_event",
+      "breakpoints": true
     }
   ]
 }

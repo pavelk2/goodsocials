@@ -1,4 +1,6 @@
 import { cookies } from "next/headers";
+import { getDb } from "@/db";
+import { funnelEvent } from "@/db/schema";
 
 /**
  * Funnel events, sent to PostHog from the server.
@@ -13,13 +15,15 @@ import { cookies } from "next/headers";
  * The member id rides along as a property once there is one.
  *
  * Every event is also one JSON log line, the same shape recordSpend writes, so
- * the funnel is readable in Vercel logs on a deployment with no PostHog key.
+ * the funnel is readable in Vercel logs on a deployment with no PostHog key,
+ * and one row in funnel_event, which is what the admin pipeline reads.
  */
 
 export const ANON_COOKIE = "gs_aid";
 
 /** Every event the funnel sends. A name not on this list is refused. */
 export const FUNNEL_EVENTS = [
+  "landing_viewed",
   "signin_viewed",
   "signin_started",
   "onboarding_step_viewed",
@@ -75,6 +79,14 @@ export async function track(
   const properties = { ...rest, member_id: memberId ?? undefined };
 
   console.log(JSON.stringify({ event, distinct_id: distinctId, ...properties }));
+
+  try {
+    await getDb()
+      .insert(funnelEvent)
+      .values({ anonId: distinctId, memberId: memberId ?? null, event, props: rest });
+  } catch (cause) {
+    console.error("[track] funnel_event insert failed:", cause);
+  }
 
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
   if (!key) return;
