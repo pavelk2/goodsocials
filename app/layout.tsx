@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import { CrispChat } from "@/components/crisp-chat";
+import { ORIGIN, SITE_NAME } from "@/lib/share";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,10 +16,28 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+/**
+ * The fallback for every route. Public pages replace the title, description and
+ * card through lib/share.ts; the app screens behind sign in keep this card,
+ * which is the right one when somebody pastes a board link into a chat.
+ * `metadataBase` turns the share images into absolute URLs, which LinkedIn,
+ * WhatsApp and X all require.
+ */
 export const metadata: Metadata = {
+  metadataBase: new URL(ORIGIN),
+  applicationName: SITE_NAME,
   title: "GoodSocials",
   description:
     "Hire a social media manager for LinkedIn for $100 instead of $3,000. Publishes for you 5 times a week after your approval.",
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "en_US",
+    title: "GoodSocials: AI social media manager for LinkedIn",
+    description:
+      "Hire a social media manager for LinkedIn for $100 instead of $3,000. Publishes for you 5 times a week after your approval.",
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 /**

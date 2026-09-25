@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { shareMetadata } from "@/lib/share";
 import { LegalPage, Section, Row } from "@/components/legal";
 import {
   OPERATOR,
@@ -14,11 +15,12 @@ import {
   TRIAL_DAYS,
 } from "@/lib/plans";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = shareMetadata({
+  path: "/terms",
   title: "Terms | GoodSocials",
   description:
     "What GoodSocials does for you, what it costs, what you are responsible for, and how to leave.",
-};
+});
 
 /**
  * The terms of use URL LinkedIn asks for alongside the privacy policy. Public,

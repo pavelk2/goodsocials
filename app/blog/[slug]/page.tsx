@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { shareMetadata } from "@/lib/share";
 import { notFound } from "next/navigation";
 import {
   Blocks,
@@ -26,11 +27,12 @@ export async function generateMetadata({
 }: PageProps<"/blog/[slug]">): Promise<Metadata> {
   const post = find((await params).slug);
   if (!post) return {};
-  return {
+  return shareMetadata({
+    path: `/blog/${post.slug}`,
     title: `${post.title} | GoodSocials`,
     description: post.description,
     openGraph: { type: "article", publishedTime: post.date },
-  };
+  });
 }
 
 export default async function BlogPost({ params }: PageProps<"/blog/[slug]">) {

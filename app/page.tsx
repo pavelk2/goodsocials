@@ -22,6 +22,14 @@ import {
 import type { SourceKind } from "@/lib/integrations/types";
 import { isSignedIn } from "@/lib/viewer";
 import { TrackLanding } from "@/components/marketing/track-landing";
+import { shareMetadata } from "@/lib/share";
+
+export const metadata = shareMetadata({
+  path: "/",
+  title: "GoodSocials: AI social media manager for LinkedIn",
+  description:
+    "Writes LinkedIn posts from research and your own data. You approve them on a board and it publishes 5 times a week. From $100 a month.",
+});
 
 /**
  * The Product Hunt page. One idea per screen, and the picture carries it.
