@@ -307,7 +307,10 @@ export function HeroBoard() {
             const here = column === i;
             return (
               <section key={col.name} className="snap-start">
-                <header className="flex items-center justify-between px-1 pb-2 text-[12px] font-medium">
+                <header
+                  className="flex items-center justify-between px-1 pb-2 text-[12px] font-medium transition-opacity duration-500"
+                  style={{ opacity: here ? 1 : 0.55 }}
+                >
                   <h3>{col.name}</h3>
                   <span
                     className="num font-mono font-normal transition-colors"
@@ -323,7 +326,7 @@ export function HeroBoard() {
                     <article
                       key={card.id}
                       data-flip={card.id}
-                      className="rounded-[12px] border border-hairline bg-surface px-[13px] py-3 text-[13px] leading-[1.42]"
+                      className="hb-backdrop rounded-[12px] border border-hairline bg-surface px-[13px] py-3 text-[13px] leading-[1.42]"
                     >
                       {card.art ? (
                         <div aria-hidden="true" className={`art art-${card.art} mb-3`} />
@@ -430,7 +433,9 @@ function HeroCard({ frame }: { frame: Frame }) {
       className="relative z-[1] rounded-[12px] border border-hairline bg-surface px-[14px] py-[13px] text-[13.5px] leading-[1.45] transition-shadow duration-500"
       style={{
         boxShadow:
-          stage === 6 ? "0 0 0 1.5px var(--accent), var(--lift)" : "var(--shadow)",
+          stage === 6
+            ? "0 0 0 1.5px var(--accent), var(--lift)"
+            : "0 0 0 1px color-mix(in oklab, var(--accent) 45%, transparent), var(--shadow)",
       }}
     >
       <div
