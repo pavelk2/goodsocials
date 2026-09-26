@@ -34,6 +34,7 @@ import { ChoiceRow } from "@/components/settings/choice-row";
 import { DeleteAccount } from "@/components/settings/delete-account";
 import { HistoryImport } from "@/components/settings/history-import";
 import { ProfilePicker, type SeatRow } from "@/components/settings/profile-picker";
+import { WebsiteRow } from "@/components/settings/website-row";
 
 /**
  * What came back from LinkedIn after connecting a profile. One line each,
@@ -185,6 +186,7 @@ export async function SettingsBody({
           {seatName(access.active)}
         </h2>
         <ul className="mt-2">
+          <WebsiteRow value={brd.siteUrl} />
           <ChoiceRow
             label="Goal"
             value={brd.goal}
