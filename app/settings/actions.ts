@@ -2,11 +2,14 @@
 
 import type { Goal } from "@/lib/agent/ideas";
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
+import { and, eq, isNotNull, notExists } from "drizzle-orm";
 import { auth, signOut } from "@/auth";
 import { deleteAccount } from "@/lib/account-data";
 import { getDb } from "@/db";
-import { board as boardTable } from "@/db/schema";
+import { board as boardTable, card as cardTable, cardAction } from "@/db/schema";
+import { fetchSiteText, normalizeUrl } from "@/lib/agent/site";
+import { writeBrand } from "@/lib/brand-intake";
+import { planMoreIdeas } from "@/lib/cards";
 import { loadAccess, setActiveProfile, type Access } from "@/lib/profiles";
 import { isZone } from "@/lib/time";
 import {
@@ -113,6 +116,78 @@ export async function saveTimezone(zone: string): Promise<SaveResult> {
     .update(boardTable)
     .set({ timezone: zone })
     .where(eq(boardTable.profileId, acc.active.profile.id));
+
+  revalidatePath("/board");
+  revalidatePath("/settings");
+  return { ok: true };
+}
+
+/**
+ * A different website for this profile, most often because the one typed at
+ * onboarding was wrong. The themes and principles written from the old site
+ * describe the wrong company, so they are rewritten from the new one, the same
+ * way a second read in onboarding rewrites them.
+ *
+ * Ideas the agent wrote from the old themes and nobody has touched go with
+ * them, and seven are planned from the new ones. Anything with an action on it,
+ * any idea the member typed, and everything past the Idea column stays: that
+ * is work somebody chose.
+ *
+ * The same address twice is refused rather than read again, so a double click
+ * is not two model calls.
+ */
+export async function saveWebsite(input: string): Promise<SaveResult> {
+  const session = await auth();
+  if (!session?.memberId) return { ok: false, error: "Sign in first." };
+  const acc = await loadAccess(session.memberId);
+  if (!acc?.active) return { ok: false, error: "Sign in first." };
+  const profile = acc.active.profile;
+
+  const url = normalizeUrl(input);
+  if (!url) return { ok: false, error: "That does not look like a website address." };
+
+  const db = getDb();
+  const [brd] = await db
+    .select()
+    .from(boardTable)
+    .where(eq(boardTable.profileId, profile.id))
+    .limit(1);
+  if (!brd) return { ok: false, error: "No board for this profile." };
+  if (brd.siteUrl === url) return { ok: false, error: "That is the website we have already." };
+
+  const site = await fetchSiteText(url);
+  if (!site.ok) return { ok: false, error: site.error };
+
+  const written = await writeBrand({
+    profileId: profile.id,
+    personName: profile.name,
+    site,
+    url,
+  });
+  if (!written.ok) return written;
+
+  // Agent ideas carry a title, typed ones do not.
+  await db
+    .delete(cardTable)
+    .where(
+      and(
+        eq(cardTable.boardId, brd.id),
+        eq(cardTable.state, "idea"),
+        isNotNull(cardTable.title),
+        notExists(
+          db.select().from(cardAction).where(eq(cardAction.cardId, cardTable.id)),
+        ),
+      ),
+    );
+
+  // A failure here leaves the board with fewer ideas and the new themes in
+  // place, which More ideas on the board fixes. Not worth failing the save.
+  const ideas = await planMoreIdeas({
+    memberId: session.memberId,
+    accountId: acc.account.id,
+    profileId: profile.id,
+  });
+  if (!ideas.ok) console.error("[settings] ideas after website change:", ideas.error);
 
   revalidatePath("/board");
   revalidatePath("/settings");

@@ -3,6 +3,9 @@ import { SettingsBody } from "@/components/settings/settings-body";
 
 export const metadata = { title: "Settings" };
 
+/** Changing the website reads the site and rewrites the brand, about a minute. */
+export const maxDuration = 300;
+
 /**
  * Settings has its own URL because LinkedIn redirects back to it after a
  * connection, and because a preference page a user can link to is worth more

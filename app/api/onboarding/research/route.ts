@@ -1,9 +1,8 @@
 import { eq } from "drizzle-orm";
 import { after } from "next/server";
 import { getDb } from "@/db";
-import { board as boardTable, brandPrinciple, theme as themeTable } from "@/db/schema";
-import { generatePrinciples } from "@/lib/agent/principles";
-import { generateThemes } from "@/lib/agent/themes";
+import { board as boardTable } from "@/db/schema";
+import { writeBrand } from "@/lib/brand-intake";
 import { normalizeUrl } from "@/lib/agent/site";
 import { funnelActor, siteFor } from "@/lib/funnel-context";
 import { MAX_READS, advance, readFunnel, updateFunnel, type Funnel } from "@/lib/funnel";
@@ -68,15 +67,13 @@ export async function POST(request: Request) {
   const text = await siteFor(site, actor.profile.name);
   if (!text.ok) return Response.json({ error: text.error }, { status: 400 });
 
-  let principles;
-  let themes;
-  try {
-    [principles, themes] = await Promise.all([
-      generatePrinciples({ site: text, profileId: actor.profile.id, personName: actor.profile.name }),
-      generateThemes({ site: text, profileId: actor.profile.id, personName: actor.profile.name }),
-    ]);
-  } catch (cause) {
-    console.error("[onboarding] research failed:", cause);
+  const written = await writeBrand({
+    profileId: actor.profile.id,
+    personName: actor.profile.name,
+    site: text,
+    url,
+  });
+  if (!written.ok) {
     after(() =>
       track("research_failed", {
         distinctId: actor.distinctId,
@@ -84,46 +81,18 @@ export async function POST(request: Request) {
         part: "brand",
       }),
     );
-    return Response.json(
-      { error: "We could not read enough from that page. Try your homepage." },
-      { status: 502 },
-    );
+    return Response.json({ error: written.error }, { status: 502 });
   }
-
-  const db = getDb();
-  const profileId = actor.profile.id;
-
-  await Promise.all(
-    (["voice", "visual", "format"] as const).map((kind) =>
-      db
-        .insert(brandPrinciple)
-        .values({ profileId, kind, text: principles[kind] })
-        .onConflictDoUpdate({
-          target: [brandPrinciple.profileId, brandPrinciple.kind],
-          set: { text: principles[kind], updatedAt: new Date() },
-        }),
-    ),
-  );
-
-  // Replaced, not added to. A second read means the site changed, and themes
-  // from the old one beside themes from the new one is a board with no subject.
-  await db.delete(themeTable).where(eq(themeTable.profileId, profileId));
-  await db.insert(themeTable).values(
-    themes.map((t, position) => ({
-      profileId,
-      title: t.title,
-      description: t.description,
-      position,
-    })),
-  );
 
   // The zone is asked of the browser, never of the person. Every slot this
   // board claims is 09:00 in it.
   const timezone = body.timezone && isZone(body.timezone) ? body.timezone : null;
-  await db
-    .update(boardTable)
-    .set(timezone ? { siteUrl: url, timezone } : { siteUrl: url })
-    .where(eq(boardTable.profileId, profileId));
+  if (timezone) {
+    await getDb()
+      .update(boardTable)
+      .set({ timezone })
+      .where(eq(boardTable.profileId, actor.profile.id));
+  }
 
   after(() =>
     track("research_finished", {
@@ -134,5 +103,5 @@ export async function POST(request: Request) {
     }),
   );
 
-  return Response.json({ themes: themes.map((t) => t.title) });
+  return Response.json({ themes: written.themes });
 }
