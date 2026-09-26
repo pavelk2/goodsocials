@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { signIn, signOut } from "@/auth";
 import { Footer } from "@/components/footer";
+import { SiteNav } from "@/components/marketing/site-nav";
 import { BLOCK_LINE, resolveEntry, type EntryBlock } from "@/lib/entry";
 import { PLAN_COOKIE, planFromSlug } from "@/lib/plans";
 import { TrackView } from "@/components/onboarding/track-view";
@@ -10,7 +11,7 @@ import { shareMetadata } from "@/lib/share";
 
 export const metadata = shareMetadata({
   path: "/signin",
-  title: "Sign in with LinkedIn",
+  title: "Sign in | GoodSocials",
   description:
     "Connect your LinkedIn profile so GoodSocials can write posts for your approval and publish the ones you approve.",
 });
@@ -22,6 +23,11 @@ export const metadata = shareMetadata({
  * Google Safe Browsing. So the page still says who we are, what LinkedIn is
  * about to ask for, and what we never do, but in four lines instead of two
  * screens. The long version lives on the landing page and in the terms.
+ *
+ * Our name leads the tab title, the nav and the heading, and LinkedIn comes
+ * second as the way in. On 25 September the page went back to "Sign in with
+ * LinkedIn" in the title and the heading with no mark and no nav, and Search
+ * Console reported Deceptive pages the next day. Keep GoodSocials first.
  *
  * The page is a sign in and nothing else: no plan, no price, no trial. Those
  * belong to the offer screen after the sample post. Each pricing link still
@@ -60,15 +66,16 @@ export default async function SignInPage({
       {/* One lifted card on the warm ground, the same object the landing page
           is built out of. DESIGN.md section 7. */}
       {blocked ? null : <TrackView step="signin" />}
+      <SiteNav />
       <main className="mx-auto max-w-[480px] px-6 py-20">
         <div className="card-lift rounded-[var(--r-xl)] p-8 sm:p-10">
           <h1 className="text-[32px] font-semibold leading-[1.1] tracking-[-0.03em]">
-            {blocked ? "Finish connecting." : "Sign in with LinkedIn."}
+            {blocked ? "Finish connecting." : "Sign in to GoodSocials."}
           </h1>
           <p className="mt-3 text-ink-2">
             {blocked
               ? BLOCK_LINE[blocked]
-              : "GoodSocials writes posts for your LinkedIn profile, and publishes the ones you approve."}
+              : "GoodSocials writes posts for your LinkedIn profile and publishes the ones you approve. You sign in with your LinkedIn account."}
           </p>
 
           <form
