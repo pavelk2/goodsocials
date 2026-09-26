@@ -104,6 +104,24 @@ export function billingBlock(
 }
 
 /**
+ * Whether the fix for a stopped queue is a new checkout rather than the
+ * portal: nobody ever subscribed, or the subscription is over. An unpaid or
+ * incomplete one still exists in Stripe, and a second checkout would start a
+ * second subscription beside it.
+ */
+export function needsCheckout(account: Pick<Account, "subscriptionStatus">): boolean {
+  return ["none", "canceled", "incomplete_expired"].includes(account.subscriptionStatus);
+}
+
+/**
+ * The plan a checkout outside settings offers: the one picked on the pricing
+ * page while its cookie lasts, otherwise the one on the account.
+ */
+export function offeredPlan(cookie: string | undefined, account: Pick<Account, "plan">): Plan {
+  return cookie ? planFromSlug(cookie) : planOf(account);
+}
+
+/**
  * The billing row on the settings screen. One line, which says the state and
  * the date that state changes, because the two questions a subscriber asks are
  * "am I paying" and "until when".

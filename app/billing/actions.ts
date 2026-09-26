@@ -1,11 +1,13 @@
 "use server";
 
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { canManageBilling, openPortal, startCheckout } from "@/lib/billing";
+import { canManageBilling, offeredPlan, openPortal, startCheckout } from "@/lib/billing";
+import { funnelActor } from "@/lib/funnel-context";
 import { loadAccess } from "@/lib/profiles";
-import { planFromSlug, type PlanSlug } from "@/lib/plans";
+import { PLAN_COOKIE, planFromSlug, type PlanSlug } from "@/lib/plans";
+import { track } from "@/lib/track";
 
 /**
  * The buttons that move money: start a plan, open the portal where changing
@@ -30,6 +32,35 @@ export async function startPlanCheckout(slug: PlanSlug): Promise<void> {
     account,
     plan: planFromSlug(slug).slug,
     origin: await origin(),
+  });
+
+  if (!result.ok) redirect(failed(result.error));
+  redirect(result.value);
+}
+
+/**
+ * The board banner's button, for a member who passed on the offer or whose
+ * plan ended. Same checkout as the offer, back to the board either way, and
+ * the same checkout_started event so the pipeline counts the click.
+ */
+export async function startBoardCheckout(): Promise<void> {
+  const actor = await funnelActor();
+  if (!actor) redirect("/signin");
+
+  const plan = offeredPlan((await cookies()).get(PLAN_COOKIE)?.value, actor.account);
+  const result = await startCheckout({
+    account: actor.account,
+    plan: plan.slug,
+    origin: await origin(),
+    returnTo: { success: "/board?billing=started", cancel: "/board" },
+  });
+
+  await track("checkout_started", {
+    distinctId: actor.distinctId,
+    memberId: actor.memberId,
+    plan: plan.slug,
+    ok: result.ok,
+    from: "board",
   });
 
   if (!result.ok) redirect(failed(result.error));

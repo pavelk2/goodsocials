@@ -11,9 +11,11 @@ import {
   OTHER_MAX,
   QUESTIONS,
   REFINE_QUESTION,
+  SKIP_QUESTION,
   advance,
   answerLine,
   appendLine,
+  cleanAnswer,
   isQuestionStep,
   readFunnel,
   updateFunnel,
@@ -131,12 +133,24 @@ export async function startTrial(): Promise<void> {
  * The quiet way past the paywall. The board still opens and nothing publishes
  * until a plan starts, which the board banner says. A member who leaves here
  * is still in the product; a member with no way past the paywall is gone.
+ *
+ * The answer to SKIP_QUESTION rides along when there is one. Leaving without
+ * answering is allowed, and an answer that does not check out is dropped
+ * rather than refused, because nothing about it should hold the board shut.
  */
-export async function skipOffer(): Promise<void> {
+export async function skipOffer(answer: Answer | null): Promise<void> {
   const actor = await funnelActor();
   if (!actor) redirect("/signin");
-  await updateFunnel(actor.profile.id, (f) => advance(f, "done"));
-  await track("offer_skipped", { distinctId: actor.distinctId, memberId: actor.memberId });
+  const reason = answer ? cleanAnswer(SKIP_QUESTION, answer) : null;
+  await updateFunnel(actor.profile.id, (f) =>
+    advance(reason ? { ...f, answers: { ...f.answers, skip: reason } } : f, "done"),
+  );
+  await track("offer_skipped", {
+    distinctId: actor.distinctId,
+    memberId: actor.memberId,
+    reason: reason?.choice ?? null,
+    text: reason?.text ?? null,
+  });
   redirect("/board");
 }
 

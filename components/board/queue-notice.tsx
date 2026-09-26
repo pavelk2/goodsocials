@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { startBoardCheckout } from "@/app/billing/actions";
 import { daysUntilExpiry } from "@/lib/token-expiry";
 
 /**
@@ -12,6 +13,7 @@ import { daysUntilExpiry } from "@/lib/token-expiry";
  */
 export function QueueNotice({
   billing,
+  checkout,
   connection,
   queueError,
   ownProfile,
@@ -22,6 +24,12 @@ export function QueueNotice({
    * for everything below it and reconnecting LinkedIn would not restart a post.
    */
   billing: string | null;
+  /**
+   * The button that starts a plan, with the price in it, when a checkout is
+   * the fix: nobody subscribed, or the subscription ended. Null when the fix
+   * lives in the portal, which Settings opens.
+   */
+  checkout: string | null;
   connection: { status: "active" | "expiring" | "dead"; expiresAt: Date } | null;
   queueError: string | null;
   /**
@@ -42,7 +50,15 @@ export function QueueNotice({
       {/* The dot carries the urgency so the sentence does not have to shout. */}
       <span aria-hidden className="size-[7px] shrink-0 rounded-full bg-accent" />
       <p className="text-ink">{line.text}</p>
-      {line.action ? (
+      {billing && checkout ? (
+        // The fix is one click away, so it is a button and not a trip through
+        // Settings. Checkout comes back to this board.
+        <form action={startBoardCheckout}>
+          <button type="submit" className="font-medium text-accent-text underline underline-offset-2">
+            {checkout}
+          </button>
+        </form>
+      ) : line.action ? (
         <Link href={line.action.href} className="underline underline-offset-2">
           {line.action.label}
         </Link>

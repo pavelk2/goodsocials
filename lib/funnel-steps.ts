@@ -16,7 +16,9 @@ import type { Research } from "@/lib/agent/competitors";
  *   content   What the posts are about.      } so the minute it takes is spent
  *   goal      What should posts get you.     } on the member's own choices.
  *   sample    Their first post, drawn the way LinkedIn draws it.
- *   offer     The same post, the week it starts, and the price.
+ *   offer     The same post, the week it starts, and the price. "Not now"
+ *             asks one question before the board opens: what would make it
+ *             worth paying for. The answer is kept as `answers.skip`.
  *   refine    After paying: what to change about the pictures.
  *   ideas     After paying: which ideas to write first.
  *   done      The board.
@@ -57,6 +59,8 @@ export type Funnel = {
     content?: Answer;
     goal?: Answer;
     refine?: Answer;
+    /** Why they passed on the offer, when they said. */
+    skip?: Answer;
   };
   /** The companies in the field and what their customers say, which the sample is written from. */
   research?: Research | null;
@@ -223,6 +227,45 @@ export const REFINE_QUESTION: Question = {
   ],
   other: { label: "Other", placeholder: "Use our brand green, #1F6F4A" },
 };
+
+/**
+ * Asked when "Not now" is pressed on the offer. The one place the funnel
+ * learns why a member who saw their post did not start, so every option is a
+ * thing we could change: more to see, a closer voice, a lower price.
+ * Answering is optional; the board opens either way.
+ */
+export const SKIP_QUESTION: Question = {
+  step: "offer",
+  title: "What would make it worth paying for?",
+  options: [
+    {
+      id: "more",
+      label: "Seeing more posts first",
+      detail: "One post is not enough to decide.",
+    },
+    {
+      id: "voice",
+      label: "Posts that sound more like me",
+    },
+    {
+      id: "price",
+      label: "A lower price",
+    },
+  ],
+  other: { label: "Other", placeholder: "I need to ask my business partner" },
+};
+
+/**
+ * An answer checked against its question: a listed option, or the member's
+ * own words trimmed to OTHER_MAX. Null when it is neither.
+ */
+export function cleanAnswer(question: Question, answer: Answer): Answer | null {
+  if (answer.choice === "other") {
+    const text = answer.text?.trim().slice(0, OTHER_MAX);
+    return text ? { choice: "other", text } : null;
+  }
+  return question.options.some((o) => o.id === answer.choice) ? { choice: answer.choice } : null;
+}
 
 export const QUESTIONS = {
   image: IMAGE_QUESTION,
