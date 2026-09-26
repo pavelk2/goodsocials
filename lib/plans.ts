@@ -134,7 +134,7 @@ export const HERO_CTA = "See your first post for free";
 export const HIRE_CTA = `Hire a social media manager for ${DEFAULT_PLAN.price}`;
 
 /** Free days on every plan, before the first charge. Stated wherever a price is. */
-export const TRIAL_DAYS = 7;
+export const TRIAL_DAYS = 14;
 
 /** The one sentence that carries the trial. Same words on every surface. */
 export const TRIAL_LINE = `${TRIAL_DAYS} days free, cancel any time.`;

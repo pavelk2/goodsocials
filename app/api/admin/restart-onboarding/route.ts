@@ -63,7 +63,7 @@ export async function GET(request: Request) {
 <p>${
       paying
         ? `This account can publish, so the paywall will be skipped. To see it, run <code>npx tsx scripts/set-plan.ts ${email} pro --stop</code> first, and <code>--paid</code> afterwards to restore.`
-        : "This account has no active plan, so you will see the paywall. Stripe prices are live: the checkout starts a real 7 day trial, which you can cancel from settings for 0 USD."
+        : "This account has no active plan, so you will see the paywall. Stripe prices are live: the checkout starts a real 14 day trial, which you can cancel from settings for 0 USD."
     }</p>
 <a class="btn" href="/onboarding">Open onboarding</a>`,
   );

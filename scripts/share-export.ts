@@ -145,7 +145,7 @@ const GALLERY: { anchor: string; skip: number; caption: string; line: string }[]
     anchor: "#pricing",
     skip: 330,
     caption: "$100 a month per profile. $1,000 for up to 10.",
-    line: "7 days free, cancel any time.",
+    line: "14 days free, cancel any time.",
   },
 ];
 
