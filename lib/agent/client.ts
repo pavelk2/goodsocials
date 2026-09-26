@@ -6,11 +6,13 @@ import Anthropic from "@anthropic-ai/sdk";
  * place that counts what it costs.
  */
 
-export const MODEL = "claude-opus-5";
+export const MODEL = "claude-opus-5-5";
 
 /** USD per million tokens for MODEL. Update together with MODEL. */
-const INPUT_PER_MTOK = 5;
-const OUTPUT_PER_MTOK = 25;
+const INPUT_PER_MTOK = 4;
+const OUTPUT_PER_MTOK = 20;
+const CACHE_WRITE_PER_MTOK = 5;
+const CACHE_READ_PER_MTOK = 0.2;
 
 export function anthropic(): Anthropic {
   if (!process.env.ANTHROPIC_API_KEY) {
@@ -29,11 +31,12 @@ type Usage = {
 export function usdFor(usage: Usage): number {
   const cachedIn = usage.cache_read_input_tokens ?? 0;
   const writtenIn = usage.cache_creation_input_tokens ?? 0;
-  const input =
-    usage.input_tokens + writtenIn * 1.25 + cachedIn * 0.1;
   return (
-    (input / 1_000_000) * INPUT_PER_MTOK +
-    (usage.output_tokens / 1_000_000) * OUTPUT_PER_MTOK
+    (usage.input_tokens * INPUT_PER_MTOK +
+      writtenIn * CACHE_WRITE_PER_MTOK +
+      cachedIn * CACHE_READ_PER_MTOK +
+      usage.output_tokens * OUTPUT_PER_MTOK) /
+    1_000_000
   );
 }
 
