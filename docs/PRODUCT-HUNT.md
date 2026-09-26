@@ -27,7 +27,7 @@ Description, 250 of 260:
 > GoodSocials writes LinkedIn posts from market research, deep dives and your
 > own numbers from Stripe, PostHog or GitHub. You approve each one on a board,
 > and it publishes 5 times a week at 09:00 in your timezone. $100 a month per
-> profile, 7 days free.
+> profile, 14 days free.
 
 ## First comment
 
@@ -56,7 +56,7 @@ post and the third person rule does not apply to it.
 > Agencies run up to 10 client profiles for $1,000 a month, and each client
 > connects their own LinkedIn, so nobody holds a password.
 >
-> 7 days free on every plan. I read every comment today, and the hardest
+> 14 days free on every plan. I read every comment today, and the hardest
 > question gets the first answer.
 
 ## Share cards

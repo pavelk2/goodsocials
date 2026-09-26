@@ -500,7 +500,7 @@ Nothing is wrong with those posts, so they keep their times and their attempt co
 Rejected: disconnecting profiles past the new seat limit.
 Deleting a seat takes a client's whole board with it over a billing change, and the seat check already refuses the next connection.
 
-**The 7 free days are set on the Checkout session, not on the price.**
+**The free days are set on the Checkout session, not on the price.**
 Rejected: `trial_period_days` on the Stripe price.
 Changing the free days is then one edit in `lib/plans.ts` rather than three new prices and an environment variable swap.
 

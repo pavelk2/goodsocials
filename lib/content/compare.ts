@@ -44,7 +44,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Free plan, then paid per connected channel",
-        us: "$100 a month per profile, $1,000 for up to 10. 7 days free",
+        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
       },
     ],
     chooseThem: [
@@ -127,7 +127,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Per user, tiers by accounts and features, no permanent free plan",
-        us: "$100 a month per profile, $1,000 for up to 10. 7 days free",
+        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
       },
     ],
     chooseThem: [
@@ -215,7 +215,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Per seat per month, tiers by feature, free trial",
-        us: "$100 a month per profile, $1,000 for up to 10. 7 days free",
+        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
       },
     ],
     chooseThem: [
@@ -298,7 +298,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Limited free plan, tiers by social sets, users and post limits",
-        us: "$100 a month per profile, $1,000 for up to 10. 7 days free",
+        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
       },
     ],
     chooseThem: [
@@ -382,7 +382,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Tiered monthly plans, AI features on the higher tiers",
-        us: "$100 a month per profile, $1,000 for up to 10. 7 days free",
+        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
       },
     ],
     chooseThem: [
@@ -465,7 +465,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Per profile tiers, a team plan for agencies, free trial",
-        us: "$100 a month per profile, $1,000 for up to 10. 7 days free",
+        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
       },
     ],
     chooseThem: [
@@ -548,7 +548,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Per user per month, team pricing, free trial",
-        us: "$100 a month per profile, $1,000 for up to 10. 7 days free",
+        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
       },
     ],
     chooseThem: [
@@ -631,7 +631,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Free plan, then low monthly tiers by features and accounts",
-        us: "$100 a month per profile, $1,000 for up to 10. 7 days free",
+        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
       },
     ],
     chooseThem: [
@@ -718,7 +718,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Per channel or a flat plan, free trial",
-        us: "$100 a month per profile, $1,000 for up to 10. 7 days free",
+        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
       },
     ],
     chooseThem: [
@@ -801,7 +801,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Free plan, then base plan plus per account and per member",
-        us: "$100 a month per profile, $1,000 for up to 10. 7 days free",
+        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
       },
     ],
     chooseThem: [
@@ -884,7 +884,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Tiered monthly plans by profiles, agency tiers, free trial",
-        us: "$100 a month per profile, $1,000 for up to 10. 7 days free",
+        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
       },
     ],
     chooseThem: [
@@ -967,7 +967,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Free plan, then tiers by number of brands",
-        us: "$100 a month per profile, $1,000 for up to 10. 7 days free",
+        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
       },
     ],
     chooseThem: [
@@ -1050,7 +1050,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Per user per month, listening as a paid add-on",
-        us: "$100 a month per profile, $1,000 for up to 10. 7 days free",
+        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
       },
     ],
     chooseThem: [
@@ -1137,7 +1137,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Tiers by profiles and users, white label on higher plans",
-        us: "$100 a month per profile, $1,000 for up to 10. 7 days free",
+        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
       },
     ],
     chooseThem: [
@@ -1220,7 +1220,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Per workspace per month, add-ons for analytics and inbox",
-        us: "$100 a month per profile, $1,000 for up to 10. 7 days free",
+        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
       },
     ],
     chooseThem: [
@@ -1303,7 +1303,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Tiers by users and social accounts, free trial",
-        us: "$100 a month per profile, $1,000 for up to 10. 7 days free",
+        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
       },
     ],
     chooseThem: [
@@ -1386,7 +1386,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "A single monthly plan, free trial",
-        us: "$100 a month per profile, $1,000 for up to 10. 7 days free",
+        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
       },
     ],
     chooseThem: [
@@ -1469,7 +1469,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Tiered monthly plans, custom agency plan",
-        us: "$100 a month per profile, $1,000 for up to 10. 7 days free",
+        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
       },
     ],
     chooseThem: [
@@ -1557,7 +1557,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Free tier, flat monthly plans, per seat for business",
-        us: "$100 a month per profile, $1,000 for up to 10. 7 days free",
+        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
       },
     ],
     chooseThem: [
@@ -1646,7 +1646,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Per seat for individuals, quoted business plans, free trial",
-        us: "$100 a month per profile, $1,000 for up to 10. 7 days free",
+        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
       },
     ],
     chooseThem: [
