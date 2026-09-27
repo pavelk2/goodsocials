@@ -65,6 +65,14 @@ export type MemberRow = {
   /** Stripe's word for it, or null when there has never been a subscription. */
   subscription: string | null;
   paying: boolean;
+  /**
+   * Cancelled but not ended yet, trial or paid. Stripe keeps the status at
+   * trialing or active until the period runs out, so the status alone does
+   * not show it.
+   */
+  cancelled: boolean;
+  /** The day a cancelled subscription stops. */
+  endsAt: Date | null;
 };
 
 export type AnonRow = {
@@ -155,6 +163,11 @@ export async function loadPipeline(): Promise<Pipeline> {
       subscription:
         row.account.subscriptionStatus === "none" ? null : row.account.subscriptionStatus,
       paying: canPublish(row.account),
+      cancelled: row.account.cancelAtPeriodEnd && canPublish(row.account),
+      endsAt: row.account.cancelAtPeriodEnd
+        ? (row.account.subscriptionStatus === "trialing" ? row.account.trialEndsAt : null) ??
+          row.account.currentPeriodEnd
+        : null,
     };
   });
 
@@ -174,6 +187,7 @@ export async function loadPipeline(): Promise<Pipeline> {
       { label: "Clicked subscribe", value: members.filter((m) => m.clickedSubscribe).length },
       { label: "Subscribed", value: members.filter((m) => m.subscription !== null).length },
       { label: "Paying or trialing now", value: members.filter((m) => m.paying).length },
+      { label: "Cancelled, not ended yet", value: members.filter((m) => m.cancelled).length },
       { label: "Finished onboarding", value: members.filter((m) => m.finished).length },
     ],
     members,

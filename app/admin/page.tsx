@@ -138,6 +138,11 @@ function Member({ member: m }: { member: MemberRow }) {
         ) : (
           <Dim>none</Dim>
         )}
+        {m.cancelled && (
+          <div className="mt-1 whitespace-nowrap text-ink-2">
+            {m.endsAt ? `Cancelled, ends ${day(m.endsAt)}` : "Cancelled"}
+          </div>
+        )}
       </Td>
     </tr>
   );
