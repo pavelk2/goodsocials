@@ -7,6 +7,11 @@ import { HeroBoard } from "@/components/marketing/hero-board";
 import { Reveal } from "@/components/marketing/reveal";
 import { CorrectionLoop } from "@/components/marketing/correction-loop";
 import { SOON_AGENTS, SourceTag } from "@/components/marketing/data-sources";
+import {
+  PostKinds,
+  PostKindsCard,
+  PostKindsRow,
+} from "@/components/marketing/post-kinds";
 import { AGENCY_SEATS, FOUNDER_LINKEDIN } from "@/lib/legal";
 import {
   PLANS,
@@ -59,16 +64,10 @@ const PH_BADGE =
   "https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1260932&t=1790333158988";
 
 /**
- * The three kinds of post. Research and deep dives cite what they read, so a
- * member with no data of their own still gets posts with something under them.
- * `lib/agent/ideas.ts` is where the mix is set.
- */
-const KIND_NAMES = ["Market research", "Deep dive", "Your numbers"];
-
-/**
  * Section two is one contrast: the post a generic AI tool writes, beside the
- * one this writes. The slop is written to be recognised in a second, and it
- * breaks every rule in the house voice on purpose.
+ * one this writes, which is one post per kind in <PostKindsCard>. The slop is
+ * written to be recognised in a second, and it breaks every rule in the house
+ * voice on purpose.
  */
 const SLOP = `🚀 Nobody talks about this, but scheduling is broken.
 
@@ -77,9 +76,6 @@ I spent 10 years in SaaS. Here is what I learned:
 It's not about the tool. It's about the mindset.
 
 Agree? 👇`;
-
-const REAL =
-  "TimeTuna reschedules fell from 18% in May to 7% in August. One change in between: the invite shows the guest's timezone first. n = 9,412 meetings. Seasonality could explain part of it, so a holdout runs in October.";
 
 /** How many rules Voice holds by week 1, 4 and 12. Each one came from a note. */
 const LEVELS = [
@@ -296,7 +292,8 @@ export default async function Home() {
         </section>
 
         {/* 2. What it writes. One contrast: the post a generic tool writes
-            beside the one this writes. The three kinds sit under it as labels. */}
+            beside the one this writes. The three kinds sit under it and turn
+            the carousel on the right to that kind's post. */}
         <Reveal id="writes" className={anchor}>
           <div className={`${wrap} ${band} pt-0`}>
             <SectionHead
@@ -304,45 +301,25 @@ export default async function Home() {
               title="Research, deep dives, your numbers. Nothing else."
             />
 
-            <div className="mx-auto mt-16 grid max-w-[920px] gap-4 md:grid-cols-2">
-              <div className="rv rv-2 flex flex-col rounded-[var(--r-xl)] border border-hairline p-6">
-                <p className="font-mono text-[12px] text-ink-2">
-                  <span aria-hidden="true">✕ </span>What it will not write
-                </p>
-                <p className="mt-5 grow whitespace-pre-line text-[15px] leading-[1.5] text-ink-3">
-                  {SLOP}
-                </p>
-                <p className="mt-6 border-t border-hairline pt-4 font-mono text-[11.5px] leading-[1.6] text-ink-2">
-                  No cringe. No &ldquo;no one talks about this&rdquo;. No
-                  &ldquo;it&rsquo;s not X, it&rsquo;s Y&rdquo;.
-                </p>
+            <PostKinds>
+              <div className="mx-auto mt-16 grid max-w-[920px] gap-4 md:grid-cols-2">
+                <div className="rv rv-2 flex flex-col rounded-[var(--r-xl)] border border-hairline p-6">
+                  <p className="font-mono text-[12px] text-ink-2">
+                    <span aria-hidden="true">✕ </span>What it will not write
+                  </p>
+                  <p className="mt-5 grow whitespace-pre-line text-[15px] leading-[1.5] text-ink-3">
+                    {SLOP}
+                  </p>
+                  <p className="mt-6 border-t border-hairline pt-4 font-mono text-[11.5px] leading-[1.6] text-ink-2">
+                    No cringe. No &ldquo;no one talks about this&rdquo;. No
+                    &ldquo;it&rsquo;s not X, it&rsquo;s Y&rdquo;.
+                  </p>
+                </div>
+                <PostKindsCard />
               </div>
-              <div className="rv rv-3 card-lift flex flex-col rounded-[var(--r-xl)] p-6">
-                <p className="font-mono text-[12px] text-ink-2">
-                  <span aria-hidden="true">✓ </span>What it writes
-                </p>
-                <p className="mt-5 grow text-[17px] leading-[1.5] tracking-[-0.01em]">
-                  {REAL}
-                </p>
-                <p className="mt-6 flex flex-wrap items-center gap-[6px] border-t border-hairline pt-4 font-mono text-[11.5px] text-ink-2">
-                  Your numbers, read from <SourceTag kind="posthog" />
-                </p>
-              </div>
-            </div>
 
-            <div className="rv rv-4 mt-8 flex flex-wrap items-center justify-center gap-2">
-              <span className="mr-1 font-mono text-[12px] text-ink-2">
-                Every post is one of three kinds:
-              </span>
-              {KIND_NAMES.map((name) => (
-                <span
-                  key={name}
-                  className="rounded-full border border-hairline bg-surface px-3 py-[5px] text-[13px]"
-                >
-                  {name}
-                </span>
-              ))}
-            </div>
+              <PostKindsRow />
+            </PostKinds>
 
             <div className="rv rv-5 mt-14 text-center">
               <Link
