@@ -1,6 +1,8 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { billingBlock } from "@/lib/billing";
+import { billingBlock, needsCheckout, offeredPlan } from "@/lib/billing";
 import { resolveEntry, signInHref } from "@/lib/entry";
+import { PLAN_COOKIE } from "@/lib/plans";
 import { seatName } from "@/lib/profiles";
 import { readQuota } from "@/lib/quota";
 import { boardZone } from "@/lib/schedule";
@@ -44,6 +46,9 @@ export default async function BoardPage({
   const zone = boardZone(view.board.timezone);
 
   const quota = await readQuota(view.profile.id);
+  const checkout = needsCheckout(access.account)
+    ? offeredPlan((await cookies()).get(PLAN_COOKIE)?.value, access.account).cta
+    : null;
   // Only the calendar draws these, and the columns are the common view.
   const history = mode === "calendar" ? await readPastPosts(view.profile.id) : [];
   const thin =
@@ -66,6 +71,7 @@ export default async function BoardPage({
 
       <QueueNotice
         billing={billingBlock(access.account)}
+        checkout={checkout}
         connection={view.connection}
         queueError={view.queueError}
         ownProfile={

@@ -1,5 +1,5 @@
-import { skipOffer, startTrial } from "@/app/onboarding/actions";
 import { FunnelHeader } from "@/components/onboarding/funnel-header";
+import { OfferChoice } from "@/components/onboarding/offer-choice";
 import { PostPreview } from "@/components/onboarding/post-preview";
 import { TrackView } from "@/components/onboarding/track-view";
 import { TRIAL_LINE, type Plan } from "@/lib/plans";
@@ -37,39 +37,12 @@ export function Offer({
           imageAlt={post.imageAlt}
         />
 
-        <section>
-          <h1 className="text-[clamp(30px,4.2vw,44px)] font-semibold leading-[1.04] tracking-[-0.03em]">
-            Your first post is ready.
-          </h1>
-          <p className="mt-4 text-ink-2">
-            We write six more this week. You approve each one before it posts.
-          </p>
-
-          <form action={startTrial} className="mt-8">
-            <button
-              type="submit"
-              className="pill btn-ink w-full bg-accent px-6 py-[16px] text-[17px] font-semibold text-accent-ink sm:w-auto"
-            >
-              {plan.cta}
-            </button>
-            <p className="mt-3 text-[13px] text-ink-2">{TRIAL_LINE}</p>
-          </form>
-
-          {checkoutError ? (
-            <p role="alert" className="mt-4 text-[15px]">
-              {checkoutError}
-            </p>
-          ) : null}
-          {cancelled ? (
-            <p className="mt-4 text-[15px]">Checkout closed. Nothing was charged.</p>
-          ) : null}
-
-          <form action={skipOffer} className="mt-10">
-            <button type="submit" className="text-[13px] text-ink-2 underline">
-              Not now
-            </button>
-          </form>
-        </section>
+        <OfferChoice
+          cta={plan.cta}
+          trialLine={TRIAL_LINE}
+          checkoutError={checkoutError}
+          cancelled={cancelled}
+        />
       </main>
     </>
   );

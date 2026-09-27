@@ -9,9 +9,12 @@ import {
 import { canPublish } from "@/lib/billing";
 import {
   QUESTIONS,
+  SKIP_QUESTION,
   parseFunnel,
   stepIndex,
   type Answer,
+  type Funnel,
+  type Question,
   type QuestionStep,
 } from "@/lib/funnel-steps";
 import { loadViewer } from "@/lib/viewer";
@@ -200,14 +203,18 @@ const QUESTION_NAMES: Record<QuestionStep, string> = {
   refine: "Refine",
 };
 
-function answers(given: Partial<Record<QuestionStep, Answer>>): AnswerRow[] {
-  return (Object.keys(QUESTION_NAMES) as QuestionStep[]).flatMap((step) => {
+function answers(given: Funnel["answers"]): AnswerRow[] {
+  const rows = (Object.keys(QUESTION_NAMES) as QuestionStep[]).flatMap((step) => {
     const answer = given[step];
-    if (!answer) return [];
-    const text =
-      answer.choice === "other"
-        ? `"${answer.text ?? ""}"`
-        : QUESTIONS[step].options.find((o) => o.id === answer.choice)?.label ?? answer.choice;
-    return [{ question: QUESTION_NAMES[step], answer: text }];
+    return answer ? [{ question: QUESTION_NAMES[step], answer: label(QUESTIONS[step], answer) }] : [];
   });
+  // Why they passed on the offer. Last, because it is the last thing they said.
+  if (given.skip) rows.push({ question: "Not now", answer: label(SKIP_QUESTION, given.skip) });
+  return rows;
+}
+
+function label(question: Question, answer: Answer): string {
+  return answer.choice === "other"
+    ? `"${answer.text ?? ""}"`
+    : question.options.find((o) => o.id === answer.choice)?.label ?? answer.choice;
 }
