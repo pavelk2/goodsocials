@@ -1,4 +1,5 @@
 import type { Comparison } from "./types";
+import { AGENCY_SEATS } from "@/lib/legal";
 
 export const COMPARISONS: Comparison[] = [
   {
@@ -44,7 +45,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Free plan, then paid per connected channel",
-        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
+        us: `$100 a month per profile, $1,000 for up to ${AGENCY_SEATS}. 14 days free`,
       },
     ],
     chooseThem: [
@@ -92,7 +93,7 @@ export const COMPARISONS: Comparison[] = [
     summary:
       "Hootsuite is a complete social media suite, with scheduling, a shared inbox, listening and reporting across every major network in one place.",
     verdict:
-      "Pick Hootsuite if you run a brand's social presence across many networks and need an inbox, listening and reports for a team. Pick GoodSocials if the job is getting one person, or ten clients, posting on LinkedIn every day without writing the posts.",
+      "Pick Hootsuite if you run a brand's social presence across many networks and need an inbox, listening and reports for a team. Pick GoodSocials if the job is getting one person, or a dozen clients, posting on LinkedIn every day without writing the posts.",
     rows: [
       {
         label: "Built for",
@@ -127,7 +128,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Per user, tiers by accounts and features, no permanent free plan",
-        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
+        us: `$100 a month per profile, $1,000 for up to ${AGENCY_SEATS}. 14 days free`,
       },
     ],
     chooseThem: [
@@ -168,7 +169,7 @@ export const COMPARISONS: Comparison[] = [
       { type: "h2", text: "Cost and fit" },
       {
         type: "p",
-        text: "Hootsuite prices per user, with tiers that add accounts and features, and a free trial rather than a free plan; check their pricing page for current numbers. For a team of three that bill grows quickly. GoodSocials is $100 a month per LinkedIn profile, or $1,000 a month for up to 10 profiles on Agency, with no per-seat charge.",
+        text: `Hootsuite prices per user, with tiers that add accounts and features, and a free trial rather than a free plan; check their pricing page for current numbers. For a team of three that bill grows quickly. GoodSocials is $100 a month per LinkedIn profile, or $1,000 a month for up to ${AGENCY_SEATS} profiles on Agency, with no per-seat charge.`,
       },
     ],
   },
@@ -215,7 +216,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Per seat per month, tiers by feature, free trial",
-        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
+        us: `$100 a month per profile, $1,000 for up to ${AGENCY_SEATS}. 14 days free`,
       },
     ],
     chooseThem: [
@@ -251,7 +252,7 @@ export const COMPARISONS: Comparison[] = [
       { type: "h2", text: "Pricing" },
       {
         type: "p",
-        text: "Sprout Social charges per seat per month, with plan tiers that add features, and offers a free trial; check their pricing page for current rates. GoodSocials has no seats. It is $100 a month per LinkedIn profile, $1,000 for up to 10.",
+        text: `Sprout Social charges per seat per month, with plan tiers that add features, and offers a free trial; check their pricing page for current rates. GoodSocials has no seats. It is $100 a month per LinkedIn profile, $1,000 for up to ${AGENCY_SEATS}.`,
       },
     ],
   },
@@ -298,7 +299,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Limited free plan, tiers by social sets, users and post limits",
-        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
+        us: `$100 a month per profile, $1,000 for up to ${AGENCY_SEATS}. 14 days free`,
       },
     ],
     chooseThem: [
@@ -382,7 +383,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Tiered monthly plans, AI features on the higher tiers",
-        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
+        us: `$100 a month per profile, $1,000 for up to ${AGENCY_SEATS}. 14 days free`,
       },
     ],
     chooseThem: [
@@ -465,7 +466,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Per profile tiers, a team plan for agencies, free trial",
-        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
+        us: `$100 a month per profile, $1,000 for up to ${AGENCY_SEATS}. 14 days free`,
       },
     ],
     chooseThem: [
@@ -501,7 +502,7 @@ export const COMPARISONS: Comparison[] = [
       { type: "h2", text: "Price and agency fit" },
       {
         type: "p",
-        text: "Supergrow is priced per profile in tiers with a separate team plan; check their pricing page, it changes often. It costs less than GoodSocials. The $100 a month buys the writing done without prompts, the gate and the persistence. For agencies, our $1,000 plan covers up to 10 profiles and each client authorises their own LinkedIn, so you never hold a password.",
+        text: `Supergrow is priced per profile in tiers with a separate team plan; check their pricing page, it changes often. It costs less than GoodSocials. The $100 a month buys the writing done without prompts, the gate and the persistence. For agencies, our $1,000 plan covers up to ${AGENCY_SEATS} profiles and each client authorises their own LinkedIn, so you never hold a password.`,
       },
     ],
   },
@@ -548,7 +549,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Per user per month, team pricing, free trial",
-        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
+        us: `$100 a month per profile, $1,000 for up to ${AGENCY_SEATS}. 14 days free`,
       },
     ],
     chooseThem: [
@@ -631,7 +632,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Free plan, then low monthly tiers by features and accounts",
-        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
+        us: `$100 a month per profile, $1,000 for up to ${AGENCY_SEATS}. 14 days free`,
       },
     ],
     chooseThem: [
@@ -718,7 +719,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Per channel or a flat plan, free trial",
-        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
+        us: `$100 a month per profile, $1,000 for up to ${AGENCY_SEATS}. 14 days free`,
       },
     ],
     chooseThem: [
@@ -801,7 +802,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Free plan, then base plan plus per account and per member",
-        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
+        us: `$100 a month per profile, $1,000 for up to ${AGENCY_SEATS}. 14 days free`,
       },
     ],
     chooseThem: [
@@ -884,7 +885,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Tiered monthly plans by profiles, agency tiers, free trial",
-        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
+        us: `$100 a month per profile, $1,000 for up to ${AGENCY_SEATS}. 14 days free`,
       },
     ],
     chooseThem: [
@@ -920,7 +921,7 @@ export const COMPARISONS: Comparison[] = [
       { type: "h2", text: "Pricing and agencies" },
       {
         type: "p",
-        text: "SocialBee sells monthly tiers by number of profiles, plus agency tiers; check their pricing page for current details. For agencies focused on LinkedIn, GoodSocials is $1,000 a month for up to 10 client profiles, each with its own board, principles and themes, and each client authorises their own profile.",
+        text: `SocialBee sells monthly tiers by number of profiles, plus agency tiers; check their pricing page for current details. For agencies focused on LinkedIn, GoodSocials is $1,000 a month for up to ${AGENCY_SEATS} client profiles, each with its own board, principles and themes, and each client authorises their own profile.`,
       },
     ],
   },
@@ -967,7 +968,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Free plan, then tiers by number of brands",
-        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
+        us: `$100 a month per profile, $1,000 for up to ${AGENCY_SEATS}. 14 days free`,
       },
     ],
     chooseThem: [
@@ -1003,7 +1004,7 @@ export const COMPARISONS: Comparison[] = [
       { type: "h2", text: "Pricing" },
       {
         type: "p",
-        text: "Metricool has a free plan and paid tiers set by number of brands; check their pricing page, it changes often. GoodSocials is $100 a month per profile or $1,000 for up to 10. Agencies often use a reporting tool alongside us.",
+        text: `Metricool has a free plan and paid tiers set by number of brands; check their pricing page, it changes often. GoodSocials is $100 a month per profile or $1,000 for up to ${AGENCY_SEATS}. Agencies often use a reporting tool alongside us.`,
       },
     ],
   },
@@ -1050,7 +1051,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Per user per month, listening as a paid add-on",
-        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
+        us: `$100 a month per profile, $1,000 for up to ${AGENCY_SEATS}. 14 days free`,
       },
     ],
     chooseThem: [
@@ -1090,7 +1091,7 @@ export const COMPARISONS: Comparison[] = [
       { type: "h2", text: "Pricing" },
       {
         type: "p",
-        text: "Agorapulse charges per user per month, with listening sold separately; check their pricing page for current rates. GoodSocials charges per LinkedIn profile: $100 a month for one, $1,000 a month for up to 10, with no charge per team member.",
+        text: `Agorapulse charges per user per month, with listening sold separately; check their pricing page for current rates. GoodSocials charges per LinkedIn profile: $100 a month for one, $1,000 a month for up to ${AGENCY_SEATS}, with no charge per team member.`,
       },
     ],
   },
@@ -1137,7 +1138,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Tiers by profiles and users, white label on higher plans",
-        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
+        us: `$100 a month per profile, $1,000 for up to ${AGENCY_SEATS}. 14 days free`,
       },
     ],
     chooseThem: [
@@ -1173,7 +1174,7 @@ export const COMPARISONS: Comparison[] = [
       { type: "h2", text: "Pricing" },
       {
         type: "p",
-        text: "Sendible prices by tiers of profiles and users, with white label on higher plans; check their pricing page for current details. GoodSocials Agency is $1,000 a month for up to 10 LinkedIn profiles. Consultancy is $2,000 a month for up to 10, with the founder setting it up with you and a weekly call.",
+        text: `Sendible prices by tiers of profiles and users, with white label on higher plans; check their pricing page for current details. GoodSocials Agency is $1,000 a month for up to ${AGENCY_SEATS} LinkedIn profiles. Consultancy is $2,000 a month for up to ${AGENCY_SEATS}, with the founder setting it up with you and a weekly call.`,
       },
     ],
   },
@@ -1220,7 +1221,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Per workspace per month, add-ons for analytics and inbox",
-        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
+        us: `$100 a month per profile, $1,000 for up to ${AGENCY_SEATS}. 14 days free`,
       },
     ],
     chooseThem: [
@@ -1256,7 +1257,7 @@ export const COMPARISONS: Comparison[] = [
       { type: "h2", text: "Pricing" },
       {
         type: "p",
-        text: "Planable charges per workspace per month, with add-ons for analytics and engagement; check their pricing page, it changes often. GoodSocials charges per LinkedIn profile, $100 a month, or $1,000 for up to 10, with writing included.",
+        text: `Planable charges per workspace per month, with add-ons for analytics and engagement; check their pricing page, it changes often. GoodSocials charges per LinkedIn profile, $100 a month, or $1,000 for up to ${AGENCY_SEATS}, with writing included.`,
       },
     ],
   },
@@ -1303,7 +1304,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Tiers by users and social accounts, free trial",
-        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
+        us: `$100 a month per profile, $1,000 for up to ${AGENCY_SEATS}. 14 days free`,
       },
     ],
     chooseThem: [
@@ -1339,7 +1340,7 @@ export const COMPARISONS: Comparison[] = [
       { type: "h2", text: "Pricing" },
       {
         type: "p",
-        text: "Loomly prices in tiers set by users and social accounts, with a free trial; check their pricing page for current rates. GoodSocials is $100 a month per LinkedIn profile and $1,000 for up to 10.",
+        text: `Loomly prices in tiers set by users and social accounts, with a free trial; check their pricing page for current rates. GoodSocials is $100 a month per LinkedIn profile and $1,000 for up to ${AGENCY_SEATS}.`,
       },
     ],
   },
@@ -1386,7 +1387,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "A single monthly plan, free trial",
-        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
+        us: `$100 a month per profile, $1,000 for up to ${AGENCY_SEATS}. 14 days free`,
       },
     ],
     chooseThem: [
@@ -1469,7 +1470,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Tiered monthly plans, custom agency plan",
-        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
+        us: `$100 a month per profile, $1,000 for up to ${AGENCY_SEATS}. 14 days free`,
       },
     ],
     chooseThem: [
@@ -1480,7 +1481,7 @@ export const COMPARISONS: Comparison[] = [
     chooseUs: [
       "You want to post close to daily.",
       "You want posts to cite real numbers from your own tools.",
-      "You run up to 10 client profiles on one plan.",
+      `You run up to ${AGENCY_SEATS} client profiles on one plan.`,
     ],
     blocks: [
       { type: "h2", text: "The closest cousin" },
@@ -1510,7 +1511,7 @@ export const COMPARISONS: Comparison[] = [
       { type: "h2", text: "Pricing" },
       {
         type: "p",
-        text: "ContentIn sells tiered monthly plans and a custom agency plan; check their pricing page for current figures. It costs less than GoodSocials. Our $100 a month covers daily cadence, images and the quality gate, and Agency covers up to 10 profiles for $1,000.",
+        text: `ContentIn sells tiered monthly plans and a custom agency plan; check their pricing page for current figures. It costs less than GoodSocials. Our $100 a month covers daily cadence, images and the quality gate, and Agency covers up to ${AGENCY_SEATS} profiles for $1,000.`,
       },
     ],
   },
@@ -1557,7 +1558,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Free tier, flat monthly plans, per seat for business",
-        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
+        us: `$100 a month per profile, $1,000 for up to ${AGENCY_SEATS}. 14 days free`,
       },
     ],
     chooseThem: [
@@ -1594,7 +1595,7 @@ export const COMPARISONS: Comparison[] = [
       { type: "h2", text: "Memory versus principles" },
       {
         type: "p",
-        text: "ChatGPT's memory is broad and decides for itself what to keep. GoodSocials keeps three short principles per profile, voice, visual and format, and changes them only when you revise a card. You can open them in settings and read exactly what the writer is following. For an agency running ten clients, that separation per profile matters.",
+        text: "ChatGPT's memory is broad and decides for itself what to keep. GoodSocials keeps three short principles per profile, voice, visual and format, and changes them only when you revise a card. You can open them in settings and read exactly what the writer is following. For an agency running a dozen clients, that separation per profile matters.",
       },
       { type: "h2", text: "Pricing" },
       {
@@ -1646,7 +1647,7 @@ export const COMPARISONS: Comparison[] = [
       {
         label: "Pricing model",
         them: "Per seat for individuals, quoted business plans, free trial",
-        us: "$100 a month per profile, $1,000 for up to 10. 14 days free",
+        us: `$100 a month per profile, $1,000 for up to ${AGENCY_SEATS}. 14 days free`,
       },
     ],
     chooseThem: [
@@ -1682,7 +1683,7 @@ export const COMPARISONS: Comparison[] = [
       { type: "h2", text: "Pricing" },
       {
         type: "p",
-        text: "Jasper sells per-seat plans for individuals and quoted plans for businesses, with a free trial; check their pricing page for current details. GoodSocials is $100 a month per profile, $1,000 for up to 10, and $2,000 for Consultancy, where the founder sets it up with you and holds a weekly call.",
+        text: `Jasper sells per-seat plans for individuals and quoted plans for businesses, with a free trial; check their pricing page for current details. GoodSocials is $100 a month per profile, $1,000 for up to ${AGENCY_SEATS}, and $2,000 for Consultancy, where the founder sets it up with you and holds a weekly call.`,
       },
     ],
   },

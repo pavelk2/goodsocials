@@ -81,6 +81,10 @@ function shoot(html: string, width: number, height: number, out: string, waitMs 
     "--disable-gpu",
     "--no-sandbox",
     "--hide-scrollbars",
+    // The landing page reveals sections with CSS transitions, which run on the
+    // wall clock rather than the virtual time budget, so a gallery slide caught
+    // cards half faded in. Reduced motion shows every section finished.
+    "--force-prefers-reduced-motion",
     "--force-device-scale-factor=1",
     `--window-size=${width},${height}`,
     `--screenshot=${out}`,
@@ -139,12 +143,12 @@ const GALLERY: { anchor: string; skip: number; caption: string; line: string }[]
     anchor: "#who",
     skip: 330,
     caption: "Built for the person whose name is on the profile.",
-    line: "Founders, consultants and operators at $100. Agencies with up to 10 profiles at $1,000.",
+    line: "Founders, consultants and operators at $100. Agencies with up to 12 profiles at $1,000.",
   },
   {
     anchor: "#pricing",
     skip: 330,
-    caption: "$100 a month per profile. $1,000 for up to 10.",
+    caption: "$100 a month per profile. $1,000 for up to 12.",
     line: "14 days free, cancel any time.",
   },
 ];

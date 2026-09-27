@@ -10,6 +10,9 @@ import {
   formatDate,
 } from "@/components/marketing/content";
 import { POSTS } from "@/lib/content/blog";
+import { COMPARISONS } from "@/lib/content/compare";
+import type { BlogPost } from "@/lib/content/types";
+import { ORIGIN, SITE_NAME } from "@/lib/share";
 
 /** Every post is known at build time. Anything else is a 404. */
 export const dynamicParams = false;
@@ -20,6 +23,61 @@ export function generateStaticParams() {
 
 function find(slug: string) {
   return POSTS.find((post) => post.slug === slug);
+}
+
+type Row = { href: string; title: string; meta?: string };
+
+/** A `related` path as a row, or nothing when the path names no page. */
+function row(path: string): Row | undefined {
+  const [, section, slug] = path.split("/");
+  if (section === "blog") {
+    const post = find(slug);
+    return post
+      ? { href: path, title: post.title, meta: formatDate(post.date) }
+      : undefined;
+  }
+  if (section === "compare") {
+    const c = COMPARISONS.find((item) => item.slug === slug);
+    return c
+      ? { href: path, title: `GoodSocials vs ${c.name}`, meta: "Compare" }
+      : undefined;
+  }
+  return undefined;
+}
+
+/**
+ * Three rows: the post's own `related` paths first, so a post links to the
+ * others on its topic, then the newest posts to fill any gap.
+ */
+function readNext(post: BlogPost): Row[] {
+  const rows = (post.related ?? []).flatMap((path) => row(path) ?? []);
+  for (const p of POSTS) {
+    if (rows.length >= 3) break;
+    const href = `/blog/${p.slug}`;
+    if (p.slug === post.slug || rows.some((r) => r.href === href)) continue;
+    rows.push({ href, title: p.title, meta: formatDate(p.date) });
+  }
+  return rows.slice(0, 4);
+}
+
+/** Article structured data, so search results can show the date and author. */
+function jsonLd(post: BlogPost) {
+  const url = `${ORIGIN}/blog/${post.slug}`;
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.description,
+    datePublished: post.date,
+    dateModified: post.date,
+    url,
+    mainEntityOfPage: url,
+    image: `${ORIGIN}/opengraph-image.png`,
+    author: { "@type": "Organization", name: SITE_NAME, url: ORIGIN },
+    publisher: { "@type": "Organization", name: SITE_NAME, url: ORIGIN },
+  };
+  // The copy is ours, but a "<" in a title must not be able to close the tag.
+  return JSON.stringify(data).replace(/</g, "\\u003c");
 }
 
 export async function generateMetadata({
@@ -39,10 +97,14 @@ export default async function BlogPost({ params }: PageProps<"/blog/[slug]">) {
   const post = find((await params).slug);
   if (!post) notFound();
 
-  const more = POSTS.filter((p) => p.slug !== post.slug).slice(0, 3);
+  const more = readNext(post);
 
   return (
     <ContentPage>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(post) }}
+      />
       <article>
         <PageTitle
           eyebrow={
@@ -66,13 +128,7 @@ export default async function BlogPost({ params }: PageProps<"/blog/[slug]">) {
           Read next
         </h2>
         <div className="mt-4">
-          <LinkRows
-            rows={more.map((p) => ({
-              href: `/blog/${p.slug}`,
-              title: p.title,
-              meta: formatDate(p.date),
-            }))}
-          />
+          <LinkRows rows={more} />
         </div>
       </div>
 

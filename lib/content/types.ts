@@ -19,6 +19,12 @@ export type BlogPost = {
   date: string;
   readMinutes: number;
   blocks: Block[];
+  /**
+   * Paths this post links to under "Read next", `/blog/{slug}` or
+   * `/compare/{slug}`, in order. Keeps posts on one topic linked to each other
+   * rather than to whatever sits first in the list. Unknown paths are dropped.
+   */
+  related?: string[];
 };
 
 export type Comparison = {
