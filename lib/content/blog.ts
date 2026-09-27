@@ -1,6 +1,12 @@
 import type { BlogPost } from "./types";
+import { AGENCY_POSTS } from "./blog-agency";
+import { CRAFT_POSTS } from "./blog-craft";
+import { GUIDE_POSTS } from "./blog-guides";
+import { PERSONA_POSTS } from "./blog-personas";
+import { TOOL_POSTS } from "./blog-tools";
 
-export const POSTS: BlogPost[] = [
+/** The first ten posts, from August and September 2026. */
+const FIRST: BlogPost[] = [
   {
     slug: "how-often-to-post-on-linkedin",
     title: "How often to post on LinkedIn in 2026",
@@ -959,3 +965,18 @@ export const POSTS: BlogPost[] = [
     ],
   },
 ];
+
+/**
+ * Every post, newest first. The first ten sit above; the rest are grouped by
+ * the searches they answer, one file per group, so a group can be read and
+ * edited in one sitting. The sort is stable, so posts sharing a date keep the
+ * order written here.
+ */
+export const POSTS: BlogPost[] = [
+  ...GUIDE_POSTS,
+  ...CRAFT_POSTS,
+  ...PERSONA_POSTS,
+  ...AGENCY_POSTS,
+  ...TOOL_POSTS,
+  ...FIRST,
+].sort((a, b) => b.date.localeCompare(a.date));
