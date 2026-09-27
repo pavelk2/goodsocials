@@ -3,8 +3,8 @@
 Everything the Product Hunt form asks for, and the share cards every network
 reads from goodsocials.co. Copy is derived from the offer in CLAUDE.md and the
 live landing page. Where the two disagree, the landing page wins, because it is
-what a visitor from Product Hunt reads next: Agency is **up to 10 profiles**
-(`AGENCY_SEATS` in `lib/legal.ts`), not 12.
+what a visitor from Product Hunt reads next. Agency is **up to 12 profiles** in
+both, read from `AGENCY_SEATS` in `lib/legal.ts`.
 
 ## The form
 
@@ -53,7 +53,7 @@ post and the third person rule does not apply to it.
 >    named, deep dives with references, and your own numbers read from Stripe,
 >    PostHog, GitHub, Plausible or Notion. No "no one talks about this".
 >
-> Agencies run up to 10 client profiles for $1,000 a month, and each client
+> Agencies run up to 12 client profiles for $1,000 a month, and each client
 > connects their own LinkedIn, so nobody holds a password.
 >
 > 14 days free on every plan. I read every comment today, and the hardest

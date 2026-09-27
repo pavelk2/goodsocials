@@ -216,7 +216,7 @@ export const AGENCY_POSTS: BlogPost[] = [
       },
       {
         type: "p",
-        text: "Now the tools. Suppose you run eight clients on GoodSocials' Agency plan, which is $1,000 a month for up to 10 profiles. Across eight clients that is 125 a month each. Your floor becomes 1,250 a month per client at that cadence, and anything below it means you are paying to work.",
+        text: `Now the tools. Suppose you run eight clients on GoodSocials' Agency plan, which is $1,000 a month for up to ${AGENCY_SEATS} profiles. Across eight clients that is 125 a month each. Your floor becomes 1,250 a month per client at that cadence, and anything below it means you are paying to work.`,
       },
       {
         type: "p",
@@ -358,7 +358,7 @@ export const AGENCY_POSTS: BlogPost[] = [
       { type: "h2", text: "How GoodSocials handles this" },
       {
         type: "p",
-        text: "On the Agency plan, each client connects their own LinkedIn profile, up to 10 profiles, and each gets its own board, themes and principles. GoodSocials emails you on day 50 of a client's connection, shows a banner on day 55, and on day 60 marks the connection dead and pauses that client's schedule instead of letting posts fail one by one.",
+        text: `On the Agency plan, each client connects their own LinkedIn profile, up to ${AGENCY_SEATS} profiles, and each gets its own board, themes and principles. GoodSocials emails you on day 50 of a client's connection, shows a banner on day 55, and on day 60 marks the connection dead and pauses that client's schedule instead of letting posts fail one by one.`,
       },
       {
         type: "p",
@@ -599,7 +599,7 @@ export const AGENCY_POSTS: BlogPost[] = [
       },
       {
         type: "p",
-        text: "A revise comment rewrites the card and updates the profile's brand principles, so a ghostwriter's corrections carry into every later draft. On the Agency plan, one ghostwriter can run up to 10 client profiles this way, each with its own board.",
+        text: `A revise comment rewrites the card and updates the profile's brand principles, so a ghostwriter's corrections carry into every later draft. On the Agency plan, one ghostwriter can run up to ${AGENCY_SEATS} client profiles this way, each with its own board.`,
       },
     ],
   },

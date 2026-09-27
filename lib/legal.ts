@@ -21,7 +21,7 @@ export const FOUNDER_LINKEDIN = "https://www.linkedin.com/in/pavelkucherbaev/";
 export const LAST_UPDATED = "24 September 2026";
 
 /** Seats on the agency and consultancy plans. The prices live in lib/plans.ts. */
-export const AGENCY_SEATS = 10;
+export const AGENCY_SEATS = 12;
 
 /** Hard cap from CLAUDE.md, counted in the database, stated in the terms. */
 export const IMAGE_CAP_PER_MONTH = 200;
