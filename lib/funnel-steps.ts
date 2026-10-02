@@ -52,7 +52,7 @@ export type Answer = { choice: string; text?: string };
 
 export type Funnel = {
   step: Step;
-  /** The website, or the two sentences written instead of one. */
+  /** The website. `description` is only on boards saved before the screen asked for a URL alone. */
   site?: { url: string | null; description?: string };
   answers: {
     image?: Answer;

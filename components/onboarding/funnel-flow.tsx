@@ -264,13 +264,11 @@ function WebsiteScreen({
   error: string | null;
   onSubmit: (site: NonNullable<Funnel["site"]>, source: string) => void;
 }) {
-  const [mode, setMode] = useState<"pick" | "url" | "none">(
-    current?.description ? "none" : current?.url || !emailDomain ? "url" : "pick",
+  const [mode, setMode] = useState<"pick" | "url">(
+    current?.url || !emailDomain ? "url" : "pick",
   );
   const [url, setUrl] = useState(current?.url ?? "");
-  const [description, setDescription] = useState(current?.description ?? "");
-  const field = useRef<HTMLInputElement & HTMLTextAreaElement>(null);
-  const enough = description.trim().length >= 60;
+  const field = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (mode !== "pick") field.current?.focus();
@@ -332,46 +330,6 @@ function WebsiteScreen({
           )}
         </li>
 
-        <li className="border-b border-hairline">
-          {mode === "none" ? (
-            <form
-              className="py-[14px]"
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (enough) onSubmit({ url: null, description: description.trim() }, "none");
-              }}
-            >
-              <label htmlFor="site-none" className="sr-only">
-                What you do
-              </label>
-              <textarea
-                ref={field}
-                id="site-none"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-                maxLength={1200}
-                placeholder="Two sentences. What you do, and who it is for."
-                className="w-full rounded-[var(--r-sm)] border border-hairline bg-surface px-4 py-3 text-ink outline-none focus:border-ink-3"
-              />
-              <button
-                type="submit"
-                disabled={!enough}
-                className="btn-ink mt-3 rounded-[var(--r-btn)] bg-ink px-5 py-3 font-semibold text-paper disabled:opacity-40"
-              >
-                Continue
-              </button>
-            </form>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setMode("none")}
-              className={`${ROW} font-normal text-ink-2`}
-            >
-              I do not have one
-            </button>
-          )}
-        </li>
       </ul>
 
       {error ? (
@@ -384,7 +342,7 @@ function WebsiteScreen({
 }
 
 /** Where the countdown starts. The sample takes about this long. */
-const COUNTDOWN_FROM = 30;
+const COUNTDOWN_FROM = 60;
 
 /** How often the screen shows the next thing the research did. */
 const TICK_MS = 140;
