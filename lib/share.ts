@@ -36,7 +36,7 @@ export function shareMetadata({
   path: string;
   title: string;
   description: string;
-  openGraph?: { type: "article"; publishedTime: string };
+  openGraph?: { type: "article"; publishedTime: string; modifiedTime?: string };
 }): Metadata {
   // The site name already rides along as og:site_name, so the card carries
   // the page's own title without the suffix the browser tab needs.

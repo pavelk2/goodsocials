@@ -13,6 +13,9 @@ import { POSTS } from "@/lib/content/blog";
 import { COMPARISONS } from "@/lib/content/compare";
 import type { BlogPost } from "@/lib/content/types";
 import { ORIGIN, SITE_NAME } from "@/lib/share";
+import { FOUNDER_LINKEDIN } from "@/lib/legal";
+import { JsonLd } from "@/components/marketing/json-ld";
+import { breadcrumbs, founder, jsonLd } from "@/lib/structured-data";
 
 /** Every post is known at build time. Anything else is a 404. */
 export const dynamicParams = false;
@@ -60,24 +63,31 @@ function readNext(post: BlogPost): Row[] {
   return rows.slice(0, 4);
 }
 
-/** Article structured data, so search results can show the date and author. */
-function jsonLd(post: BlogPost) {
+/**
+ * Article structured data, so search results can show the date and the person
+ * who wrote it, and a breadcrumb back to the blog.
+ */
+function articleLd(post: BlogPost) {
   const url = `${ORIGIN}/blog/${post.slug}`;
-  const data = {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: post.title,
-    description: post.description,
-    datePublished: post.date,
-    dateModified: post.date,
-    url,
-    mainEntityOfPage: url,
-    image: `${ORIGIN}/opengraph-image.png`,
-    author: { "@type": "Organization", name: SITE_NAME, url: ORIGIN },
-    publisher: { "@type": "Organization", name: SITE_NAME, url: ORIGIN },
-  };
-  // The copy is ours, but a "<" in a title must not be able to close the tag.
-  return JSON.stringify(data).replace(/</g, "\\u003c");
+  return jsonLd(
+    {
+      "@type": "BlogPosting",
+      headline: post.title,
+      description: post.description,
+      datePublished: post.date,
+      dateModified: post.updated ?? post.date,
+      url,
+      mainEntityOfPage: url,
+      image: `${ORIGIN}/opengraph-image.png`,
+      author: founder(),
+      publisher: { "@type": "Organization", name: SITE_NAME, url: ORIGIN },
+    },
+    breadcrumbs([
+      { name: SITE_NAME, path: "" },
+      { name: "Blog", path: "/blog" },
+      { name: post.title, path: `/blog/${post.slug}` },
+    ]),
+  );
 }
 
 export async function generateMetadata({
@@ -89,7 +99,11 @@ export async function generateMetadata({
     path: `/blog/${post.slug}`,
     title: `${post.title} | GoodSocials`,
     description: post.description,
-    openGraph: { type: "article", publishedTime: post.date },
+    openGraph: {
+      type: "article",
+      publishedTime: post.date,
+      modifiedTime: post.updated ?? post.date,
+    },
   });
 }
 
@@ -101,15 +115,19 @@ export default async function BlogPost({ params }: PageProps<"/blog/[slug]">) {
 
   return (
     <ContentPage>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: jsonLd(post) }}
-      />
+      <JsonLd data={articleLd(post)} />
       <article>
         <PageTitle
           eyebrow={
             <span className="num">
-              {formatDate(post.date)}, {post.readMinutes} min read
+              {formatDate(post.date)}, {post.readMinutes} min read, by{" "}
+              <a
+                href={FOUNDER_LINKEDIN}
+                rel="author noopener"
+                className="underline underline-offset-4"
+              >
+                Pasha
+              </a>
             </span>
           }
           title={post.title}

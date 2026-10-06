@@ -11,7 +11,7 @@ import { POSTS } from "@/lib/content/blog";
 
 export const metadata: Metadata = shareMetadata({
   path: "/blog",
-  title: "Blog | GoodSocials",
+  title: "LinkedIn guides for founders and agencies | GoodSocials",
   description:
     "Practical notes on posting to LinkedIn and other networks in 2026: cadence, openings, formats, timing, themes and what to measure.",
 });

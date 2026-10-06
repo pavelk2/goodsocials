@@ -17,6 +17,8 @@ export type BlogPost = {
   description: string;
   /** ISO date, YYYY-MM-DD. */
   date: string;
+  /** ISO date of the last edit worth telling a reader about. Left out until there is one. */
+  updated?: string;
   readMinutes: number;
   blocks: Block[];
   /**

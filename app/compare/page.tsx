@@ -10,7 +10,7 @@ import { COMPARISONS } from "@/lib/content/compare";
 
 export const metadata: Metadata = shareMetadata({
   path: "/compare",
-  title: "GoodSocials compared | GoodSocials",
+  title: "GoodSocials vs 20 LinkedIn and social media tools",
   description:
     "GoodSocials next to 20 other social media and LinkedIn tools: who each one is for, how the workflow differs, and when to pick the other one.",
 });

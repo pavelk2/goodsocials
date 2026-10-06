@@ -8,7 +8,11 @@ import {
   LinkRows,
   PageTitle,
 } from "@/components/marketing/content";
+import Link from "next/link";
 import { COMPARISONS } from "@/lib/content/compare";
+import { JsonLd } from "@/components/marketing/json-ld";
+import { SITE_NAME } from "@/lib/share";
+import { breadcrumbs, jsonLd } from "@/lib/structured-data";
 
 /** Twenty pages, all known at build time. Anything else is a 404. */
 export const dynamicParams = false;
@@ -28,7 +32,9 @@ export async function generateMetadata({
   if (!c) return {};
   return shareMetadata({
     path: `/compare/${c.slug}`,
-    title: `GoodSocials vs ${c.name} | GoodSocials`,
+    // People search for an alternative to the tool they have, so the title
+    // leads with that and keeps the comparison. The brand is already in it.
+    title: `${c.name} alternative: GoodSocials vs ${c.name}`,
     description: `${c.summary} How GoodSocials differs, and who should pick which.`,
   });
 }
@@ -52,8 +58,17 @@ export default async function Comparison({
 
   return (
     <ContentPage>
+      <JsonLd
+        data={jsonLd(
+          breadcrumbs([
+            { name: SITE_NAME, path: "" },
+            { name: "Compare", path: "/compare" },
+            { name: `GoodSocials vs ${c.name}`, path: `/compare/${c.slug}` },
+          ]),
+        )}
+      />
       <PageTitle
-        eyebrow="Compare"
+        eyebrow={`${c.name} alternative`}
         title={`GoodSocials vs ${c.name}.`}
         summary={`Who each one is for, and when to pick ${c.name}.`}
       />
@@ -129,7 +144,11 @@ export default async function Comparison({
         <p className="mt-10 text-[13px] leading-[1.5] text-ink-3">
           What we say about {c.name} comes from its public site, checked in
           September 2026. Features and prices change, so check theirs before you
-          decide. {c.name} is a trademark of its owner.
+          decide. {c.name} is a trademark of its owner. Our three plans are on{" "}
+          <Link href="/pricing" className="underline underline-offset-4">
+            the pricing page
+          </Link>
+          .
         </p>
 
         <h2 className="mt-16 font-mono text-[11px] uppercase tracking-[0.12em] text-ink-3">

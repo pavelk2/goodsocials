@@ -144,7 +144,7 @@ export function CloseBand({ title }: { title: string }) {
             {HERO_CTA}
           </Link>
           <Link
-            href="/#pricing"
+            href="/pricing"
             className="pill btn-outline num border border-hairline bg-surface px-6 py-3 text-[16px]"
           >
             From {DEFAULT_PLAN.priceLine}
