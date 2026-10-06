@@ -37,11 +37,12 @@ const LINKS = [
   { href: "/#writes", label: "What it writes" },
   { href: "/#how", label: "How it works" },
   { href: "/#who", label: "Who it is for" },
-  { href: "/#pricing", label: "Pricing" },
+  { href: "/pricing", label: "Pricing" },
 ];
 
 const SECONDARY = [
-  { href: "/#pricing", label: `Run up to ${AGENCY_SEATS} clients` },
+  { href: "/agencies", label: `Run up to ${AGENCY_SEATS} clients` },
+  { href: "/tools/linkedin-text-formatter", label: "LinkedIn text formatter" },
   { href: `mailto:${SUPPORT}`, label: SUPPORT },
   { href: "/privacy", label: "Privacy" },
   { href: "/terms", label: "Terms" },

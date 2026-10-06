@@ -9,13 +9,23 @@ import { ORIGIN } from "@/lib/share";
  */
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const pages = ["", "/compare", "/blog", "/docs", "/privacy", "/terms"];
+  const pages = [
+    "",
+    "/pricing",
+    "/agencies",
+    "/tools/linkedin-text-formatter",
+    "/compare",
+    "/blog",
+    "/docs",
+    "/privacy",
+    "/terms",
+  ];
   return [
     ...pages.map((path) => ({ url: `${ORIGIN}${path}` })),
     ...COMPARISONS.map((c) => ({ url: `${ORIGIN}/compare/${c.slug}` })),
     ...POSTS.map((post) => ({
       url: `${ORIGIN}/blog/${post.slug}`,
-      lastModified: post.date,
+      lastModified: post.updated ?? post.date,
     })),
   ];
 }

@@ -24,6 +24,8 @@ import { isSignedIn, loadViewerAccount } from "@/lib/viewer";
 import { PlanButton } from "@/components/marketing/plan-button";
 import { TrackLanding } from "@/components/marketing/track-landing";
 import { shareMetadata } from "@/lib/share";
+import { JsonLd } from "@/components/marketing/json-ld";
+import { jsonLd, organization, software } from "@/lib/structured-data";
 
 export const metadata = shareMetadata({
   path: "/",
@@ -230,6 +232,7 @@ export default async function Home() {
 
   return (
     <>
+      <JsonLd data={jsonLd(organization(), software())} />
       <SiteNav signedIn={signedIn} />
       {signedIn ? null : <TrackLanding />}
 
@@ -493,7 +496,7 @@ export default async function Home() {
                   <p className="font-mono text-[12px] text-ink-2">Each client&rsquo;s own</p>
                   <p className="num text-[16px] leading-[1.5]">
                     Up to {AGENCY_SEATS} clients, {PLANS[1].priceLine}.{" "}
-                    <Link href="#pricing" className="font-mono text-[12px] text-accent-text">
+                    <Link href="/agencies" className="font-mono text-[12px] text-accent-text">
                       See the agency plan →
                     </Link>
                   </p>

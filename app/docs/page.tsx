@@ -10,7 +10,7 @@ import { DOCS } from "@/lib/content/docs";
 
 export const metadata: Metadata = shareMetadata({
   path: "/docs",
-  title: "Docs | GoodSocials",
+  title: "Docs: how the GoodSocials board works",
   description:
     "How GoodSocials works: the board, the three card actions, brand principles, themes, scheduling, sources, reconnecting LinkedIn, agency mode and billing.",
 });
