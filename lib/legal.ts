@@ -18,6 +18,12 @@ export const SUPPORT = "hello@goodsocials.co";
 /** Pasha's LinkedIn. Wherever the page names him, his name links here. */
 export const FOUNDER_LINKEDIN = "https://www.linkedin.com/in/pavelkucherbaev/";
 
+/**
+ * The public repository. MIT licensed, so anyone can deploy their own copy and
+ * change it. The landing hero asks for a star here and the footer links it.
+ */
+export const GITHUB_REPO = "https://github.com/pavelk2/goodsocials";
+
 export const LAST_UPDATED = "24 September 2026";
 
 /** Seats on the agency and consultancy plans. The prices live in lib/plans.ts. */
