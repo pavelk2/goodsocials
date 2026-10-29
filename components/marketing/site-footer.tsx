@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Logo } from "./logo";
 import { Streak } from "./streak";
-import { AGENCY_SEATS, SUPPORT } from "@/lib/legal";
+import { AGENCY_SEATS, GITHUB_REPO, SUPPORT } from "@/lib/legal";
 import { BOARD_HREF, DEFAULT_PLAN } from "@/lib/plans";
 import { COMPARISONS } from "@/lib/content/compare";
 import { POSTS } from "@/lib/content/blog";
@@ -43,6 +43,7 @@ const LINKS = [
 const SECONDARY = [
   { href: "/agencies", label: `Run up to ${AGENCY_SEATS} clients` },
   { href: "/tools/linkedin-text-formatter", label: "LinkedIn text formatter" },
+  { href: GITHUB_REPO, label: "Open source on GitHub" },
   { href: `mailto:${SUPPORT}`, label: SUPPORT },
   { href: "/privacy", label: "Privacy" },
   { href: "/terms", label: "Terms" },
