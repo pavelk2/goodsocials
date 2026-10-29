@@ -12,7 +12,6 @@ import {
   PLANS,
   DEFAULT_PLAN,
   HERO_CTA,
-  HIRE_CTA,
   SIGNED_IN_CTA,
   TRIAL_CTA,
   TRIAL_DAYS,
@@ -310,12 +309,6 @@ export default async function Home() {
               className="pill btn-accent inline-block w-full px-7 py-[14px] text-center text-[16px] sm:w-auto"
             >
               {startLabel}
-            </Link>
-            <Link
-              href="#pricing"
-              className="pill btn-outline num inline-block w-full border border-hairline bg-surface px-7 py-[14px] text-center text-[16px] sm:w-auto"
-            >
-              {HIRE_CTA}
             </Link>
             <a
               href={GITHUB_REPO}

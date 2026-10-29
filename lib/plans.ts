@@ -125,13 +125,10 @@ export const DEFAULT_PLAN = PLANS[0];
  * The landing page's first step, on the hero, the section on what it writes,
  * and the close. Signing in with LinkedIn and pasting a URL puts seven posts on
  * a board before any card is asked for, so the step a stranger takes first is
- * seeing their first post, and the button says that. The price sits beside it
- * as the secondary.
+ * seeing their first post, and the button says that. The GitHub star sits
+ * beside it as the secondary, and the price is in the line under both.
  */
 export const HERO_CTA = "See your first post for free";
-
-/** The hero's second button. The price and what it buys, in the button. */
-export const HIRE_CTA = `Hire a social media manager for ${DEFAULT_PLAN.price}`;
 
 /** Free days on every plan, before the first charge. Stated wherever a price is. */
 export const TRIAL_DAYS = 14;
